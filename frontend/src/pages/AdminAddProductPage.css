@@ -4,7 +4,7 @@
    ======================================================== */
 
 .admin-product-page {
-  background: var(--cream, #faf2ea);
+  background: var(--cream, #F7F3EA);
   min-height: 100vh;
   padding-bottom: 80px;
   color: #0f172a;
@@ -13,8 +13,8 @@
 
 /* ── Top Header ── */
 .admin-product-header {
-  background: linear-gradient(135deg, #2A2121 0%, #3B2F2F 50%, #201818 100%);
-  border-bottom: 1.5px solid var(--taupe-border, rgba(158, 123, 102, 0.35));
+  background: linear-gradient(135deg, #39332E 0%, #39332E 50%, #201818 100%);
+  border-bottom: 1.5px solid var(--taupe-border, rgba(210, 185, 140, 0.35));
   padding: 28px 0 32px;
   color: #ffffff;
   margin-bottom: 32px;
@@ -79,7 +79,7 @@
 
 .admin-product-tag {
   display: inline-block;
-  background: var(--gold, #C58B59);
+  background: var(--gold, #D2B98C);
   color: #ffffff;
   font-size: 10px;
   font-weight: 800;
@@ -119,8 +119,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(197, 139, 89, 0.2);
-  border: 1px solid rgba(197, 139, 89, 0.45);
+  background: rgba(210, 185, 140, 0.2);
+  border: 1px solid rgba(210, 185, 140, 0.45);
   color: var(--gold-light, #dfbe59);
   padding: 8px 16px;
   border-radius: 8px;
@@ -131,7 +131,7 @@
 }
 
 .admin-product-btn-b2b:hover {
-  background: rgba(197, 139, 89, 0.35);
+  background: rgba(210, 185, 140, 0.35);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -173,7 +173,7 @@
 
 .admin-product-stat-card {
   background: #ffffff;
-  border: 1px solid rgba(158, 123, 102, 0.25);
+  border: 1px solid rgba(210, 185, 140, 0.25);
   border-radius: 12px;
   padding: 18px 22px;
   box-shadow: 0 2px 10px rgba(59, 47, 47, 0.04);
@@ -193,7 +193,7 @@
 .admin-product-stat-value {
   font-size: 30px;
   font-weight: 700;
-  color: #3B2F2F;
+  color: #39332E;
   line-height: 1.1;
   margin: 2px 0;
 }
@@ -209,7 +209,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
-  border-bottom: 2px solid rgba(158, 123, 102, 0.2);
+  border-bottom: 2px solid rgba(210, 185, 140, 0.2);
   padding-bottom: 12px;
 }
 
@@ -218,7 +218,7 @@
   align-items: center;
   gap: 8px;
   background: #ffffff;
-  border: 1.5px solid rgba(158, 123, 102, 0.25);
+  border: 1.5px solid rgba(210, 185, 140, 0.25);
   padding: 10px 22px;
   border-radius: 8px;
   font-size: 13.5px;
@@ -229,8 +229,8 @@
 }
 
 .admin-product-tab:hover {
-  color: #3B2F2F;
-  border-color: var(--gold, #C58B59);
+  color: #39332E;
+  border-color: var(--gold, #D2B98C);
 }
 
 .admin-product-tab.active {
@@ -297,7 +297,7 @@
 /* ── Product Card Container ── */
 .admin-product-card {
   background: #ffffff;
-  border: 1.5px solid rgba(158, 123, 102, 0.25);
+  border: 1.5px solid rgba(210, 185, 140, 0.25);
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(59, 47, 47, 0.05);
   overflow: hidden;
@@ -318,7 +318,7 @@
 .admin-product-card-title-group h2 {
   font-size: 20px;
   font-weight: 700;
-  color: #3B2F2F;
+  color: #39332E;
   margin: 0 0 4px;
 }
 
@@ -455,8 +455,8 @@
   height: 54px;
   border-radius: 8px;
   object-fit: cover;
-  border: 1.5px solid rgba(158, 123, 102, 0.25);
-  background: #FAF2EA;
+  border: 1.5px solid rgba(210, 185, 140, 0.25);
+  background: #F7F3EA;
   flex-shrink: 0;
 }
 
@@ -488,9 +488,9 @@
 
 .table-tag-chip {
   display: inline-block;
-  background: rgba(197, 139, 89, 0.15);
+  background: rgba(210, 185, 140, 0.15);
   color: var(--gold-dark, #AF7644);
-  border: 1px solid rgba(197, 139, 89, 0.35);
+  border: 1px solid rgba(210, 185, 140, 0.35);
   font-size: 10.5px;
   font-weight: 700;
   padding: 1px 7px;
@@ -527,7 +527,7 @@
 }
 
 .table-price-cell strong {
-  color: #3B2F2F;
+  color: #39332E;
   font-size: 14.5px;
 }
 
@@ -666,7 +666,7 @@
 .form-section-title {
   font-size: 16.5px;
   font-weight: 700;
-  color: #3B2F2F;
+  color: #39332E;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -724,8 +724,8 @@
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-  border-color: var(--gold, #C58B59);
-  box-shadow: 0 0 0 3px rgba(197, 139, 89, 0.15);
+  border-color: var(--gold, #D2B98C);
+  box-shadow: 0 0 0 3px rgba(210, 185, 140, 0.15);
 }
 
 .form-textarea {
@@ -755,7 +755,7 @@
 .checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #3B2F2F;
+  accent-color: #39332E;
   cursor: pointer;
 }
 
@@ -783,14 +783,14 @@
 }
 
 .badge-chip-btn:hover {
-  border-color: var(--gold, #C58B59);
+  border-color: var(--gold, #D2B98C);
   color: #1e293b;
 }
 
 .badge-chip-btn.selected {
-  background: #3B2F2F;
+  background: #39332E;
   color: #ffffff;
-  border-color: #3B2F2F;
+  border-color: #39332E;
 }
 
 .custom-badge-row {
@@ -801,7 +801,7 @@
 
 /* ── Dropzone & Upload ── */
 .upload-dropzone {
-  border: 2px dashed rgba(197, 139, 89, 0.5);
+  border: 2px dashed rgba(210, 185, 140, 0.5);
   background: #fafaf9;
   border-radius: 12px;
   padding: 32px 20px;
@@ -813,7 +813,7 @@
 
 .upload-dropzone:hover {
   background: #fdfaf6;
-  border-color: var(--gold, #C58B59);
+  border-color: var(--gold, #D2B98C);
 }
 
 .upload-dropzone-content {
@@ -827,7 +827,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(197, 139, 89, 0.12);
+  background: rgba(210, 185, 140, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -836,7 +836,7 @@
 
 .upload-btn-chip {
   display: inline-block;
-  background: #3B2F2F;
+  background: #39332E;
   color: #ffffff;
   padding: 6px 16px;
   border-radius: 6px;
@@ -902,7 +902,7 @@
   position: absolute;
   top: 4px;
   left: 4px;
-  background: #3B2F2F;
+  background: #39332E;
   color: #ffffff;
   font-size: 9px;
   font-weight: 800;
@@ -993,7 +993,7 @@
 }
 
 .admin-btn-primary {
-  background: #3B2F2F;
+  background: #39332E;
   color: #ffffff;
   border: none;
   padding: 12px 28px;

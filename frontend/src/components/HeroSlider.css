@@ -10,7 +10,7 @@
   position: relative;
   width: 100%;
   padding: 56px 0 64px 0;
-  background: var(--bg-primary, #FAF7F2);
+  background: var(--bg-primary, #FFFCF5);
   overflow: hidden;
 }
 
@@ -38,18 +38,18 @@
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--gold-dark, #8A6D3B);
+  color: var(--gold-dark, #B69865);
 }
 
 .gallery-eyebrow-icon {
-  color: var(--gold, #C1A16A);
+  color: var(--gold, #D2B98C);
 }
 
 .gallery-title {
   font-family: 'Cormorant Garamond', 'Cormorant', serif;
   font-size: 38px;
   font-weight: 600;
-  color: var(--espresso, #2A2121);
+  color: var(--espresso, #39332E);
   margin: 0;
   letter-spacing: 0.5px;
   line-height: 1.15;
@@ -58,7 +58,7 @@
 .gallery-subtitle {
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
-  color: var(--text-secondary, #7A6E65);
+  color: var(--text-secondary, #5C534B);
   margin: 0;
   line-height: 1.5;
 }
@@ -78,7 +78,7 @@
   overflow: hidden;
   background: #1A1214;
   border-radius: 12px;
-  box-shadow: 0 16px 45px -8px rgba(42, 33, 33, 0.22), 0 0 1px rgba(193, 161, 106, 0.4);
+  box-shadow: 0 16px 45px -8px rgba(57, 51, 46, 0.22), 0 0 1px rgba(210, 185, 140, 0.4);
   cursor: zoom-in;
 }
 
@@ -105,9 +105,9 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg,
-      rgba(42, 33, 33, 0.1) 0%,
-      rgba(42, 33, 33, 0) 40%,
-      rgba(42, 33, 33, 0.25) 100%);
+      rgba(57, 51, 46, 0.1) 0%,
+      rgba(57, 51, 46, 0) 40%,
+      rgba(57, 51, 46, 0.25) 100%);
   pointer-events: none;
 }
 
@@ -123,9 +123,9 @@
   background: rgba(26, 18, 20, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(193, 161, 106, 0.4);
+  border: 1px solid rgba(210, 185, 140, 0.4);
   border-radius: var(--radius-full, 9999px);
-  color: #FAF7F2;
+  color: #FFFCF5;
   font-family: 'Montserrat', sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -139,8 +139,8 @@
 
 .hero-slider:hover .gallery-fullscreen-badge {
   opacity: 1;
-  background: rgba(42, 33, 33, 0.9);
-  border-color: var(--gold, #C1A16A);
+  background: rgba(57, 51, 46, 0.9);
+  border-color: var(--gold, #D2B98C);
   transform: scale(1.04);
 }
 
@@ -156,9 +156,9 @@
   background: rgba(246, 240, 231, 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(193, 161, 106, 0.45);
+  border: 1.5px solid rgba(210, 185, 140, 0.45);
   border-radius: 50%;
-  color: var(--espresso, #2A2121);
+  color: var(--espresso, #39332E);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,11 +177,11 @@
 }
 
 .hero-arrow:hover {
-  background: var(--gold-gradient, linear-gradient(135deg, #C1A16A 0%, #D4AF37 100%));
+  background: var(--gold-gradient, linear-gradient(135deg, #D2B98C 0%, #D4AF37 100%));
   color: #ffffff;
   border-color: transparent;
   transform: translateY(-50%) scale(1.08);
-  box-shadow: var(--shadow-gold, 0 4px 16px rgba(193, 161, 106, 0.4));
+  box-shadow: var(--shadow-gold, 0 4px 16px rgba(210, 185, 140, 0.4));
 }
 
 /* Elongated Pill Indicators */
@@ -194,7 +194,7 @@
   align-items: center;
   gap: 8px;
   z-index: 15;
-  background: rgba(42, 33, 33, 0.65);
+  background: rgba(57, 51, 46, 0.65);
   backdrop-filter: blur(8px);
   padding: 6px 14px;
   border-radius: var(--radius-full, 9999px);
@@ -214,7 +214,7 @@
 
 .hero-dot.active {
   width: 24px;
-  background: var(--ochre, #C58B59);
+  background: var(--ochre, #D2B98C);
   box-shadow: 0 0 8px rgba(197, 139, 89, 0.7);
 }
 
@@ -254,11 +254,11 @@
   min-width: 44px;
   min-height: 44px;
   border-radius: 50%;
-  background: rgba(42, 33, 33, 0.75);
+  background: rgba(57, 51, 46, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(193, 161, 106, 0.45);
-  color: #FAF7F2;
+  border: 1.5px solid rgba(210, 185, 140, 0.45);
+  color: #FFFCF5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,11 +269,11 @@
 }
 
 .gallery-lightbox-close:hover {
-  background: var(--gold, #C1A16A);
+  background: var(--gold, #D2B98C);
   color: #ffffff;
   border-color: transparent;
   transform: scale(1.08);
-  box-shadow: var(--shadow-gold, 0 4px 20px rgba(193, 161, 106, 0.5));
+  box-shadow: var(--shadow-gold, 0 4px 20px rgba(210, 185, 140, 0.5));
 }
 
 .gallery-lightbox-nav {
@@ -285,11 +285,11 @@
   min-width: 44px;
   min-height: 44px;
   border-radius: 50%;
-  background: rgba(42, 33, 33, 0.75);
+  background: rgba(57, 51, 46, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(193, 161, 106, 0.45);
-  color: #FAF7F2;
+  border: 1.5px solid rgba(210, 185, 140, 0.45);
+  color: #FFFCF5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -308,11 +308,11 @@
 }
 
 .gallery-lightbox-nav:hover {
-  background: var(--gold, #C1A16A);
+  background: var(--gold, #D2B98C);
   color: #ffffff;
   border-color: transparent;
   transform: translateY(-50%) scale(1.1);
-  box-shadow: var(--shadow-gold, 0 4px 20px rgba(193, 161, 106, 0.5));
+  box-shadow: var(--shadow-gold, 0 4px 20px rgba(210, 185, 140, 0.5));
 }
 
 .gallery-lightbox-content {
@@ -344,7 +344,7 @@
   height: auto;
   object-fit: contain;
   border-radius: 12px;
-  box-shadow: 0 24px 70px -10px rgba(0, 0, 0, 0.85), 0 0 1px rgba(193, 161, 106, 0.5);
+  box-shadow: 0 24px 70px -10px rgba(0, 0, 0, 0.85), 0 0 1px rgba(210, 185, 140, 0.5);
 }
 
 .gallery-lightbox-footer {
@@ -362,7 +362,7 @@
   font-family: 'Cormorant Garamond', serif;
   font-size: 22px;
   font-weight: 600;
-  color: #FAF7F2;
+  color: #FFFCF5;
   letter-spacing: 0.5px;
 }
 
@@ -370,7 +370,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: var(--gold, #C1A16A);
+  color: var(--gold, #D2B98C);
   letter-spacing: 1.5px;
 }
 

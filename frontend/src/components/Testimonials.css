@@ -3,7 +3,7 @@
    ============================================== */
 .testimonials-section {
   padding: 80px 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(237, 217, 204, 0.38) 50%, transparent 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(247, 243, 234, 0.38) 50%, transparent 100%);
   position: relative;
 }
 
@@ -17,7 +17,7 @@
   background: var(--white, #FFFFFF);
   border-radius: var(--radius-md);
   padding: 26px 24px;
-  border: 1px solid rgba(193, 161, 106, 0.35);
+  border: 1px solid rgba(210, 185, 140, 0.35);
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
@@ -28,7 +28,7 @@
 
 .review-card:hover {
   transform: translateY(-6px);
-  border-color: var(--gold, #C1A16A);
+  border-color: var(--gold, #D2B98C);
   box-shadow: var(--shadow-hover);
 }
 
@@ -100,7 +100,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: var(--burgundy, #702F42);
+  background: var(--burgundy, #D2B98C);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -109,7 +109,7 @@
   font-size: 16px;
   font-weight: 700;
   flex-shrink: 0;
-  border: 1.5px solid var(--gold, #C1A16A);
+  border: 1.5px solid var(--gold, #D2B98C);
   box-shadow: var(--shadow-burgundy);
 }
 
@@ -122,7 +122,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   font-weight: 700;
-  color: var(--espresso, #382D2D);
+  color: var(--espresso, #39332E);
   margin: 0;
 }
 

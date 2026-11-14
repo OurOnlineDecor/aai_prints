@@ -601,7 +601,7 @@ export default function AdminAddProductPage({
             {/* Table Content */}
             {isLoadingProducts ? (
               <div className="admin-product-loading">
-                <Loader2 size={24} className="spin-anim" style={{ color: 'var(--gold, #C58B59)' }} />
+                <Loader2 size={24} className="spin-anim" style={{ color: 'var(--gold, #D2B98C)' }} />
                 <span>Loading retail catalog from server...</span>
               </div>
             ) : filteredProducts.length === 0 ? (
@@ -942,14 +942,14 @@ export default function AdminAddProductPage({
                 >
                   {isUploadingImages ? (
                     <div className="upload-dropzone-content">
-                      <Loader2 size={28} className="spin-anim" style={{ color: 'var(--gold, #C58B59)' }} />
+                      <Loader2 size={28} className="spin-anim" style={{ color: 'var(--gold, #D2B98C)' }} />
                       <strong>Uploading photos to Cloudinary CDN...</strong>
                       <small>Generating optimized assets</small>
                     </div>
                   ) : (
                     <div className="upload-dropzone-content">
                       <div className="upload-icon-circle">
-                        <UploadCloud size={24} style={{ color: 'var(--gold, #C58B59)' }} />
+                        <UploadCloud size={24} style={{ color: 'var(--gold, #D2B98C)' }} />
                       </div>
                       <strong>Click to upload product photos</strong>
                       <small>Supports PNG, JPG, WEBP up to 10MB each</small>

@@ -109,11 +109,11 @@
 
 .pdp-thumb-btn:hover {
   border-color: var(--gold);
-  background: var(--sand-accent, #edd9cc);
+  background: var(--sand-accent, #F7F3EA);
 }
 
 .pdp-thumb-btn.active {
-  background: var(--sand-accent, #edd9cc);
+  background: var(--sand-accent, #F7F3EA);
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(197, 155, 39, 0.35);
 }
@@ -149,7 +149,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: var(--sand-vignette, radial-gradient(circle at center, #faf2ea 30%, #edd9cc 100%));
+  background: var(--sand-vignette, radial-gradient(circle at center, #F7F3EA 30%, #F7F3EA 100%));
 }
 
 .pdp-main-img {
@@ -300,7 +300,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 32px;
   font-weight: 800;
-  color: var(--espresso, #382D2D);
+  color: var(--espresso, #39332E);
 }
 
 .pdp-price-original {
@@ -312,7 +312,7 @@
 
 .pdp-discount-badge {
   background: var(--burgundy-light, #F8EDF1);
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
   border: 1px solid rgba(112, 47, 66, 0.25);
   border-radius: 4px;
   font-family: 'Montserrat', sans-serif;
@@ -383,7 +383,7 @@
 
 .pdp-variant-chip {
   background: rgba(237, 217, 204, 0.45);
-  border: 1px solid rgba(158, 123, 102, 0.28);
+  border: 1px solid rgba(210, 185, 140, 0.28);
   color: var(--text-dark);
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
@@ -396,13 +396,13 @@
 }
 
 .pdp-variant-chip:hover {
-  background: var(--sand-accent, #edd9cc);
+  background: var(--sand-accent, #F7F3EA);
   border-color: var(--gold);
   color: var(--espresso);
 }
 
 .pdp-variant-chip.active {
-  background: var(--sand-accent, #edd9cc);
+  background: var(--sand-accent, #F7F3EA);
   border-color: var(--gold);
   color: var(--espresso);
   font-weight: 700;
@@ -449,7 +449,7 @@
 }
 
 .pdp-qty-btn:hover:not(:disabled) {
-  background: var(--sand-accent, #edd9cc);
+  background: var(--sand-accent, #F7F3EA);
   color: var(--espresso);
 }
 
@@ -489,9 +489,9 @@
 
 .pdp-btn-add-cart {
   flex: 1;
-  background: var(--burgundy, #702F42);
+  background: var(--burgundy, #D2B98C);
   color: #fff;
-  border: 1px solid rgba(193, 161, 106, 0.45);
+  border: 1px solid rgba(210, 185, 140, 0.45);
   border-radius: var(--radius-full);
   padding: 14px 28px;
   font-family: 'Montserrat', sans-serif;
@@ -516,8 +516,8 @@
 }
 
 .pdp-btn-add-cart.added {
-  background: var(--burgundy, #702F42);
-  border-color: var(--gold, #C1A16A);
+  background: var(--burgundy, #D2B98C);
+  border-color: var(--gold, #D2B98C);
   box-shadow: 0 4px 14px rgba(112, 47, 66, 0.35);
 }
 

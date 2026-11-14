@@ -471,7 +471,7 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
         {/* Right Column: Live Reels Showcase & Management */}
         <div className="admin-reels-card">
           <div className="admin-reels-card-header">
-            <div className="admin-reels-card-icon" style={{ background: '#FAF6F2', color: '#3B2F2F' }}>
+            <div className="admin-reels-card-icon" style={{ background: '#FFFCF5', color: '#39332E' }}>
               <Film size={20} />
             </div>
             <div>

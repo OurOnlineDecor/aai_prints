@@ -47,7 +47,7 @@
 
 /* ── Luxury Header ── */
 .admin-modal-header {
-  background: linear-gradient(135deg, #241A1A 0%, #3B2F2F 60%, #2A2121 100%);
+  background: linear-gradient(135deg, #241A1A 0%, #39332E 60%, #39332E 100%);
   padding: 20px 28px;
   display: flex;
   align-items: center;
@@ -109,7 +109,7 @@
 }
 
 .admin-modal-tag {
-  background: #C58B59;
+  background: #D2B98C;
   color: #ffffff;
   font-size: 10px;
   font-weight: 800;
@@ -258,9 +258,9 @@
 }
 
 .quicknav-btn:hover {
-  background: #FAF2EA;
-  border-color: #C58B59;
-  color: #3B2F2F;
+  background: #F7F3EA;
+  border-color: #D2B98C;
+  color: #39332E;
   transform: translateY(-1px);
 }
 
@@ -355,14 +355,14 @@
 }
 
 .text-gold {
-  color: #C58B59;
+  color: #D2B98C;
 }
 
 .card-section-header h4 {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #3B2F2F;
+  color: #39332E;
   letter-spacing: 0.2px;
 }
 
@@ -438,7 +438,7 @@
 .admin-modal-input:focus,
 .admin-modal-select:focus,
 .admin-modal-textarea:focus {
-  border-color: #C58B59;
+  border-color: #D2B98C;
   box-shadow: 0 0 0 3px rgba(197, 139, 89, 0.15);
 }
 
@@ -502,14 +502,14 @@
 
 .preset-chip:hover {
   background: #edd9cc;
-  color: #3B2F2F;
-  border-color: #C58B59;
+  color: #39332E;
+  border-color: #D2B98C;
 }
 
 .preset-chip.selected {
-  background: #3B2F2F;
+  background: #39332E;
   color: #ffffff;
-  border-color: #3B2F2F;
+  border-color: #39332E;
   font-weight: 600;
 }
 
@@ -549,14 +549,14 @@
 }
 
 .badge-pill:hover {
-  border-color: #C58B59;
-  background: #FAF2EA;
+  border-color: #D2B98C;
+  background: #F7F3EA;
 }
 
 .badge-pill.active {
-  background: linear-gradient(135deg, #FAF2EA 0%, #EDD9CC 100%);
-  border-color: #C58B59;
-  color: #3B2F2F;
+  background: linear-gradient(135deg, #F7F3EA 0%, #F7F3EA 100%);
+  border-color: #D2B98C;
+  color: #39332E;
   box-shadow: 0 2px 6px rgba(197, 139, 89, 0.15);
 }
 
@@ -572,7 +572,7 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  background: #FAF2EA;
+  background: #F7F3EA;
   border: 1px dashed rgba(197, 139, 89, 0.4);
   padding: 10px 14px;
   border-radius: 8px;
@@ -596,7 +596,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #3B2F2F;
+  background: #39332E;
   color: #ffffff;
   font-size: 11.5px;
   font-weight: 600;
@@ -652,7 +652,7 @@
 }
 
 .stock-toggle-box:hover {
-  border-color: #C58B59;
+  border-color: #D2B98C;
 }
 
 .stock-toggle-box.is-active {
@@ -803,7 +803,7 @@
 .admin-modal-upload-zone {
   border: 2px dashed rgba(197, 139, 89, 0.5);
   border-radius: 12px;
-  background: #FAF2EA;
+  background: #F7F3EA;
   padding: 24px 20px;
   text-align: center;
   cursor: pointer;
@@ -818,7 +818,7 @@
 .admin-modal-upload-zone:hover,
 .admin-modal-upload-zone.drag-over {
   background: #edd9cc;
-  border-color: #3B2F2F;
+  border-color: #39332E;
 }
 
 .admin-modal-upload-zone.uploading {
@@ -827,14 +827,14 @@
 }
 
 .upload-zone-icon {
-  color: #C58B59;
+  color: #D2B98C;
 }
 
 .upload-zone-text h5 {
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 700;
-  color: #3B2F2F;
+  color: #39332E;
 }
 
 .upload-zone-text p {
@@ -884,7 +884,7 @@
 }
 
 .modal-gallery-card.is-cover-card {
-  border-color: #C58B59;
+  border-color: #D2B98C;
   box-shadow: 0 0 0 2px rgba(197, 139, 89, 0.35);
 }
 
@@ -892,7 +892,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  background: #FAF2EA;
+  background: #F7F3EA;
   overflow: hidden;
 }
 
@@ -907,7 +907,7 @@
   position: absolute;
   top: 6px;
   left: 6px;
-  background: #3B2F2F;
+  background: #39332E;
   color: #ffffff;
   font-size: 9px;
   font-weight: 800;
@@ -951,7 +951,7 @@
 }
 
 .gallery-action-btn.cover-btn {
-  color: #3B2F2F;
+  color: #39332E;
 }
 
 .gallery-action-btn.cover-btn:hover {
@@ -990,7 +990,7 @@
 }
 
 .gallery-view-link:hover {
-  color: #3B2F2F;
+  color: #39332E;
 }
 
 .empty-media-state {
@@ -1021,7 +1021,7 @@
 
 .variant-activation-banner.enabled {
   background: #fdfaf6;
-  border-color: #C58B59;
+  border-color: #D2B98C;
 }
 
 .banner-left {
@@ -1031,13 +1031,13 @@
 }
 
 .banner-icon {
-  color: #C58B59;
+  color: #D2B98C;
 }
 
 .banner-left strong {
   display: block;
   font-size: 13.5px;
-  color: #3B2F2F;
+  color: #39332E;
 }
 
 .banner-left p {
@@ -1104,7 +1104,7 @@
 }
 
 .admin-modal-table-input:focus {
-  border-color: #C58B59;
+  border-color: #D2B98C;
   background: #fffdfa;
 }
 
@@ -1136,9 +1136,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #FAF2EA;
+  background: #F7F3EA;
   border: 1.5px solid rgba(158, 123, 102, 0.35);
-  color: #3B2F2F;
+  color: #39332E;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 12.5px;
@@ -1150,7 +1150,7 @@
 
 .admin-btn-secondary:hover {
   background: #edd9cc;
-  border-color: #C58B59;
+  border-color: #D2B98C;
 }
 
 /* ── Sticky Luxury Footer ── */
@@ -1224,7 +1224,7 @@
   align-items: center;
   gap: 8px;
   padding: 9px 24px;
-  background: linear-gradient(135deg, #2A2121 0%, #3B2F2F 100%);
+  background: linear-gradient(135deg, #39332E 0%, #39332E 100%);
   color: #ffffff;
   border: 1px solid rgba(197, 139, 89, 0.5);
   border-radius: 8px;
@@ -1236,7 +1236,7 @@
 }
 
 .admin-modal-btn-save:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1c1515 0%, #2A2121 100%);
+  background: linear-gradient(135deg, #1c1515 0%, #39332E 100%);
   border-color: #dfbe59;
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(59, 47, 47, 0.35);

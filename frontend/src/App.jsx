@@ -8,6 +8,7 @@ import ReelsSection from './components/ReelsSection';
 import ProductSection from './components/ProductSection';
 import HeroSlider from './components/HeroSlider';
 import Testimonials from './components/Testimonials';
+import BrandsTrustSection from './components/BrandsTrustSection';
 import PromoBanner from './components/PromoBanner';
 import Footer from './components/Footer';
 import WishlistDrawer from './components/WishlistDrawer';
@@ -439,20 +440,20 @@ function App() {
                 {/* Clean notice when catalogue is empty / being populated */}
                 {allProducts.length === 0 && (
                   <section className="catalog-status-banner" style={{ padding: '24px 20px' }}>
-                    <div style={{ maxWidth: '720px', margin: '20px auto', textAlign: 'center', padding: '36px 24px', background: '#ffffff', borderRadius: '16px', border: '1px solid rgba(197, 155, 39, 0.28)', boxShadow: '0 4px 20px rgba(35, 95, 100, 0.05)' }}>
-                      <span style={{ display: 'inline-block', color: 'var(--gold-dark, #9e7916)', letterSpacing: '2px', fontSize: '10.5px', fontWeight: '700', fontFamily: 'var(--font-serif, "Cinzel", serif)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                    <div style={{ maxWidth: '720px', margin: '20px auto', textAlign: 'center', padding: '36px 24px', background: '#F7F3EA', borderRadius: '16px', border: '1px solid rgba(210, 185, 140, 0.4)', boxShadow: '0 4px 20px rgba(57, 51, 46, 0.05)' }}>
+                      <span style={{ display: 'inline-block', color: 'var(--espresso, #39332E)', letterSpacing: '2px', fontSize: '10.5px', fontWeight: '700', fontFamily: 'var(--font-serif, "Cinzel", serif)', textTransform: 'uppercase', marginBottom: '8px' }}>
                         STORE CATALOGUE
                       </span>
-                      <h2 style={{ fontFamily: 'var(--font-display, "Cormorant", serif)', color: 'var(--teal-deep)', fontSize: '28px', margin: '0 0 10px', fontWeight: '600', fontStyle: 'italic' }}>
+                      <h2 style={{ fontFamily: 'var(--font-display, "Cormorant", serif)', color: 'var(--espresso, #39332E)', fontSize: '28px', margin: '0 0 10px', fontWeight: '600', fontStyle: 'italic' }}>
                         Collection In Preparation
                       </h2>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.65', maxWidth: '520px', margin: '0 auto 20px' }}>
-                        Our  devotional artworks, illuminated frames, and decor pieces are currently being updated.
+                      <p style={{ color: 'var(--text-muted, #857A70)', fontSize: '14px', lineHeight: '1.65', maxWidth: '520px', margin: '0 auto 20px' }}>
+                        Our devotional artworks, illuminated frames, and decor pieces are currently being updated.
                       </p>
                       <button
                         type="button"
                         onClick={() => navigateTo('shop', 'All')}
-                        style={{ background: 'var(--teal)', color: 'var(--text-inverse)', border: 'none', padding: '12px 28px', borderRadius: 'var(--radius-full)', fontFamily: 'var(--font-body, "Montserrat", sans-serif)', fontSize: '12px', fontWeight: '600', letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 4px 14px rgba(30, 82, 87, 0.25)' }}
+                        style={{ background: 'var(--accent, #D2B98C)', color: '#39332E', border: '1px solid rgba(57, 51, 46, 0.15)', padding: '12px 28px', borderRadius: 'var(--radius-full)', fontFamily: 'var(--font-body, "Montserrat", sans-serif)', fontSize: '12px', fontWeight: '700', letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 4px 14px rgba(210, 185, 140, 0.35)' }}
                       >
                         Browse Collection Categories
                       </button>
@@ -468,6 +469,9 @@ function App() {
 
                 {/* Customer reviews section (resolves REVIEWS navbar link) */}
                 <Testimonials />
+
+                {/* Brands That Trust Us - Client & Institutional Showcase */}
+                <BrandsTrustSection />
 
                 {/* Full-width promo strip (Free Shipping + ₹100 OFF) */}
                 <PromoBanner onNavigateShop={() => navigateTo('shop', 'All')} />

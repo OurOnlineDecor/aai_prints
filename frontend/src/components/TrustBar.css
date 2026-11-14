@@ -2,7 +2,7 @@
    Luxury Trust Bar
    ============================================== */
 .trust-bar {
-  background: linear-gradient(90deg, #2A2121 0%, #3B2F2F 50%, #2A2121 100%);
+  background: linear-gradient(90deg, #39332E 0%, #39332E 50%, #39332E 100%);
   padding: 32px 0;
   border-top: 1px solid rgba(237, 217, 204, 0.25);
   border-bottom: 1px solid rgba(237, 217, 204, 0.25);
@@ -33,7 +33,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(197, 139, 89, 0.18);
+  background: rgba(210, 185, 140, 0.18);
   border: 1px solid var(--gold-border);
   color: var(--gold-light);
   display: flex;

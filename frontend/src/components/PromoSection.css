@@ -8,11 +8,11 @@
 }
 
 .promo-dark {
-  background: #3B2F2F;
+  background: #39332E;
 }
 
 .promo-light-green {
-  background: linear-gradient(135deg, #FAF6F2 0%, #faf2ea 100%);
+  background: linear-gradient(135deg, #FFFCF5 0%, #F7F3EA 100%);
 }
 
 .promo-banner-inner {
@@ -36,7 +36,7 @@
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: #C58B59;
+  color: #D2B98C;
 }
 
 .promo-eyebrow-dark {
@@ -54,7 +54,7 @@
 }
 
 .promo-title-dark {
-  color: #3B2F2F;
+  color: #39332E;
 }
 
 .promo-desc {
@@ -93,7 +93,7 @@
 .promo-sale-price {
   font-size: 36px;
   font-weight: 800;
-  color: #C58B59;
+  color: #D2B98C;
   line-height: 1;
 }
 
@@ -104,7 +104,7 @@
 }
 
 .promo-save-badge {
-  background: #C58B59;
+  background: #D2B98C;
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -126,18 +126,18 @@
 
 .promo-btn-light {
   background: #fff;
-  color: #3B2F2F;
+  color: #39332E;
 }
 
 .promo-btn-light:hover {
-  background: #C58B59;
+  background: #D2B98C;
   transform: translateY(-2px);
 }
 
 .promo-btn-dark {
-  background: #C58B59;
+  background: #D2B98C;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(197, 139, 89, 0.3);
+  box-shadow: 0 4px 14px rgba(210, 185, 140, 0.3);
 }
 
 .promo-btn-dark:hover {

@@ -2,9 +2,9 @@
    Luxury Announcement Bar – Aai Prints
    ============================================== */
 .ann-bar {
-  background: linear-gradient(90deg, #271E1E 0%, #382D2D 50%, #271E1E 100%);
+  background: linear-gradient(90deg, #2A2420 0%, #39332E 50%, #2A2420 100%);
   color: #FFFFFF;
-  border-bottom: 1px solid rgba(193, 161, 106, 0.4);
+  border-bottom: 1px solid rgba(210, 185, 140, 0.4);
   font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   font-weight: 400;
@@ -49,7 +49,7 @@
 }
 
 .ann-diamond {
-  color: var(--gold, #C1A16A);
+  color: var(--gold, #D2B98C);
   font-size: 10px;
   opacity: 0.95;
 }
@@ -59,12 +59,13 @@
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 1.8px;
-  color: #FFFFFF;
-  background: var(--burgundy, #702F42);
+  color: #39332E;
+  background: var(--burgundy, #D2B98C);
   padding: 2.5px 9px;
   border-radius: 4px;
-  border: 1px solid rgba(193, 161, 106, 0.4);
+  border: 1px solid rgba(210, 185, 140, 0.4);
   text-transform: uppercase;
+  font-weight: 800;
 }
 
 .ann-text {
@@ -81,8 +82,8 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: #382D2D;
-  background: var(--gold-gradient, linear-gradient(135deg, #DFC497 0%, #C1A16A 100%));
+  color: #39332E;
+  background: var(--gold-gradient, linear-gradient(135deg, #D2B98C 0%, #D2B98C 100%));
   padding: 2px 9px;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
@@ -90,7 +91,7 @@
 
 .ann-btn {
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(193, 161, 106, 0.25);
+  border: 1px solid rgba(210, 185, 140, 0.25);
   color: rgba(246, 240, 231, 0.85);
   width: 24px;
   height: 24px;
@@ -104,9 +105,9 @@
 }
 
 .ann-btn:hover {
-  background: var(--burgundy, #702F42);
-  color: #ffffff;
-  border-color: var(--gold, #C1A16A);
+  background: var(--burgundy, #D2B98C);
+  color: #39332E;
+  border-color: var(--gold, #D2B98C);
   transform: scale(1.08);
 }
 
@@ -115,8 +116,8 @@
   align-items: center;
   gap: 6px;
   background: rgba(232, 217, 199, 0.15);
-  border: 1px solid rgba(193, 161, 106, 0.45);
-  color: var(--gold-light, #DFC497);
+  border: 1px solid rgba(210, 185, 140, 0.45);
+  color: var(--gold-light, #D2B98C);
   font-family: var(--font-eyebrow, 'Cinzel', serif);
   font-size: 10.5px;
   font-weight: 700;
@@ -132,11 +133,11 @@
 }
 
 .ann-b2b-link:hover {
-  background: var(--burgundy, #702F42);
-  color: #FFFFFF;
-  border-color: var(--gold, #C1A16A);
+  background: var(--burgundy, #D2B98C);
+  color: #39332E;
+  border-color: var(--gold, #D2B98C);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-burgundy);
+  box-shadow: 0 4px 12px rgba(210, 185, 140, 0.35);
 }
 
 @media (max-width: 640px) {

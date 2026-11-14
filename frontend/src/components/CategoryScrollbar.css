@@ -1,20 +1,20 @@
 /* ==============================================
    Category Bar – Luxury Endless Marquee Loop
-   Background: Reversed Gradient (Darker on Sides -> Bright in Middle)
-   Sides: Dark Yellow (#B37D22) | Center: Bright Luminous Cream (#FFFDF8)
-   Circle: Antique Gold Ring & Shadow (#C1A16A)
+   Theme: Cozy Home Goods – Warm Cashmere & Honey Sand Spotlight
+   Sides: Soft Honey Sand (#D4BC92) | Middle: Luminous Warm Linen (#FFFDF8)
+   Circle: Warm Sand Ring with White Halo (#D2B98C)
    ============================================== */
 
 .catbar-wrap {
-  background: linear-gradient(90deg, #B37D22 0%, #D8A84E 20%, #FFFDF8 50%, #D8A84E 80%, #B37D22 100%);
-  border-top: 1px solid rgba(193, 161, 106, 0.35);
-  border-bottom: 1.5px solid rgba(193, 161, 106, 0.45);
+  background: linear-gradient(90deg, #D4BC92 0%, #EDE0CE 24%, #FFFDF8 50%, #EDE0CE 76%, #D4BC92 100%);
+  border-top: 1px solid rgba(210, 185, 140, 0.4);
+  border-bottom: 1.5px solid rgba(210, 185, 140, 0.45);
   overflow: hidden;
   position: relative;
   width: 100%;
   padding: 22px 0 26px;
   user-select: none;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 2px 8px rgba(57, 51, 46, 0.05), inset 0 -2px 8px rgba(57, 51, 46, 0.03);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -32,12 +32,12 @@
 
 .catbar-wrap::before {
   left: 0;
-  background: linear-gradient(to right, #B37D22 0%, rgba(179, 125, 34, 0) 100%);
+  background: linear-gradient(to right, #D4BC92 0%, rgba(212, 188, 146, 0) 100%);
 }
 
 .catbar-wrap::after {
   right: 0;
-  background: linear-gradient(to left, #B37D22 0%, rgba(179, 125, 34, 0) 100%);
+  background: linear-gradient(to left, #D4BC92 0%, rgba(212, 188, 146, 0) 100%);
 }
 
 /* ── Continuous Endless Loop Track ── */
@@ -81,7 +81,7 @@
   transform: translateY(-4px);
 }
 
-/* ── Circular Frame with Antique Gold Ring & Shadow (#C1A16A) ── */
+/* ── Circular Frame with Warm Caramel Sand Ring & White Halo (#D2B98C) ── */
 .catbar-circle {
   width: 128px;
   height: 128px;
@@ -89,17 +89,17 @@
   padding: 3.5px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #C1A16A;
-  background: #F6F0E7;
+  border: 2px solid #D2B98C;
+  background: #FFFCF5;
   flex-shrink: 0;
-  box-shadow: 0 0 0 3px #C1A16A, 0 6px 20px rgba(193, 161, 106, 0.55), 0 0 14px rgba(193, 161, 106, 0.4);
+  box-shadow: 0 0 0 3px #FFFFFF, 0 6px 20px rgba(57, 51, 46, 0.1), 0 0 12px rgba(210, 185, 140, 0.4);
   transition: all 0.35s ease;
   position: relative;
 }
 
 .catbar-item:hover .catbar-circle {
-  border-color: #FFFFFF;
-  box-shadow: 0 0 0 3.5px #D4AF37, 0 10px 30px rgba(193, 161, 106, 0.8), 0 0 22px rgba(193, 161, 106, 0.6);
+  border-color: #D2B98C;
+  box-shadow: 0 0 0 3.5px #D2B98C, 0 10px 28px rgba(57, 51, 46, 0.16), 0 0 18px rgba(210, 185, 140, 0.55);
   transform: scale(1.05);
 }
 
@@ -124,8 +124,8 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   font-weight: 700;
-  color: #24181B;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.65);
+  color: #39332E;
+  text-shadow: 0 1px 2px rgba(255, 252, 245, 0.8);
   letter-spacing: 0.3px;
   line-height: 1.3;
   margin: 0;
@@ -135,7 +135,7 @@
 }
 
 .catbar-item:hover .catbar-label {
-  color: #702F42;
+  color: #B69865;
 }
 
 /* ── Seamless Keyframe Marquee ── */
@@ -175,7 +175,7 @@
     width: 96px;
     height: 96px;
     padding: 2.5px;
-    box-shadow: 0 0 0 2.5px #C1A16A, 0 4px 14px rgba(193, 161, 106, 0.45), 0 0 10px rgba(193, 161, 106, 0.3);
+    box-shadow: 0 0 0 2.5px #FFFFFF, 0 4px 14px rgba(57, 51, 46, 0.1), 0 0 10px rgba(210, 185, 140, 0.35);
   }
 
   .catbar-label {

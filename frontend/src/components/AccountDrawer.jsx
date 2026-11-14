@@ -264,7 +264,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       }
                     }}
                   >
-                    <div className="account-admin-card-icon" style={{ background: '#FAF6F2', color: '#C58B59' }}>
+                    <div className="account-admin-card-icon" style={{ background: '#FFFCF5', color: '#D2B98C' }}>
                       <Film size={22} />
                     </div>
                     <div className="account-admin-card-text">

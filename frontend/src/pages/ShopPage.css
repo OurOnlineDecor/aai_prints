@@ -78,7 +78,7 @@
   font-size: 44px;
   font-weight: 600;
   font-style: italic;
-  color: var(--espresso, #382D2D);
+  color: var(--espresso, #39332E);
   margin: 0 0 6px;
   letter-spacing: 0.3px;
   line-height: 1.1;
@@ -95,16 +95,16 @@
 .shop-header-count {
   font-family: 'Montserrat', sans-serif;
   font-size: 13.5px;
-  color: var(--espresso, #382D2D);
+  color: var(--espresso, #39332E);
   white-space: nowrap;
   background: var(--surface-champagne, #E8D9C7);
-  border: 1px solid rgba(193, 161, 106, 0.45);
+  border: 1px solid rgba(210, 185, 140, 0.45);
   padding: 6px 14px;
   border-radius: 20px;
 }
 
 .shop-header-count strong {
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
 }
 
 /* ── 3. Top Control Bar (Search & Sort) ── */
@@ -113,7 +113,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: var(--cream-card, #FAF6F2);
+  background: var(--cream-card, #FFFCF5);
   border: 1px solid var(--taupe-border);
   border-radius: 6px;
   padding: 12px 20px;
@@ -172,9 +172,9 @@
 }
 
 .shop-search-input:focus {
-  background: var(--white, #FAF7F2);
+  background: var(--white, #FFFCF5);
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(197, 139, 89, 0.22);
+  box-shadow: 0 0 0 3px rgba(210, 185, 140, 0.22);
 }
 
 .shop-search-clear {
@@ -382,9 +382,9 @@
 
 .category-filter-item.active {
   background: var(--surface-champagne, #E8D9C7);
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
   font-weight: 700;
-  border-left: 3px solid var(--burgundy, #702F42);
+  border-left: 3px solid var(--burgundy, #D2B98C);
 }
 
 .cat-name {
@@ -398,7 +398,7 @@
 }
 
 .category-filter-item.active .cat-count {
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
 }
 
 /* Subcategories */
@@ -406,7 +406,7 @@
   list-style: none;
   padding: 4px 0 6px 14px;
   margin: 0 0 4px 6px;
-  border-left: 2px solid rgba(193, 161, 106, 0.4);
+  border-left: 2px solid rgba(210, 185, 140, 0.4);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -430,12 +430,12 @@
 }
 
 .subcategory-filter-item:hover {
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
   background: rgba(232, 217, 199, 0.35);
 }
 
 .subcategory-filter-item.active {
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
   font-weight: 700;
   background: var(--burgundy-light, #F8EDF1);
 }
@@ -499,7 +499,7 @@
 }
 
 .price-field input:focus {
-  background: var(--white, #FAF7F2);
+  background: var(--white, #FFFCF5);
   border-color: var(--teal);
 }
 
@@ -575,7 +575,7 @@
 /* ── 7. Shop Product Card ── */
 .shop-card {
   position: relative;
-  background: var(--cream-card, #FAF6F2);
+  background: var(--cream-card, #FFFCF5);
   border: 1px solid var(--taupe-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -638,12 +638,12 @@
 }
 
 .prod-wishlist-btn:hover {
-  background: var(--white, #FAF7F2);
+  background: var(--white, #FFFCF5);
   transform: scale(1.1);
 }
 
 .prod-wishlist-btn.is-active {
-  background: var(--white, #FAF7F2);
+  background: var(--white, #FFFCF5);
 }
 
 .prod-wishlist-heart {
@@ -795,7 +795,7 @@
   transition: all var(--transition-normal);
   width: 100%;
   min-height: 40px;
-  box-shadow: 0 2px 6px rgba(197, 139, 89, 0.25);
+  box-shadow: 0 2px 6px rgba(210, 185, 140, 0.25);
 }
 
 .shop-card-cart-btn:hover {

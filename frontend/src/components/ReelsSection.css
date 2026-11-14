@@ -3,7 +3,7 @@
  * Aai Prints — Reels / Short Videos Showcase Stylesheet
  * ─────────────────────────────────────────────────────────────
  * Modeled after Whatmore shoppable video carousels.
- * Luxury palette: #FAF6F2, #3B2F2F, #C58B59, #9E7B66
+ * Luxury palette: #FAF6F2, #39332E, #D2B98C, #9E7B66
  * ─────────────────────────────────────────────────────────────
  */
 
@@ -11,7 +11,7 @@
   position: relative;
   width: 100%;
   padding: 44px 0 36px;
-  background: linear-gradient(180deg, transparent 0%, rgba(237, 217, 204, 0.3) 50%, transparent 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(247, 243, 234, 0.3) 50%, transparent 100%);
   overflow: hidden;
 }
 
@@ -48,13 +48,13 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 2.5px;
-  color: var(--gold, #C1A16A);
+  color: var(--gold, #D2B98C);
   text-transform: uppercase;
   margin-bottom: 8px;
 }
 
 .reels-eyebrow-icon {
-  color: var(--gold, #C1A16A);
+  color: var(--gold, #D2B98C);
 }
 
 .reels-title {
@@ -62,7 +62,7 @@
   font-size: clamp(26px, 3.2vw, 36px);
   font-weight: 600;
   font-style: italic;
-  color: var(--espresso, #382D2D);
+  color: var(--espresso, #39332E);
   line-height: 1.15;
   margin: 0 0 8px;
 }
@@ -86,9 +86,9 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1.5px solid rgba(193, 161, 106, 0.4);
+  border: 1.5px solid rgba(210, 185, 140, 0.4);
   background: #FFFFFF;
-  color: #382D2D;
+  color: #39332E;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,9 +98,9 @@
 }
 
 .reels-arrow-btn:hover {
-  background: var(--burgundy, #702F42);
+  background: var(--burgundy, #D2B98C);
   color: #FFFFFF;
-  border-color: var(--gold, #C1A16A);
+  border-color: var(--gold, #D2B98C);
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(112, 47, 66, 0.25);
 }
@@ -153,8 +153,8 @@
 }
 
 .reel-card:hover .reel-card-media-wrap {
-  border-color: rgba(197, 139, 89, 0.65);
-  box-shadow: 0 16px 40px rgba(59, 47, 47, 0.24), 0 0 0 1px rgba(197, 139, 89, 0.35);
+  border-color: rgba(210, 185, 140, 0.65);
+  box-shadow: 0 16px 40px rgba(59, 47, 47, 0.24), 0 0 0 1px rgba(210, 185, 140, 0.35);
 }
 
 .reel-card-video-preview,
@@ -193,7 +193,7 @@
 }
 
 .reel-card:hover .reel-card-sound-pill {
-  background: rgba(197, 139, 89, 0.95);
+  background: rgba(210, 185, 140, 0.95);
   border-color: rgba(255, 255, 255, 0.4);
   color: #FFFFFF;
   transform: scale(1.08);
@@ -202,7 +202,7 @@
 .reel-card-fallback-poster {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #3B2F2F 0%, #211919 100%);
+  background: linear-gradient(135deg, #39332E 0%, #211919 100%);
 }
 
 .reel-card-gradient {
@@ -252,7 +252,7 @@
   background: rgba(250, 246, 242, 0.88);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  color: #3B2F2F;
+  color: #39332E;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -264,7 +264,7 @@
 
 .reel-card:hover .reel-card-play-pill {
   transform: translate(-50%, -50%) scale(1.14);
-  background: var(--burgundy, #702F42);
+  background: var(--burgundy, #D2B98C);
   color: #FFFFFF;
   box-shadow: 0 6px 22px rgba(112, 47, 66, 0.45);
 }
@@ -283,7 +283,7 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-radius: 14px;
-  border: 1.5px solid rgba(193, 161, 106, 0.4);
+  border: 1.5px solid rgba(210, 185, 140, 0.4);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
   z-index: 3;
   transition: all 0.2s ease;
@@ -291,7 +291,7 @@
 
 .reel-card-product-chip:hover {
   background: #FFFFFF;
-  border-color: var(--burgundy, #702F42);
+  border-color: var(--burgundy, #D2B98C);
   transform: translateY(-2px);
 }
 
@@ -301,7 +301,7 @@
   border-radius: 10px;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid rgba(193, 161, 106, 0.35);
+  border: 1px solid rgba(210, 185, 140, 0.35);
 }
 
 .reel-card-product-info {
@@ -315,7 +315,7 @@
   font-family: var(--font-body, 'Montserrat', sans-serif);
   font-size: 13px;
   font-weight: 600;
-  color: #382D2D;
+  color: #39332E;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -326,7 +326,7 @@
   font-family: var(--font-body, 'Montserrat', sans-serif);
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
   margin-top: 2px;
 }
 
@@ -334,7 +334,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--burgundy, #702F42);
+  background: var(--burgundy, #D2B98C);
   color: #FFFFFF;
   display: flex;
   align-items: center;
@@ -352,7 +352,7 @@
   font-family: var(--font-body, 'Montserrat', sans-serif);
   font-size: 14px;
   font-weight: 600;
-  color: #3B2F2F;
+  color: #39332E;
   line-height: 1.4;
   margin: 0;
   display: -webkit-box;
@@ -407,8 +407,8 @@
 
 .reel-modal-nav-btn:hover {
   background: rgba(250, 246, 242, 0.25);
-  color: #C58B59;
-  border-color: rgba(197, 139, 89, 0.5);
+  color: #D2B98C;
+  border-color: rgba(210, 185, 140, 0.5);
   transform: translateY(-50%) scale(1.1);
 }
 
@@ -457,7 +457,7 @@
 
 .reel-modal-progress-fill {
   height: 100%;
-  background: #C58B59;
+  background: #D2B98C;
   transition: width 0.1s linear;
 }
 
@@ -489,7 +489,7 @@
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: #C58B59;
+  color: #D2B98C;
   text-transform: uppercase;
 }
 
@@ -497,8 +497,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #C58B59;
-  box-shadow: 0 0 8px #C58B59;
+  background: #D2B98C;
+  box-shadow: 0 0 8px #D2B98C;
   animation: reelPulse 1.8s infinite;
 }
 
@@ -554,7 +554,7 @@
 
 .reel-modal-icon-btn.active-audio {
   background: rgba(71, 51, 33, 0.35);
-  border-color: #C58B59;
+  border-color: #D2B98C;
   color: #FAF6F2;
 }
 
@@ -647,7 +647,7 @@
 }
 
 .reel-modal-swipe-arrow {
-  color: #C58B59;
+  color: #D2B98C;
   animation: reelArrowBounce 1.2s infinite;
 }
 
@@ -732,7 +732,7 @@
   gap: 8px;
   padding: 8px 16px;
   background: rgba(20, 15, 12, 0.85);
-  border: 1px solid #C58B59;
+  border: 1px solid #D2B98C;
   border-radius: 20px;
   color: #FAF6F2;
   font-family: var(--font-body, 'Montserrat', sans-serif);
@@ -772,7 +772,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 16px;
-  border: 1px solid rgba(197, 139, 89, 0.4);
+  border: 1px solid rgba(210, 185, 140, 0.4);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -780,7 +780,7 @@
 
 .reel-modal-product-card:hover {
   background: #FAF6F2;
-  border-color: #C58B59;
+  border-color: #D2B98C;
   transform: translateY(-2px);
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
 }
@@ -814,7 +814,7 @@
   font-family: var(--font-body, 'Montserrat', sans-serif);
   font-size: 13px;
   font-weight: 700;
-  color: #3B2F2F;
+  color: #39332E;
   margin: 1px 0 3px;
   white-space: nowrap;
   overflow: hidden;
@@ -832,7 +832,7 @@
   font-family: var(--font-body, 'Montserrat', sans-serif);
   font-size: 14px;
   font-weight: 800;
-  color: var(--burgundy, #702F42);
+  color: var(--burgundy, #D2B98C);
 }
 
 .reel-modal-product-original-price {
@@ -848,9 +848,9 @@
   gap: 6px;
   padding: 10px 14px;
   border-radius: 10px;
-  background: var(--burgundy, #702F42);
+  background: var(--burgundy, #D2B98C);
   color: #FFFFFF;
-  border: 1px solid rgba(193, 161, 106, 0.4);
+  border: 1px solid rgba(210, 185, 140, 0.4);
   font-family: var(--font-body, 'Montserrat', sans-serif);
   font-size: 12px;
   font-weight: 700;

@@ -62,7 +62,6 @@ export default function HeroVideo() {
           }}
         >
           <source src="/videos/dummy_hero_21x9_60fps.mp4" type="video/mp4" />
-          <source src="/dummy_hero_21x9_60fps.mp4" type="video/mp4" />
         </video>
         <div className="hero-video-ambient-overlay" />
       </div>
@@ -85,7 +84,6 @@ export default function HeroVideo() {
           }}
         >
           <source src="/videos/dummy_hero_21x9_60fps.mp4" type="video/mp4" />
-          <source src="/dummy_hero_21x9_60fps.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </div>
