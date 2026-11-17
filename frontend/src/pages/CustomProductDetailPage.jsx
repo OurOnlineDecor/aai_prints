@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   Share2,
   Check,
-  Sparkles,
   ClipboardList,
   ShieldCheck,
   Truck,
@@ -87,11 +86,6 @@ export default function CustomProductDetailPage({
           ══════════════════════════════════════════════ */}
           <div className="custom-pdp-gallery">
             <div className="custom-main-image-wrap">
-              <span className="custom-product-badge">
-                <Sparkles size={13} />
-                {product.badge || 'Custom Order via WhatsApp'}
-              </span>
-
               <img
                 src={images[activeImageIndex]}
                 alt={product.name}

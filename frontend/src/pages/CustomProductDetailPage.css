@@ -90,28 +90,6 @@
   justify-content: center;
 }
 
-.custom-product-badge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  color: #6E5A47;
-  border: 1px solid rgba(210, 185, 140, 0.5);
-  padding: 6px 14px;
-  border-radius: var(--radius-full, 9999px);
-  font-family: var(--font-body, 'Montserrat', sans-serif);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 2px 10px rgba(57, 51, 46, 0.08);
-  z-index: 2;
-}
-
 .custom-main-image {
   width: 100%;
   height: 100%;

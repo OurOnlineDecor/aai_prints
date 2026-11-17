@@ -7,12 +7,13 @@ const rateLimit = require('express-rate-limit');
  * ─────────────────────────────────────────────────────────────
  */
 
-// Global general API rate limiter: 300 requests per 15 minutes per IP
+// Global general API rate limiter: 1000 requests per 15 minutes per IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 1000,
   standardHeaders: true, // Return standard `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     statusCode: 429,
@@ -20,12 +21,13 @@ const globalLimiter = rateLimit({
   }
 });
 
-// Strict rate limiter for Authentication (Login / Register): 10 requests per 15 minutes per IP
+// Strict rate limiter for Authentication (Login / Register): 15 requests per 15 minutes per IP
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 15,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     statusCode: 429,
@@ -33,12 +35,13 @@ const authLimiter = rateLimit({
   }
 });
 
-// Strict rate limiter for Coupon Validation: 25 attempts per 15 minutes per IP
+// Strict rate limiter for Coupon Validation: 30 attempts per 15 minutes per IP
 const couponLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 25,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     statusCode: 429,
@@ -46,12 +49,13 @@ const couponLimiter = rateLimit({
   }
 });
 
-// Order creation rate limiter: 30 orders per 15 minutes per IP
+// Order creation rate limiter: 40 orders per 15 minutes per IP
 const orderCreationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 40,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     statusCode: 429,
@@ -59,12 +63,13 @@ const orderCreationLimiter = rateLimit({
   }
 });
 
-// B2B & Contact Inquiries limiter: 10 submissions per 15 minutes per IP
+// B2B & Contact Inquiries limiter: 15 submissions per 15 minutes per IP
 const inquiryLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 15,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     statusCode: 429,

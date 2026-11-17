@@ -48,6 +48,11 @@ export const CATEGORY_TO_PARENT_NAV = {
   'desk standees': 'GIFTS',
   'gift combos': 'GIFTS',
   'return gifts': 'GIFTS',
+
+  // Customization
+  'personalized': 'CUSTOMIZATION',
+  'customization': 'CUSTOMIZATION',
+  'custom': 'CUSTOMIZATION',
 };
 
 /**
@@ -56,10 +61,10 @@ export const CATEGORY_TO_PARENT_NAV = {
  */
 export const getActiveNavLabel = (currentPage, selectedCategory) => {
   if (currentPage === 'home') {
-    if (selectedCategory === 'reviews') {
-      return 'REVIEWS';
-    }
     return 'HOME';
+  }
+  if (currentPage === 'custom-product') {
+    return 'CUSTOMIZATION';
   }
   if (currentPage === 'shop') {
     if (!selectedCategory || selectedCategory === 'All') {
@@ -75,6 +80,7 @@ export const getActiveNavLabel = (currentPage, selectedCategory) => {
 export const navLinks = [
   { label: 'HOME', href: '#/', page: 'home', category: 'All', hasDropdown: false },
   { label: 'SHOP', href: '#/shop', page: 'shop', category: 'All', hasDropdown: false },
+  { label: 'CUSTOMIZATION', href: '#/shop?category=Personalized', page: 'shop', category: 'Personalized', hasDropdown: false },
   {
     label: 'DEVOTIONAL',
     href: '#/shop?category=Devotional',
@@ -136,6 +142,5 @@ export const navLinks = [
       { label: 'Return Gifts', href: '#/shop?category=Return%20Gifts', category: 'Return Gifts' },
     ]
   },
-  { label: 'REVIEWS', href: '#/reviews', page: 'home', category: 'reviews', hasDropdown: false },
 ];
 

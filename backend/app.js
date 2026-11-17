@@ -13,10 +13,14 @@ const ApiError = require('./utils/apiError.util');
 
 const app = express();
 
-// Secure HTTP response headers (Defense-in-depth against MIME-sniffing, Clickjacking, XSS)
+// Trust reverse proxy (Render, Vercel, Railway, Cloudflare) for accurate client IP and protocol detection
+app.set('trust proxy', 1);
+
+// Secure HTTP response headers
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: false, // Prevents breaking Google Sign-In popup & OAuth flows
   })
 );
 
@@ -25,33 +29,68 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
-// CORS configuration (strictly allow verified origins, allow credentials for httpOnly cookies)
-const configuredOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+// CORS configuration (allow verified production domains, Vercel, Render, Netlify, and localhost)
+const configuredOrigins = (process.env.CLIENT_URL || '')
   .split(',')
-  .map((url) => url.trim().replace(/\/+$/, ''));
+  .map((url) => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
 
-const defaultOrigins = ['http://localhost:5173', 'http://localhost:3000'];
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5000',
+  'https://aaiprints.com',
+  'https://www.aaiprints.com',
+  'https://ouronlinedecor.com',
+  'https://www.ouronlinedecor.com',
+];
+
 const allowedOrigins = Array.from(new Set([...configuredOrigins, ...defaultOrigins]));
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  const normalized = origin.replace(/\/+$/, '').toLowerCase();
+  if (allowedOrigins.some((o) => o.toLowerCase() === normalized)) return true;
+  // Allow all Vercel deployments (*.vercel.app)
+  if (normalized.endsWith('.vercel.app') || normalized.includes('.vercel.app')) return true;
+  // Allow all Render deployments (*.onrender.com)
+  if (normalized.endsWith('.onrender.com') || normalized.includes('.onrender.com')) return true;
+  // Allow all Netlify deployments (*.netlify.app)
+  if (normalized.endsWith('.netlify.app') || normalized.includes('.netlify.app')) return true;
+  // Allow local development
+  if (process.env.NODE_ENV !== 'production' && (normalized.includes('localhost') || normalized.includes('127.0.0.1'))) {
+    return true;
+  }
+  return false;
+};
 
-      const normalizedOrigin = origin.replace(/\/+$/, '');
-      if (
-        allowedOrigins.includes(normalizedOrigin) ||
-        (process.env.NODE_ENV !== 'production' && normalizedOrigin.includes('localhost'))
-      ) {
-        return callback(null, true);
-      }
-      return callback(new ApiError(403, `CORS policy: Origin ${origin} not allowed`));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-  })
-);
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (isOriginAllowed(origin)) {
+      return callback(null, true);
+    }
+    return callback(new ApiError(403, `CORS policy: Origin ${origin} not allowed`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Cookie',
+    'Set-Cookie',
+    'x-csrf-token'
+  ],
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 
 // Body parsers with raw body preservation for cryptographic webhook signature verification
 app.use(

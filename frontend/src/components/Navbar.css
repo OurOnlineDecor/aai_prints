@@ -534,7 +534,34 @@
   border-color: var(--teal);
 }
 
+/* Responsive Desktop vs Mobile Navbar Item Visibility */
+.desktop-only-flex {
+  display: inline-flex !important;
+}
+
+.mobile-only-flex {
+  display: none !important;
+}
+
+.mobile-bulk-btn {
+  color: var(--text-dark, #39332E);
+}
+
+.mobile-bulk-btn:hover,
+.mobile-bulk-btn:active,
+.mobile-bulk-btn.icon-btn--active {
+  color: var(--teal, #2D7379);
+}
+
 @media (max-width: 960px) {
+  .desktop-only-flex {
+    display: none !important;
+  }
+
+  .mobile-only-flex {
+    display: inline-flex !important;
+  }
+
   .navbar-inner {
     height: 82px;
     min-height: 82px;

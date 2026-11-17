@@ -61,11 +61,6 @@ const customProductSchema = new mongoose.Schema(
       trim: true,
       default: '919876543210',
     },
-    badge: {
-      type: String,
-      trim: true,
-      default: 'Custom Order',
-    },
     order: {
       type: Number,
       default: 0,

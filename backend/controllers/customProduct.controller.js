@@ -94,7 +94,6 @@ const createCustomProduct = async (req, res, next) => {
       originalPrice,
       description,
       whatsappNumber,
-      badge,
       order,
     } = req.body;
 
@@ -118,7 +117,6 @@ const createCustomProduct = async (req, res, next) => {
       originalPrice: originalPrice ? Number(originalPrice) : null,
       description: description || '',
       whatsappNumber: whatsappNumber || '919876543210',
-      badge: badge || 'Custom Order',
       order: Number(order) || 0,
     });
 

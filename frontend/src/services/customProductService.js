@@ -20,7 +20,6 @@ export const FALLBACK_CUSTOM_PRODUCTS = [
     category: 'Custom Frames',
     price: 1499,
     originalPrice: 2499,
-    badge: 'Popular Custom',
     description:
       'High-grade imported cast acrylic backlit frame with brilliant LED luminescence. Handcrafted to order with custom photos, devotional motifs, or family blessings.',
     requirements:
@@ -41,7 +40,6 @@ export const FALLBACK_CUSTOM_PRODUCTS = [
     category: 'Custom Clocks',
     price: 1299,
     originalPrice: 1999,
-    badge: 'Artisan Crafted',
     description:
       'Bespoke designer wall clock laser-crafted from premium engineered teak veneer. Features silent sweep movement and custom silhouette artwork tailored to your space.',
     requirements:
@@ -62,7 +60,6 @@ export const FALLBACK_CUSTOM_PRODUCTS = [
     category: 'Custom Car Decor',
     price: 499,
     originalPrice: 899,
-    badge: 'Car Interior Pick',
     description:
       'Pocket-sized laser-etched devotional idol or custom portrait figurine designed specifically for car dashboards. Fitted with heavy-duty non-slip 3M mounting pads.',
     requirements:

@@ -64,7 +64,6 @@ export default function ShopPage({
       id: cp._id || cp.id || cp.slug,
       image: (Array.isArray(cp.images) && cp.images[0]) || cp.image || '',
       category: cp.category || 'Personalized',
-      tag: cp.badge || 'Custom Order',
       rating: cp.rating || 4.9,
       reviews: cp.reviews || 24,
       isCustomProduct: true,

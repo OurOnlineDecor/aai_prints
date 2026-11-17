@@ -130,18 +130,6 @@ export default function Navbar({
   };
 
   const handleNavClick = (e, link) => {
-    if (link.label === 'REVIEWS') {
-      e.preventDefault();
-      setMenuOpen(false);
-      if (onNavigate) {
-        onNavigate('home', 'reviews');
-      } else {
-        const el = document.getElementById('reviews');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }
-      return;
-    }
-
     if (link.page && onNavigate) {
       e.preventDefault();
       onNavigate(link.page, link.category || 'All');
@@ -221,7 +209,11 @@ export default function Navbar({
                               onClick={(e) => {
                                 if (onNavigate) {
                                   e.preventDefault();
-                                  onNavigate('shop', child.category || 'All');
+                                  if (child.page === 'custom-product') {
+                                    onNavigate('custom-product', child.slug);
+                                  } else {
+                                    onNavigate(child.page || 'shop', child.category || 'All');
+                                  }
                                   setOpenDropdown(null);
                                 }
                               }}
@@ -241,11 +233,11 @@ export default function Navbar({
 
         {/* ── Right Icons: Search, Wholesale Portal, Admin Portal, Account, Wishlist, Cart ── */}
         <div className="navbar-icons">
-          {/* Wholesale / Bulk Portal Trigger Button */}
+          {/* 1. Desktop Bulk Trigger Button (Text + Icon) */}
           <a
             href="#/b2b"
-            className={`navbar-wholesale-btn ${currentPage === 'b2b' ? 'active' : ''}`}
-            title="Wholesale & Bulk Orders"
+            className={`navbar-wholesale-btn desktop-only-flex ${currentPage === 'b2b' ? 'active' : ''}`}
+            title="Bulk Orders"
             onClick={(e) => {
               if (onNavigate) {
                 e.preventDefault();
@@ -254,11 +246,27 @@ export default function Navbar({
             }}
           >
             <Building2 size={13} strokeWidth={2.4} className="navbar-wholesale-icon" />
-            <span className="navbar-wholesale-text">Wholesale / Bulk</span>
+            <span className="navbar-wholesale-text">Bulk</span>
             <span className="navbar-wholesale-dot" />
           </a>
 
-          {/* Quick Search Trigger */}
+          {/* 2. Mobile Bulk Symbol Icon Button */}
+          <a
+            href="#/b2b"
+            className={`icon-btn mobile-only-flex mobile-bulk-btn ${currentPage === 'b2b' ? 'icon-btn--active' : ''}`}
+            title="Bulk"
+            aria-label="Bulk"
+            onClick={(e) => {
+              if (onNavigate) {
+                e.preventDefault();
+                onNavigate('b2b');
+              }
+            }}
+          >
+            <Building2 size={19} strokeWidth={2} />
+          </a>
+
+          {/* 3. Quick Search Trigger (Desktop & Mobile) */}
           <button
             className={`icon-btn search-trigger-btn ${searchOpen ? 'icon-btn--active' : ''}`}
             aria-label={searchOpen ? 'Close search' : 'Open search'}
@@ -269,8 +277,9 @@ export default function Navbar({
             <Search size={19} strokeWidth={2} />
           </button>
 
+          {/* 4. Account (Desktop only - mobile moves inside hamburger menu) */}
           <button
-            className="icon-btn pos-rel"
+            className="icon-btn pos-rel desktop-only-flex"
             aria-label={isAuthenticated ? `Account (${user?.name || user?.email})` : "Account"}
             title={isAuthenticated ? `Account (${user?.name || user?.email})` : "Account"}
             onClick={onOpenAccount}
@@ -292,8 +301,9 @@ export default function Navbar({
             )}
           </button>
 
+          {/* 5. Wishlist (Desktop only - mobile moves inside hamburger menu) */}
           <button
-            className={`icon-btn pos-rel ${currentPage === 'wishlist' ? 'icon-btn--active' : ''}`}
+            className={`icon-btn pos-rel desktop-only-flex ${currentPage === 'wishlist' ? 'icon-btn--active' : ''}`}
             aria-label={`Wishlist (${wishlistCount} items)`}
             title="Wishlist"
             onClick={() => setIsWishlistOpen(true)}
@@ -311,6 +321,7 @@ export default function Navbar({
             )}
           </button>
 
+          {/* 6. Cart Button (Desktop & Mobile) */}
           <button
             className={`icon-btn pos-rel ${currentPage === 'cart' ? 'icon-btn--active' : ''}`}
             aria-label={`Cart (${cartCount} items)`}
@@ -325,7 +336,7 @@ export default function Navbar({
             )}
           </button>
 
-          {/* Hamburger – mobile only */}
+          {/* 7. Hamburger Menu Trigger – mobile only */}
           <button
             className={`hamburger${menuOpen ? ' open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}
@@ -508,7 +519,11 @@ export default function Navbar({
                             onClick={(e) => {
                               if (onNavigate) {
                                 e.preventDefault();
-                                onNavigate('shop', child.category || 'All');
+                                if (child.page === 'custom-product') {
+                                  onNavigate('custom-product', child.slug);
+                                } else {
+                                  onNavigate(child.page || 'shop', child.category || 'All');
+                                }
                                 setMenuOpen(false);
                               }
                             }}
@@ -536,7 +551,7 @@ export default function Navbar({
               );
             })}
 
-            {/* Quick Switch to Wholesale / Bulk for Mobile */}
+            {/* Quick Switch to Bulk Orders for Mobile */}
             <div className="mobile-wholesale-wrap">
               <a
                 href="#/b2b"
@@ -552,17 +567,32 @@ export default function Navbar({
                 <div className="mobile-wholesale-card-content">
                   <div className="mobile-wholesale-badge-top">
                     <Building2 size={13} strokeWidth={2.4} />
-                    <span>WHOLESALE DIVISION</span>
+                    <span>BULK DIVISION</span>
                   </div>
-                  <strong>Wholesale / Bulk Orders Portal</strong>
+                  <strong>Bulk Orders Portal</strong>
                   <p>Factory-direct tiered volume rates &amp; custom branding</p>
                 </div>
                 <span className="mobile-wholesale-arrow">→</span>
               </a>
             </div>
 
-            {/* Quick Access Actions for Mobile Menu */}
+            {/* Quick Access Actions for Mobile Menu (Account, Wishlist, Cart) */}
             <div className="mobile-menu-footer">
+              <button
+                type="button"
+                className="mobile-footer-link"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenAccount();
+                }}
+              >
+                <User size={18} strokeWidth={2} />
+                <span>
+                  {isAuthenticated
+                    ? `Account (${user?.name || user?.email || 'Profile'})`
+                    : 'Sign In / Register'}
+                </span>
+              </button>
               <button
                 type="button"
                 className="mobile-footer-link"
