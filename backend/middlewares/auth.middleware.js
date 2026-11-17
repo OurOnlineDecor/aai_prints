@@ -65,8 +65,47 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// Optional authentication middleware: sets req.user if token valid, continues as guest if not
+const protectOptional = async (req, res, next) => {
+  try {
+    let token = null;
+
+    if (req.cookies && (req.cookies.accessToken || req.cookies.token)) {
+      token = req.cookies.accessToken || req.cookies.token;
+    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      req.user = null;
+      return next();
+    }
+
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch {
+      req.user = null;
+      return next();
+    }
+
+    const user = await User.findById(decoded.id).select('-password');
+    if (user && user.isActive) {
+      req.user = user;
+    } else {
+      req.user = null;
+    }
+
+    next();
+  } catch {
+    req.user = null;
+    next();
+  }
+};
+
 module.exports = {
   protect,
+  protectOptional,
   authorize,
   requireAdmin
 };

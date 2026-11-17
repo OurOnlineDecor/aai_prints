@@ -4,6 +4,13 @@ const Product = require('../models/product.model');
 const Coupon = require('../models/coupon.model');
 const ApiError = require('../utils/apiError.util');
 const ApiResponse = require('../utils/apiResponse.util');
+const {
+  isRazorpayConfigured,
+  createRazorpayOrder,
+  verifyPaymentSignature,
+  verifyWebhookSignature
+} = require('../utils/razorpay.util');
+const { sendOrderConfirmationEmail } = require('../utils/brevo.util');
 
 // Atomic stock decrement with auto-rollback on insufficient inventory
 const decrementStockAtomically = async (orderItems) => {
@@ -204,43 +211,62 @@ const getCheckoutPreview = async (req, res, next) => {
 
 // @desc    Create new order
 // @route   POST /api/v1/orders
-// @access  Private
+// @access  Public (Guest or Authenticated)
 const createOrder = async (req, res, next) => {
   let appliedCoupon = null;
   try {
-    const { shippingAddress, couponCode, paymentMethod = 'razorpay' } = req.body;
+    const { shippingAddress, couponCode, paymentMethod = 'razorpay', items: guestItems, shippingMethod = 'standard' } = req.body;
 
     if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.postalCode) {
       return next(new ApiError(400, 'Please provide a complete shipping address'));
     }
 
-    const cart = await Cart.findOne({ user: req.user._id }).populate({
-      path: 'items.product',
-      select: 'name slug basePrice originalPrice images stock variants isActive isDeleted'
-    });
+    let cartItems = [];
 
-    if (!cart || cart.items.length === 0) {
+    // If authenticated, read from database Cart
+    if (req.user) {
+      const cart = await Cart.findOne({ user: req.user._id }).populate({
+        path: 'items.product',
+        select: 'name slug basePrice originalPrice images stock variants isActive isDeleted'
+      });
+
+      if (cart && cart.items.length > 0) {
+        // Auto-prune dead/deleted products
+        const initialCount = cart.items.length;
+        cart.items = cart.items.filter(
+          (item) => item.product && !item.product.isDeleted && item.product.isActive
+        );
+        if (cart.items.length !== initialCount) {
+          await cart.save();
+        }
+        cartItems = cart.items;
+      }
+    }
+
+    // If guest user or cart was empty, use items passed in body
+    if (cartItems.length === 0 && Array.isArray(guestItems) && guestItems.length > 0) {
+      // Validate guest items against live MongoDB inventory
+      for (const git of guestItems) {
+        const prod = await Product.findOne({ _id: git.id || git.product || git._id, isActive: true, isDeleted: false });
+        if (prod) {
+          cartItems.push({
+            product: prod,
+            variantId: git.variantId || null,
+            quantity: git.quantity || 1
+          });
+        }
+      }
+    }
+
+    if (cartItems.length === 0) {
       return next(new ApiError(400, 'Cannot place order with an empty cart'));
-    }
-
-    // Auto-prune dead/deleted products from cart
-    const initialItemCount = cart.items.length;
-    cart.items = cart.items.filter(
-      (item) => item.product && !item.product.isDeleted && item.product.isActive
-    );
-    if (cart.items.length !== initialItemCount) {
-      await cart.save();
-    }
-
-    if (cart.items.length === 0) {
-      return next(new ApiError(400, 'All items in your cart are no longer available'));
     }
 
     let subtotal = 0;
     const orderItems = [];
 
-    // 1. Verify stock and prepare order items
-    for (const item of cart.items) {
+    // 1. Verify stock and calculate subtotal
+    for (const item of cartItems) {
       const product = item.product;
       let unitPrice = product.basePrice != null ? product.basePrice : (product.price || 0);
       let variantName = null;
@@ -292,7 +318,6 @@ const createOrder = async (req, res, next) => {
         return next(new ApiError(400, check.message));
       }
 
-      // Atomically check usage limit and increment
       const updatedCoupon = await Coupon.findOneAndUpdate(
         {
           _id: couponDoc._id,
@@ -314,12 +339,18 @@ const createOrder = async (req, res, next) => {
 
     const FREE_SHIPPING_THRESHOLD = 500;
     const STANDARD_SHIPPING_FEE = 49;
-    const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
+    const EXPRESS_SHIPPING_FEE = 99;
+
+    let shippingFee = 0;
+    if (shippingMethod === 'express') {
+      shippingFee = EXPRESS_SHIPPING_FEE;
+    } else {
+      shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
+    }
+
     const total = Math.max(0, subtotal - discount + shippingFee);
 
-    // 3. Two-Phase Payment & Stock Allocation:
-    // COD decrements stock immediately and clears cart.
-    // Online payments (Razorpay) initialize order in pending state; stock is decremented and cart cleared upon payment capture.
+    // 3. Stock Allocation for COD
     let isStockDecremented = false;
     if (paymentMethod === 'cod') {
       try {
@@ -333,14 +364,23 @@ const createOrder = async (req, res, next) => {
       }
     }
 
-    // 4. Create Order
+    // 4. Create internal Order in MongoDB
     const orderNumber = `AAI-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const order = await Order.create({
       orderNumber,
-      user: req.user._id,
+      user: req.user ? req.user._id : null,
       items: orderItems,
-      shippingAddress,
+      shippingAddress: {
+        fullName: shippingAddress.fullName,
+        email: shippingAddress.email || (req.user && req.user.email) || null,
+        phone: shippingAddress.phone,
+        street: shippingAddress.street,
+        apartment: shippingAddress.apartment || '',
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        postalCode: shippingAddress.postalCode
+      },
       pricing: {
         subtotal,
         discount,
@@ -354,13 +394,74 @@ const createOrder = async (req, res, next) => {
       isStockDecremented
     });
 
-    // 5. Clear cart if COD (or for Razorpay, cart will be cleared on payment confirmation)
-    if (paymentMethod === 'cod') {
-      cart.items = [];
-      await cart.save();
+    // 5. Clear cart if COD
+    if (paymentMethod === 'cod' && req.user) {
+      await Cart.updateOne({ user: req.user._id }, { $set: { items: [] } }).catch(() => null);
     }
 
-    return ApiResponse.send(res, 201, { order }, 'Order placed successfully');
+    // 6. Handle Razorpay Initialization
+    let razorpayData = null;
+    if (paymentMethod === 'razorpay') {
+      if (isRazorpayConfigured()) {
+        try {
+          const rzpOrder = await createRazorpayOrder({
+            amount: total,
+            receipt: orderNumber,
+            notes: {
+              orderNumber,
+              customerEmail: shippingAddress.email || (req.user && req.user.email) || 'guest'
+            }
+          });
+
+          if (rzpOrder) {
+            order.paymentDetails = {
+              razorpayOrderId: rzpOrder.id
+            };
+            await order.save();
+
+            razorpayData = {
+              orderId: rzpOrder.id,
+              amount: rzpOrder.amount,
+              currency: rzpOrder.currency,
+              keyId: process.env.RAZORPAY_KEY_ID
+            };
+          }
+        } catch (rzpErr) {
+          console.error('[Razorpay Order Creation Error]:', rzpErr.message);
+          if (appliedCoupon) {
+            await Coupon.updateOne({ code: appliedCoupon }, { $inc: { usedCount: -1 } }).catch(() => null);
+          }
+          return next(new ApiError(502, `Failed to initiate payment gateway: ${rzpErr.message}`));
+        }
+      } else {
+        // Fallback / Simulated test mode when API keys are pending
+        razorpayData = {
+          isSimulated: true,
+          orderId: `sim_order_${Date.now()}`,
+          amount: Math.round(total * 100),
+          currency: 'INR',
+          keyId: 'rzp_test_simulated'
+        };
+        order.paymentDetails = {
+          razorpayOrderId: razorpayData.orderId
+        };
+        await order.save();
+      }
+    }
+
+    // 7. Send Brevo email if COD
+    if (paymentMethod === 'cod') {
+      sendOrderConfirmationEmail(order).catch((mailErr) => {
+        console.warn('[Order Controller] Brevo order email error:', mailErr.message);
+      });
+    }
+
+    return ApiResponse.send(
+      res,
+      201,
+      { order, razorpay: razorpayData },
+      paymentMethod === 'razorpay' ? 'Payment initiated' : 'Order placed successfully'
+    );
   } catch (error) {
     if (appliedCoupon) {
       await Coupon.updateOne({ code: appliedCoupon }, { $inc: { usedCount: -1 } }).catch(() => null);
@@ -408,7 +509,13 @@ const getOrderById = async (req, res, next) => {
     }
 
     // Guard: only owner or admin can view
-    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    if (!order.user) {
+      if (req.user.role !== 'admin') {
+        return next(
+          new ApiError(403, 'Access denied. Administrator privileges required to inspect guest orders.')
+        );
+      }
+    } else if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return next(new ApiError(403, 'Access denied to this order'));
     }
 
@@ -510,11 +617,170 @@ const updateOrderStatus = async (req, res, next) => {
   }
 };
 
+// @desc    Verify Razorpay Payment Signature and finalize order
+// @route   POST /api/v1/orders/verify-payment
+// @access  Public (Guest or Authenticated)
+const verifyPayment = async (req, res, next) => {
+  try {
+    const {
+      orderId,
+      orderNumber,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
+
+    const query = {};
+    if (orderId) query._id = orderId;
+    else if (orderNumber) query.orderNumber = orderNumber;
+    else if (razorpay_order_id) query['paymentDetails.razorpayOrderId'] = razorpay_order_id;
+    else {
+      return next(new ApiError(400, 'Order identifier or Razorpay Order ID is required'));
+    }
+
+    const order = await Order.findOne(query);
+    if (!order) {
+      return next(new ApiError(404, 'Order not found for payment verification'));
+    }
+
+    if (order.paymentStatus === 'paid') {
+      return ApiResponse.send(res, 200, { order }, 'Payment already verified for this order');
+    }
+
+    const isConfigured = isRazorpayConfigured();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const allowMock = !isProduction && process.env.ENABLE_MOCK_PAYMENTS === 'true' && !isConfigured;
+
+    if (isConfigured || isProduction) {
+      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return next(
+          new ApiError(
+            400,
+            'Missing payment verification credentials (razorpay_payment_id, razorpay_order_id, razorpay_signature)'
+          )
+        );
+      }
+
+      const isValid = verifyPaymentSignature({
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+      });
+
+      if (!isValid) {
+        order.paymentStatus = 'failed';
+        await order.save();
+        return next(
+          new ApiError(400, 'Payment signature verification failed. Invalid or tampered signature.')
+        );
+      }
+    } else if (allowMock) {
+      console.warn(
+        `[Razorpay Security]: Mock payment accepted for order ${order.orderNumber} (local non-production test only)`
+      );
+    } else {
+      return next(
+        new ApiError(500, 'Payment gateway is not currently configured on this server. Contact support.')
+      );
+    }
+
+    order.paymentStatus = 'paid';
+    order.status = 'confirmed';
+    order.paymentDetails = {
+      razorpayOrderId: razorpay_order_id || order.paymentDetails?.razorpayOrderId || 'sim_order',
+      razorpayPaymentId: razorpay_payment_id || `pay_${Date.now()}`,
+      razorpaySignature: razorpay_signature || 'sim_sig',
+      paidAt: new Date(),
+    };
+
+    if (!order.isStockDecremented) {
+      try {
+        await decrementStockAtomically(order.items);
+        order.isStockDecremented = true;
+      } catch (stockErr) {
+        console.error('[Stock Error on Payment Capture]:', stockErr.message);
+      }
+    }
+
+    if (order.user) {
+      await Cart.updateOne({ user: order.user }, { $set: { items: [] } }).catch(() => null);
+    }
+
+    await order.save();
+
+    sendOrderConfirmationEmail(order).catch((mailErr) => {
+      console.warn('[Order Verify] Brevo email error:', mailErr.message);
+    });
+
+    return ApiResponse.send(res, 200, { order }, 'Payment verified and order confirmed successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Handle Razorpay Webhook Events
+// @route   POST /api/v1/orders/razorpay-webhook
+// @access  Public
+const handleRazorpayWebhook = async (req, res, next) => {
+  try {
+    const signature = req.headers['x-razorpay-signature'];
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
+
+    // Enforce webhook signature validation unconditionally
+    if (!secret || !signature) {
+      console.warn('[Razorpay Webhook Rejected]: Missing webhook secret or x-razorpay-signature header');
+      return res.status(401).json({ status: 'unauthorized', message: 'Missing webhook signature or server secret' });
+    }
+
+    const rawPayload = req.rawBody || JSON.stringify(req.body);
+    const isValid = verifyWebhookSignature(rawPayload, signature);
+    if (!isValid) {
+      console.warn('[Razorpay Webhook Rejected]: Invalid cryptographic signature');
+      return res.status(400).json({ status: 'invalid_signature', message: 'Signature verification failed' });
+    }
+
+    const event = req.body.event;
+    const paymentEntity = req.body.payload?.payment?.entity;
+    const orderId = paymentEntity?.order_id;
+
+    if (event === 'order.paid' || event === 'payment.captured') {
+      if (orderId) {
+        const order = await Order.findOne({ 'paymentDetails.razorpayOrderId': orderId });
+        if (order && order.paymentStatus !== 'paid') {
+          order.paymentStatus = 'paid';
+          order.status = 'confirmed';
+          order.paymentDetails.razorpayPaymentId = paymentEntity.id;
+          order.paymentDetails.paidAt = new Date();
+
+          if (!order.isStockDecremented) {
+            await decrementStockAtomically(order.items).catch(() => null);
+            order.isStockDecremented = true;
+          }
+
+          if (order.user) {
+            await Cart.updateOne({ user: order.user }, { $set: { items: [] } }).catch(() => null);
+          }
+
+          await order.save();
+          sendOrderConfirmationEmail(order).catch(() => null);
+        }
+      }
+    }
+
+    return res.status(200).json({ status: 'ok' });
+  } catch (err) {
+    console.error('[Razorpay Webhook Error]:', err.message);
+    return res.status(500).json({ status: 'error' });
+  }
+};
+
 module.exports = {
   getCheckoutPreview,
   createOrder,
+  verifyPayment,
+  handleRazorpayWebhook,
   getMyOrders,
   getOrderById,
   getAllOrders,
-  updateOrderStatus
+  updateOrderStatus,
 };

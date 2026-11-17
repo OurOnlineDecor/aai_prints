@@ -6,6 +6,7 @@ import CategoryScrollbar from './components/CategoryScrollbar';
 import HeroVideo from './components/HeroVideo';
 import ReelsSection from './components/ReelsSection';
 import ProductSection from './components/ProductSection';
+import PersonalizationSteps from './components/PersonalizationSteps';
 import HeroSlider from './components/HeroSlider';
 import Testimonials from './components/Testimonials';
 import BrandsTrustSection from './components/BrandsTrustSection';
@@ -427,15 +428,8 @@ function App() {
                   />
                 )}
 
-                {/* 2. New Comer product section (latest 7-10 products) */}
-                <ProductSection
-                  sectionId="new-comer"
-                  title="Newcomer"
-                  subtitle="Fresh  additions, contemporary designs & newly released artisan decor"
-                  products={newComerProducts}
-                  onSelectProduct={handleSelectProduct}
-                  onViewMore={() => navigateTo('shop', 'All')}
-                />
+                {/* 2. How Personalization Works Process Diagram */}
+                <PersonalizationSteps onNavigateShop={() => navigateTo('shop', 'All')} />
 
                 {/* Clean notice when catalogue is empty / being populated */}
                 {allProducts.length === 0 && (

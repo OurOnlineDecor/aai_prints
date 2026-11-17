@@ -7,6 +7,9 @@ const ApiResponse = require('../utils/apiResponse.util');
 const slugify = require('../utils/slugify.util');
 const { deleteAsset } = require('../utils/cloudinary.util');
 
+// Helper to escape user search queries and prevent ReDoS attacks
+const escapeRegex = (str) => str.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
 // @desc    Get filtered, sorted & paginated products
 // @route   GET /api/v1/products
 // @access  Public
@@ -49,11 +52,12 @@ const getProducts = async (req, res, next) => {
       }
     }
 
-    // 2. Search query filter
-    if (search) {
+    // 2. Search query filter (escaped against ReDoS)
+    if (search && search.trim().length > 0) {
+      const sanitizedSearch = escapeRegex(search.trim());
       query.$or = [
-        { name: { $regex: search.trim(), $options: 'i' } },
-        { description: { $regex: search.trim(), $options: 'i' } }
+        { name: { $regex: sanitizedSearch, $options: 'i' } },
+        { description: { $regex: sanitizedSearch, $options: 'i' } }
       ];
     }
 
@@ -141,7 +145,8 @@ const getInstantSearch = async (req, res, next) => {
       return ApiResponse.send(res, 200, { matches: [] });
     }
 
-    const regex = new RegExp(q.trim(), 'i');
+    const sanitizedQ = escapeRegex(q.trim());
+    const regex = new RegExp(sanitizedQ, 'i');
     const matches = await Product.find({
       name: { $regex: regex },
       isActive: true,

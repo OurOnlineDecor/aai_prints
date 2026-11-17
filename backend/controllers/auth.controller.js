@@ -35,6 +35,8 @@ const createSessionAndRespond = async (user, statusCode, req, res, message = 'Su
     name: user.name,
     email: user.email,
     role: user.role,
+    avatar: user.avatar || null,
+    authProvider: user.authProvider || 'local',
     phone: user.phone || null,
     addresses: user.addresses || [],
     createdAt: user.createdAt
@@ -108,6 +110,94 @@ const login = async (req, res, next) => {
 
     return await createSessionAndRespond(user, 200, req, res, 'Logged in successfully');
   } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Authenticate with Google ID Token (Sign-In & Sign-Up)
+// @route   POST /api/v1/auth/google
+// @access  Public
+const googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return next(new ApiError(400, 'Google ID token credential is required.'));
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+    if (!clientId) {
+      return next(
+        new ApiError(
+          500,
+          'GOOGLE_CLIENT_ID is not configured in backend/.env. Please configure Google OAuth credentials.'
+        )
+      );
+    }
+
+    const { OAuth2Client } = require('google-auth-library');
+    const googleClient = new OAuth2Client(clientId);
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: clientId
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return next(new ApiError(400, 'Invalid Google ID token payload.'));
+    }
+
+    const { sub: googleId, email, name, picture } = payload;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 1. Check if user exists with this googleId or email
+    let user = await User.findOne({
+      $or: [{ googleId }, { email: normalizedEmail }]
+    });
+
+    if (user) {
+      let isUpdated = false;
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.authProvider = 'google';
+        isUpdated = true;
+      }
+      if (!user.avatar && picture) {
+        user.avatar = picture;
+        isUpdated = true;
+      }
+      if (isUpdated) {
+        await user.save();
+      }
+    } else {
+      // 2. Register new user via Google
+      user = await User.create({
+        name: name || 'Google User',
+        email: normalizedEmail,
+        googleId,
+        avatar: picture || null,
+        authProvider: 'google',
+        role: 'customer'
+      });
+
+      // Initialize empty cart & wishlist
+      await Cart.create({ user: user._id, items: [] });
+      await Wishlist.create({ user: user._id, products: [] });
+    }
+
+    if (!user.isActive) {
+      return next(new ApiError(403, 'Your account has been deactivated. Please contact support.'));
+    }
+
+    return await createSessionAndRespond(user, 200, req, res, 'Signed in with Google successfully');
+  } catch (error) {
+    if (
+      error.message?.includes('Token used too late') ||
+      error.message?.includes('Wrong recipient') ||
+      error.message?.includes('Invalid token')
+    ) {
+      return next(new ApiError(401, `Google authentication failed: ${error.message}`));
+    }
     next(error);
   }
 };
@@ -359,6 +449,7 @@ const deleteAddress = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  googleAuth,
   refreshAccessToken,
   logout,
   logoutAll,

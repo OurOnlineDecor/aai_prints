@@ -11,10 +11,12 @@ const {
 } = require('../controllers/coupon.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
+const { couponLimiter } = require('../middlewares/rateLimit.middleware');
 
-// Public validation
+// Public validation (Rate-limited against brute-force coupon enumeration)
 router.post(
   '/validate',
+  couponLimiter,
   [body('code').trim().notEmpty().withMessage('Coupon code is required')],
   validate,
   validateCoupon

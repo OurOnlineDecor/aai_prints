@@ -26,6 +26,22 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import './CheckoutPage.css';
 
+// Helper to dynamically load the Razorpay checkout.js script
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 // Indian States and Union Territories list
 const INDIAN_STATES = [
   'Andhra Pradesh',
@@ -289,11 +305,10 @@ export default function CheckoutPage({
     setCouponError('');
   };
 
-  // Place Order Submission
+  // Place Order Submission (COD or Razorpay Online Gateway)
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      // Scroll to the first error
       const firstErrorKey = Object.keys(errors)[0];
       const errorEl = document.querySelector(`[name="${firstErrorKey}"]`);
       if (errorEl) {
@@ -321,6 +336,7 @@ export default function CheckoutPage({
         quantity: item.quantity || 1,
         image: item.image,
         variantName: item.selectedVariant?.label || item.variantName || null,
+        variantId: item.variantId || item.selectedVariant?.id || null,
       })),
       shippingAddress: {
         fullName: formData.fullName.trim(),
@@ -342,46 +358,169 @@ export default function CheckoutPage({
         shippingFee,
         total: finalTotal,
       },
-      status: paymentMethod === 'cod' ? 'confirmed' : 'paid',
+      status: paymentMethod === 'cod' ? 'confirmed' : 'pending',
+      paymentStatus: 'pending',
     };
 
     try {
-      // Attempt backend order creation if authenticated
-      if (isAuthenticated) {
+      // 1. Call Backend to create / initiate Order
+      const res = await api.post('/orders', {
+        shippingAddress: orderPayload.shippingAddress,
+        couponCode: appliedCoupon?.code || null,
+        paymentMethod: paymentMethod === 'cod' ? 'cod' : 'razorpay',
+        shippingMethod,
+        items: orderPayload.items,
+      });
+
+      const serverOrder = res?.data?.order || orderPayload;
+      const razorpayData = res?.data?.razorpay;
+
+      // ── CASE A: CASH ON DELIVERY ──
+      if (paymentMethod === 'cod') {
+        const confirmedOrderData = {
+          ...orderPayload,
+          ...serverOrder,
+          status: 'confirmed',
+          paymentStatus: 'pending',
+        };
+
+        // Persist to local storage history
         try {
-          const res = await api.post('/orders', {
-            shippingAddress: orderPayload.shippingAddress,
-            couponCode: appliedCoupon?.code || null,
-            paymentMethod: paymentMethod === 'cod' ? 'cod' : 'razorpay',
-          });
-          if (res?.data?.order?.orderNumber) {
-            orderPayload.orderNumber = res.data.order.orderNumber;
-          }
-        } catch (apiErr) {
-          console.warn('[Checkout] Backend sync optional fallback:', apiErr.message);
+          const existingOrders = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
+          localStorage.setItem('aaiprints_orders', JSON.stringify([confirmedOrderData, ...existingOrders]));
+        } catch (storageErr) {
+          console.error('Failed to save order to localStorage:', storageErr);
         }
+
+        clearCart();
+        setConfirmedOrder(confirmedOrderData);
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        return;
       }
 
-      // Persist order in local history storage
-      try {
-        const existingOrders = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
-        const updatedOrders = [orderPayload, ...existingOrders];
-        localStorage.setItem('aaiprints_orders', JSON.stringify(updatedOrders));
-      } catch (storageErr) {
-        console.error('Failed to save order to localStorage:', storageErr);
+      // ── CASE B: RAZORPAY ONLINE GATEWAY ──
+      if (paymentMethod === 'online') {
+        // If simulated sandbox mode (keys not yet configured in .env)
+        if (razorpayData?.isSimulated) {
+          console.log('[Razorpay] Simulated payment confirmation');
+          const verifyRes = await api.post('/orders/verify-payment', {
+            orderId: serverOrder._id,
+            orderNumber: serverOrder.orderNumber,
+            isSimulated: true,
+          });
+
+          const finalOrder = verifyRes?.data?.order || {
+            ...orderPayload,
+            status: 'confirmed',
+            paymentStatus: 'paid',
+          };
+
+          const existingOrders = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
+          localStorage.setItem('aaiprints_orders', JSON.stringify([finalOrder, ...existingOrders]));
+
+          clearCart();
+          setConfirmedOrder(finalOrder);
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          return;
+        }
+
+        // Live Razorpay SDK Modal Popup
+        const isLoaded = await loadRazorpayScript();
+        if (!isLoaded || typeof window.Razorpay === 'undefined') {
+          alert('Could not initialize Razorpay payment gateway. Please check your internet connection.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const razorpayKey =
+          razorpayData?.keyId ||
+          import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() ||
+          'rzp_test_key';
+
+        const rzpOptions = {
+          key: razorpayKey,
+          amount: razorpayData?.amount || Math.round(finalTotal * 100),
+          currency: razorpayData?.currency || 'INR',
+          name: 'Aai Prints',
+          description: `Order #${serverOrder.orderNumber || generatedOrderNumber}`,
+          image: '/favicon.png',
+          order_id: razorpayData?.orderId,
+          prefill: {
+            name: formData.fullName.trim(),
+            email: formData.email.trim(),
+            contact: formData.phone.trim(),
+          },
+          notes: {
+            orderNumber: serverOrder.orderNumber || generatedOrderNumber,
+            address: `${formData.city}, ${formData.state}`,
+          },
+          theme: {
+            color: '#D2B98C', // Brand Honey Sand Accent
+          },
+          handler: async function (paymentResponse) {
+            try {
+              setIsSubmitting(true);
+              const verifyRes = await api.post('/orders/verify-payment', {
+                orderId: serverOrder._id,
+                orderNumber: serverOrder.orderNumber,
+                razorpay_order_id: paymentResponse.razorpay_order_id,
+                razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                razorpay_signature: paymentResponse.razorpay_signature,
+              });
+
+              const verifiedOrder = verifyRes?.data?.order || {
+                ...orderPayload,
+                status: 'confirmed',
+                paymentStatus: 'paid',
+                paymentDetails: {
+                  razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                  razorpayOrderId: paymentResponse.razorpay_order_id,
+                },
+              };
+
+              // Persist confirmed order to browser history
+              const existingOrders = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
+              localStorage.setItem('aaiprints_orders', JSON.stringify([verifiedOrder, ...existingOrders]));
+
+              clearCart();
+              setConfirmedOrder(verifiedOrder);
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            } catch (verifyErr) {
+              console.error('[Payment Verification Failed]:', verifyErr);
+              alert(
+                'Payment was captured by your bank, but verification encountered a temporary issue. Our fulfillment desk will review and confirm your order.'
+              );
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              setIsSubmitting(false);
+              console.log('[Razorpay Modal] Window dismissed by customer.');
+            },
+          },
+        };
+
+        const rzp = new window.Razorpay(rzpOptions);
+        rzp.on('payment.failed', function (failedResponse) {
+          console.error('[Razorpay Payment Failed]', failedResponse.error);
+          alert(`Payment failed: ${failedResponse.error?.description || 'Transaction declined by bank.'}`);
+          setIsSubmitting(false);
+        });
+        rzp.open();
       }
-
-      // Clear shopping cart
-      clearCart();
-
-      // Show Confirmation Screen
-      setConfirmedOrder(orderPayload);
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     } catch (err) {
       console.error('[Checkout Error]', err);
-      alert('There was an issue processing your order. Please try again.');
+      const errorMsg =
+        err.data?.message ||
+        err.message ||
+        'There was an issue processing your order. Please try again.';
+      alert(errorMsg);
     } finally {
-      setIsSubmitting(false);
+      if (paymentMethod === 'cod') {
+        setIsSubmitting(false);
+      }
     }
   };
 

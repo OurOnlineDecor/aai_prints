@@ -12,11 +12,12 @@ const {
   getB2BStats
 } = require('../controllers/b2b.controller');
 const { protect, requireAdmin } = require('../middlewares/auth.middleware');
+const { inquiryLimiter } = require('../middlewares/rateLimit.middleware');
 
 // Public B2B routes
 router.get('/products', getB2BProducts);
 router.get('/products/:idOrSlug', getB2BProductBySlugOrId);
-router.post('/inquiries', createB2BInquiry);
+router.post('/inquiries', inquiryLimiter, createB2BInquiry);
 
 // Admin-only B2B management routes
 router.post('/products', protect, requireAdmin, createB2BProduct);

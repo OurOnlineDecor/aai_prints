@@ -77,6 +77,25 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Google Sign-In handler (receives ID token credential from GIS)
+  const loginWithGoogle = async (credential) => {
+    try {
+      setAuthError(null);
+      const res = await api.post('/auth/google', { credential });
+      if (res?.data?.user) {
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+        return res.data.user;
+      }
+      throw new Error('Invalid response from Google authentication');
+    } catch (err) {
+      const detailedMsg =
+        err.data?.message || err.message || 'Google sign-in failed. Please try again.';
+      setAuthError(detailedMsg);
+      throw err;
+    }
+  };
+
   // Logout handler
   const logout = async () => {
     try {
@@ -122,6 +141,7 @@ export function AuthProvider({ children }) {
     authError,
     login,
     register,
+    loginWithGoogle,
     logout,
     checkAuth,
     addAddress,

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+import GoogleSignInButton from './GoogleSignInButton';
 import './AccountDrawer.css';
 
 export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
@@ -477,6 +478,18 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                   <span>{localError || authError}</span>
                 </div>
               )}
+
+              {/* Google One-Click Authentication */}
+              <GoogleSignInButton
+                onSuccess={() => {
+                  setLocalError(null);
+                }}
+                text={activeTab === 'login' ? 'Sign in with Google' : 'Sign up with Google'}
+              />
+
+              <div className="auth-divider">
+                <span>or continue with email</span>
+              </div>
 
               {/* Login Form */}
               {activeTab === 'login' ? (

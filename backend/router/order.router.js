@@ -5,31 +5,41 @@ const router = express.Router();
 const {
   getCheckoutPreview,
   createOrder,
+  verifyPayment,
+  handleRazorpayWebhook,
   getMyOrders,
   getOrderById,
   getAllOrders,
   updateOrderStatus
 } = require('../controllers/order.controller');
-const { protect, authorize } = require('../middlewares/auth.middleware');
+const { protect, protectOptional, authorize } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
+const { orderCreationLimiter } = require('../middlewares/rateLimit.middleware');
 
-router.use(protect);
+// ── Webhook Route (Raw/Public) ──
+router.post('/razorpay-webhook', handleRazorpayWebhook);
 
-// Customer checkout & orders
-router.post('/checkout-preview', getCheckoutPreview);
+// ── Public / Guest-Friendly Checkout & Payment Verification ──
+router.post('/checkout-preview', protectOptional, getCheckoutPreview);
 router.post(
   '/',
+  orderCreationLimiter,
+  protectOptional,
   [body('shippingAddress').isObject().withMessage('Shipping address is required')],
   validate,
   createOrder
 );
-router.get('/my-orders', getMyOrders);
-router.get('/:id', getOrderById);
+router.post('/verify-payment', orderCreationLimiter, protectOptional, verifyPayment);
 
-// Admin routes
-router.get('/', authorize('admin'), getAllOrders);
+// ── Authenticated Customer Routes ──
+router.get('/my-orders', protect, getMyOrders);
+router.get('/:id', protect, getOrderById);
+
+// ── Admin Routes ──
+router.get('/', protect, authorize('admin'), getAllOrders);
 router.put(
   '/:id/status',
+  protect,
   authorize('admin'),
   [
     body('status')

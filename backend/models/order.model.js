@@ -45,14 +45,17 @@ const orderSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
+      default: null,
       index: true
     },
     items: [orderItemSchema],
     shippingAddress: {
       fullName: { type: String, required: true },
+      email: { type: String, default: null },
       phone: { type: String, required: true },
       street: { type: String, required: true },
+      apartment: { type: String, default: '' },
       landmark: { type: String, default: '' },
       city: { type: String, required: true },
       state: { type: String, required: true },

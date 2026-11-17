@@ -5,6 +5,16 @@ const connectDB = require('./db/connect');
 
 const PORT = process.env.PORT || 5000;
 
+// Validate critical secrets fail-fast in production
+if (process.env.NODE_ENV === 'production') {
+  const REQUIRED_ENV = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'MONGODB_URI'];
+  const missing = REQUIRED_ENV.filter((key) => !process.env[key] || process.env[key].length < 16);
+  if (missing.length > 0) {
+    console.error(`[FATAL CONFIG ERROR]: Missing or insufficient environment variables in production: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+}
+
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error(`[Uncaught Exception]: ${err.message}`);

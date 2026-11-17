@@ -5,6 +5,7 @@ const router = express.Router();
 const {
   register,
   login,
+  googleAuth,
   refreshAccessToken,
   logout,
   logoutAll,
@@ -15,10 +16,12 @@ const {
 } = require('../controllers/auth.controller');
 const { protect } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
+const { authLimiter } = require('../middlewares/rateLimit.middleware');
 
-// Public routes
+// Public routes (Rate-limited against brute-force and credential stuffing)
 router.post(
   '/register',
+  authLimiter,
   [
     body('name')
       .trim()
@@ -35,12 +38,22 @@ router.post(
 
 router.post(
   '/login',
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').notEmpty().withMessage('Password is required')
   ],
   validate,
   login
+);
+
+// Google Sign-In & Registration with ID Token
+router.post(
+  '/google',
+  authLimiter,
+  [body('credential').notEmpty().withMessage('Google credential token is required')],
+  validate,
+  googleAuth
 );
 
 // Refresh Token route (supports token in httpOnly cookie or body)
