@@ -809,6 +809,23 @@
   border-color: var(--badge-success);
 }
 
+.shop-card-cart-btn.shop-card-custom-btn {
+  background: #25D366;
+  border-color: #1EBE5D;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
+}
+
+.shop-card-cart-btn.shop-card-custom-btn:hover {
+  background: #1EBE5D;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+  transform: translateY(-1px);
+}
+
 /* ── 8. Empty States ── */
 .shop-no-results {
   background: var(--white);

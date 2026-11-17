@@ -20,6 +20,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
+import CustomProductDetailPage from './pages/CustomProductDetailPage';
 import AdminGuard from './components/AdminGuard';
 import AdminAddProductPage from './pages/AdminAddProductPage';
 import B2BPortalPage from './pages/B2BPortalPage';
@@ -32,11 +33,20 @@ import {
   fetchAllProducts,
   getProductBySlugOrId,
 } from './services/productService';
+import {
+  fetchCustomProducts,
+  fetchCustomProductBySlug,
+  FALLBACK_CUSTOM_PRODUCTS,
+} from './services/customProductService';
 import './App.css';
 
 function App() {
   // Live product catalogue state with immediate local fallback
   const [allProducts, setAllProducts] = useState(() => getAllProducts());
+
+  // Live custom products state
+  const [customProducts, setCustomProducts] = useState(() => FALLBACK_CUSTOM_PRODUCTS);
+  const [selectedCustomProduct, setSelectedCustomProduct] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -45,6 +55,13 @@ function App() {
         setAllProducts([...live]);
       }
     });
+
+    fetchCustomProducts().then((customLive) => {
+      if (isMounted && Array.isArray(customLive) && customLive.length > 0) {
+        setCustomProducts([...customLive]);
+      }
+    });
+
     return () => {
       isMounted = false;
     };
@@ -86,6 +103,9 @@ function App() {
       if (hash.startsWith('#/b2b') || path.startsWith('/b2b') || hash === '#b2b') {
         return 'b2b';
       }
+      if (hash.startsWith('#/custom/') || path.startsWith('/custom/')) {
+        return 'custom-product';
+      }
       if (hash.startsWith('#/product/') || path.startsWith('/product/')) {
         return 'product';
       }
@@ -118,6 +138,37 @@ function App() {
     }
     return '';
   });
+
+  const [activeCustomProductSlug, setActiveCustomProductSlug] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const path = window.location.pathname;
+      if (hash.startsWith('#/custom/')) {
+        return hash.replace('#/custom/', '').split('?')[0];
+      }
+      if (path.startsWith('/custom/')) {
+        return path.replace('/custom/', '').split('?')[0];
+      }
+    }
+    return '';
+  });
+
+  // Resolve selected custom product when activeCustomProductSlug changes
+  useEffect(() => {
+    if (activeCustomProductSlug) {
+      const normalized = decodeURIComponent(activeCustomProductSlug).toLowerCase().trim();
+      const match = customProducts.find(
+        (p) => (p.slug && p.slug.toLowerCase() === normalized) || String(p._id) === normalized
+      );
+      if (match) {
+        setSelectedCustomProduct(match);
+      } else {
+        fetchCustomProductBySlug(normalized).then((live) => {
+          if (live) setSelectedCustomProduct(live);
+        });
+      }
+    }
+  }, [activeCustomProductSlug, customProducts]);
 
   const [selectedCategory, setSelectedCategory] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -158,6 +209,12 @@ function App() {
         setCurrentPage('admin-add-product');
       } else if (hash.startsWith('#/b2b') || path.startsWith('/b2b') || hash === '#b2b') {
         setCurrentPage('b2b');
+      } else if (hash.startsWith('#/custom/') || path.startsWith('/custom/')) {
+        const slug = hash.startsWith('#/custom/')
+          ? hash.replace('#/custom/', '').split('?')[0]
+          : path.replace('/custom/', '').split('?')[0];
+        setActiveCustomProductSlug(decodeURIComponent(slug));
+        setCurrentPage('custom-product');
       } else if (hash.startsWith('#/product/') || path.startsWith('/product/')) {
         const slug = hash.startsWith('#/product/')
           ? hash.replace('#/product/', '').split('?')[0]
@@ -230,6 +287,13 @@ function App() {
     } else if (page === 'product') {
       setActiveProductSlug(param);
       window.history.pushState(null, '', `#/product/${param}`);
+    } else if (page === 'custom-product') {
+      const slug = typeof param === 'object' && param ? param.slug : param;
+      if (typeof param === 'object' && param) {
+        setSelectedCustomProduct(param);
+      }
+      setActiveCustomProductSlug(slug);
+      window.history.pushState(null, '', `#/custom/${slug}`);
     } else if (page === 'checkout') {
       window.history.pushState(null, '', '#/checkout');
     } else if (page === 'cart') {
@@ -267,6 +331,13 @@ function App() {
     navigateTo('product', slug);
   };
 
+  const handleSelectCustomProduct = (prod) => {
+    if (!prod) return;
+    setSelectedCustomProduct(prod);
+    const slug = prod.slug || String(prod.id || prod._id);
+    navigateTo('custom-product', slug);
+  };
+
   // Find active product for PDP via live products state
   const currentProduct = useMemo(() => {
     if (!activeProductSlug && allProducts.length > 0) return allProducts[0];
@@ -283,6 +354,24 @@ function App() {
       null
     );
   }, [activeProductSlug, allProducts]);
+
+  // Find active custom product for Custom PDP via slug or selected state
+  const activeCustomProduct = useMemo(() => {
+    if (selectedCustomProduct) return selectedCustomProduct;
+    if (activeCustomProductSlug) {
+      const normalized = decodeURIComponent(activeCustomProductSlug).toLowerCase().trim();
+      return (
+        customProducts.find(
+          (p) => (p.slug && p.slug.toLowerCase() === normalized) || String(p._id) === normalized
+        ) ||
+        FALLBACK_CUSTOM_PRODUCTS.find(
+          (p) => (p.slug && p.slug.toLowerCase() === normalized) || String(p._id) === normalized
+        ) ||
+        null
+      );
+    }
+    return customProducts[0] || FALLBACK_CUSTOM_PRODUCTS[0] || null;
+  }, [selectedCustomProduct, activeCustomProductSlug, customProducts]);
 
   return (
     <AuthProvider>
@@ -314,7 +403,13 @@ function App() {
             className="page-view-fade"
             style={{ width: '100%' }}
           >
-            {currentPage === 'product' ? (
+            {currentPage === 'custom-product' ? (
+              <CustomProductDetailPage
+                product={activeCustomProduct}
+                onNavigateHome={() => navigateTo('home')}
+                onNavigateShop={() => navigateTo('shop', 'Personalized')}
+              />
+            ) : currentPage === 'product' ? (
               <ProductDetailPage
                 product={currentProduct}
                 allProducts={allProducts}
@@ -337,10 +432,12 @@ function App() {
             ) : currentPage === 'shop' ? (
               <ShopPage
                 products={allProducts}
+                customProducts={customProducts}
                 selectedCategory={selectedCategory}
                 onSelectCategory={(cat) => navigateTo('shop', cat)}
                 onNavigateHome={() => navigateTo('home')}
                 onSelectProduct={handleSelectProduct}
+                onSelectCustomProduct={handleSelectCustomProduct}
               />
             ) : currentPage === 'checkout' ? (
               <CheckoutPage
@@ -429,7 +526,7 @@ function App() {
                 )}
 
                 {/* 2. How Personalization Works Process Diagram */}
-                <PersonalizationSteps onNavigateShop={() => navigateTo('shop', 'All')} />
+                <PersonalizationSteps onNavigateShop={() => navigateTo('shop', 'Personalized')} />
 
                 {/* Clean notice when catalogue is empty / being populated */}
                 {allProducts.length === 0 && (

@@ -1,0 +1,596 @@
+/* ==============================================
+   Aai Prints — Custom Product Detail Page (PDP)
+   Tailored for Direct WhatsApp Ordering Flow
+   ============================================== */
+
+.custom-pdp-page {
+  width: 100%;
+  min-height: 85vh;
+  background-color: var(--bg-primary, #FFFCF5);
+  padding-bottom: 80px;
+}
+
+.custom-pdp-container {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Breadcrumb ── */
+.custom-pdp-breadcrumb {
+  background: var(--bg-nav, #F7F3EA);
+  border-bottom: 1px solid rgba(210, 185, 140, 0.28);
+  padding: 14px 0;
+  margin-bottom: 40px;
+}
+
+.custom-pdp-breadcrumb .custom-pdp-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 12.5px;
+  color: var(--text-muted, #857A70);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.breadcrumb-link {
+  color: var(--text-muted, #857A70);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: var(--text-primary, #39332E);
+}
+
+.breadcrumb-separator {
+  color: rgba(133, 122, 112, 0.45);
+}
+
+.breadcrumb-current {
+  color: var(--text-primary, #39332E);
+  font-weight: 600;
+}
+
+/* ── 2-Column Grid Layout ── */
+.custom-pdp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 52px;
+  align-items: flex-start;
+}
+
+/* ══════════════════════════════════════════════
+   LEFT COLUMN: Photo & Gallery
+══════════════════════════════════════════════ */
+.custom-pdp-gallery {
+  position: sticky;
+  top: calc(var(--navbar-height, 97px) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.custom-main-image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(210, 185, 140, 0.35);
+  box-shadow: 0 4px 24px rgba(57, 51, 46, 0.05);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-product-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  color: #6E5A47;
+  border: 1px solid rgba(210, 185, 140, 0.5);
+  padding: 6px 14px;
+  border-radius: var(--radius-full, 9999px);
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 10px rgba(57, 51, 46, 0.08);
+  z-index: 2;
+}
+
+.custom-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+  cursor: zoom-in;
+}
+
+.custom-main-image.zoomed {
+  transform: scale(1.35);
+  cursor: zoom-out;
+}
+
+.custom-image-zoom-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary, #39332E);
+  border: 1px solid rgba(210, 185, 140, 0.4);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+
+.custom-image-zoom-btn:hover {
+  background: #FFFFFF;
+  transform: scale(1.08);
+}
+
+/* Thumbnails */
+.custom-thumbnails-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.custom-thumb-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: #FFFFFF;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.custom-thumb-btn.active {
+  border-color: var(--accent, #D2B98C);
+  opacity: 1;
+  box-shadow: 0 2px 10px rgba(210, 185, 140, 0.3);
+}
+
+.custom-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Gallery Badges */
+.custom-gallery-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 16px 20px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid rgba(210, 185, 140, 0.25);
+}
+
+.custom-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 12.5px;
+  color: #6E5A47;
+  font-weight: 500;
+}
+
+.custom-badge-item svg {
+  color: var(--accent, #D2B98C);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════
+   RIGHT COLUMN: Product Details & WhatsApp Order
+══════════════════════════════════════════════ */
+.custom-pdp-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-pdp-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.custom-category-tag {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #8C7D70;
+}
+
+.custom-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid rgba(210, 185, 140, 0.35);
+  padding: 6px 12px;
+  border-radius: var(--radius-full, 9999px);
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  color: #6E5A47;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-share-btn:hover {
+  background: rgba(210, 185, 140, 0.15);
+  border-color: rgba(210, 185, 140, 0.6);
+}
+
+/* 1. Product Name */
+.custom-product-name {
+  font-family: var(--font-display, 'Cormorant', serif);
+  font-size: clamp(32px, 3.5vw, 44px);
+  font-weight: 600;
+  line-height: 1.18;
+  color: var(--text-primary, #39332E);
+  margin: 0 0 16px;
+}
+
+/* Price */
+.custom-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(210, 185, 140, 0.25);
+}
+
+.custom-price-label {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 12.5px;
+  color: var(--text-muted, #857A70);
+  font-weight: 500;
+}
+
+.custom-price-current {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary, #39332E);
+}
+
+.custom-price-original {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 16px;
+  color: #A3968A;
+  text-decoration: line-through;
+}
+
+.custom-discount-pill {
+  background: #FEF3C7;
+  color: #92400E;
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.custom-product-desc {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 14px;
+  line-height: 1.65;
+  color: #6E6155;
+  margin: 0 0 26px;
+}
+
+/* 2. Product Requirements Card */
+.custom-requirements-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(210, 185, 140, 0.45);
+  border-radius: 18px;
+  padding: 24px 26px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 18px rgba(57, 51, 46, 0.035);
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-requirements-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: var(--accent, #D2B98C);
+}
+
+.custom-requirements-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(210, 185, 140, 0.2);
+}
+
+.req-header-icon {
+  color: #A67C52;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.custom-requirements-title {
+  font-family: var(--font-display, 'Cormorant', serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #39332E);
+  margin: 0 0 2px;
+}
+
+.custom-requirements-subtitle {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 11.5px;
+  color: var(--text-muted, #857A70);
+  display: block;
+}
+
+.custom-requirements-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-req-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.req-bullet {
+  color: var(--accent, #D2B98C);
+  font-size: 12px;
+  line-height: 1.65;
+  flex-shrink: 0;
+}
+
+.req-text {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #4D4238;
+  margin: 0;
+}
+
+/* 3. User Notes Input */
+.custom-user-input-group {
+  margin-bottom: 24px;
+}
+
+.custom-input-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary, #39332E);
+  margin-bottom: 8px;
+}
+
+.optional-tag {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted, #857A70);
+}
+
+.custom-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border: 1px solid rgba(210, 185, 140, 0.45);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-primary, #39332E);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.custom-textarea:focus {
+  border-color: #25D366;
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+}
+
+/* 4. WhatsApp CTA Button */
+.custom-order-action-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.custom-whatsapp-order-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #FFFFFF;
+  padding: 16px 28px;
+  border-radius: 14px;
+  text-decoration: none;
+  box-shadow: 0 6px 22px rgba(37, 211, 102, 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-whatsapp-order-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(37, 211, 102, 0.45);
+  background: linear-gradient(135deg, #2ae06d 0%, #0e7b6e 100%);
+}
+
+.whatsapp-icon-svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.btn-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.btn-main-text {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
+}
+
+.btn-sub-text {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 11px;
+  opacity: 0.9;
+  letter-spacing: 0.2px;
+  margin-top: 2px;
+}
+
+.btn-ext-icon {
+  margin-left: auto;
+  opacity: 0.85;
+}
+
+.custom-order-disclaimer {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted, #857A70);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Fallback Not Found View ── */
+.custom-pdp-not-found {
+  max-width: 540px;
+  margin: 80px auto;
+  padding: 48px 24px;
+  text-align: center;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(210, 185, 140, 0.35);
+}
+
+.custom-pdp-not-found h2 {
+  font-family: var(--font-display, 'Cormorant', serif);
+  font-size: 28px;
+  color: var(--text-primary, #39332E);
+  margin-bottom: 12px;
+}
+
+.custom-pdp-not-found p {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 14px;
+  color: var(--text-muted, #857A70);
+  margin-bottom: 24px;
+}
+
+.custom-back-btn {
+  background: var(--accent, #D2B98C);
+  color: #39332E;
+  padding: 12px 28px;
+  border-radius: var(--radius-full, 9999px);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE DESIGN
+══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .custom-pdp-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .custom-pdp-gallery {
+    position: static;
+  }
+
+  .custom-main-image-wrap {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .custom-thumbnails-row {
+    justify-content: center;
+  }
+
+  .custom-gallery-badges {
+    max-width: 520px;
+    margin: 8px auto 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .custom-pdp-container {
+    padding: 0 16px;
+  }
+
+  .custom-pdp-breadcrumb {
+    margin-bottom: 24px;
+  }
+
+  .custom-product-name {
+    font-size: 28px;
+  }
+
+  .custom-requirements-card {
+    padding: 18px 18px;
+  }
+
+  .custom-whatsapp-order-btn {
+    padding: 14px 20px;
+  }
+
+  .btn-main-text {
+    font-size: 15px;
+  }
+}

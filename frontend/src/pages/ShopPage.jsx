@@ -29,10 +29,12 @@ function StarRating({ rating, count }) {
 
 export default function ShopPage({
   products = [],
+  customProducts = [],
   selectedCategory = 'All',
   onSelectCategory,
   onNavigateHome,
   onSelectProduct,
+  onSelectCustomProduct,
 }) {
   const { isInWishlist, toggleWishlist, addToCart } = useWishlist();
   const { user } = useAuth();
@@ -55,19 +57,39 @@ export default function ShopPage({
     }
   }, [selectedCategory]);
 
-  // Extract unique categories from actual products
+  // Normalize customProducts into standard product shape for shop catalog display
+  const normalizedCustomProducts = useMemo(() => {
+    return (customProducts || []).map((cp) => ({
+      ...cp,
+      id: cp._id || cp.id || cp.slug,
+      image: (Array.isArray(cp.images) && cp.images[0]) || cp.image || '',
+      category: cp.category || 'Personalized',
+      tag: cp.badge || 'Custom Order',
+      rating: cp.rating || 4.9,
+      reviews: cp.reviews || 24,
+      isCustomProduct: true,
+    }));
+  }, [customProducts]);
+
+  // Combine standard products and custom items
+  const allCombinedProducts = useMemo(() => {
+    return [...products, ...normalizedCustomProducts];
+  }, [products, normalizedCustomProducts]);
+
+  // Extract unique categories from actual products + Personalized
   const categoryList = useMemo(() => {
     const cats = new Set();
     products.forEach((p) => {
       if (p.category) cats.add(p.category);
     });
+    cats.add('Personalized');
     return ['All', ...Array.from(cats)];
   }, [products]);
 
   // Map subcategories per category
   const subcategoryMap = useMemo(() => {
     const map = {};
-    products.forEach((p) => {
+    allCombinedProducts.forEach((p) => {
       if (p.category && p.subcategory) {
         if (!map[p.category]) map[p.category] = new Set();
         map[p.category].add(p.subcategory);
@@ -78,13 +100,13 @@ export default function ShopPage({
       result[cat] = Array.from(map[cat]);
     });
     return result;
-  }, [products]);
+  }, [allCombinedProducts]);
 
   // Price range bounds
   const priceBounds = useMemo(() => {
     let min = Infinity;
     let max = -Infinity;
-    products.forEach((p) => {
+    allCombinedProducts.forEach((p) => {
       const val = parseFloat(String(p.price).replace(/,/g, ''));
       if (!isNaN(val)) {
         if (val < min) min = val;
@@ -95,7 +117,7 @@ export default function ShopPage({
       min: min === Infinity ? 0 : min,
       max: max === -Infinity ? 2000 : max,
     };
-  }, [products]);
+  }, [allCombinedProducts]);
 
   const timersRef = useRef({});
 
@@ -120,7 +142,7 @@ export default function ShopPage({
 
   // Filtered and sorted products
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...allCombinedProducts];
 
     // 1. Category / Collection Filter
     if (activeCategory && activeCategory !== 'All') {
@@ -129,6 +151,11 @@ export default function ShopPage({
         const cat = (p.category || '').toLowerCase();
         const sub = (p.subcategory || '').toLowerCase();
         const name = (p.name || '').toLowerCase();
+
+        // Personalized / Custom category match
+        if (target === 'personalized' || target === 'custom' || target === 'customization') {
+          return p.isCustomProduct || cat === 'personalized' || cat === 'custom';
+        }
 
         // Direct category or subcategory match
         if (cat === target || sub === target) return true;
@@ -329,7 +356,7 @@ export default function ShopPage({
     }
 
     return result;
-  }, [products, activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, sortBy]);
+  }, [allCombinedProducts, activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, sortBy]);
 
   // Clear all filters
   const handleClearFilters = () => {
@@ -578,8 +605,13 @@ export default function ShopPage({
               <ul className="category-filter-list">
                 {categoryList.map((cat) => {
                   const count = cat === 'All'
-                    ? products.length
-                    : products.filter((p) => p.category === cat).length;
+                    ? allCombinedProducts.length
+                    : allCombinedProducts.filter((p) => {
+                        if (cat.toLowerCase() === 'personalized') {
+                          return p.isCustomProduct || (p.category || '').toLowerCase() === 'personalized';
+                        }
+                        return p.category === cat;
+                      }).length;
                   const isCatActive = activeCategory === cat;
                   const subcats = subcategoryMap[cat] || [];
 
@@ -859,14 +891,26 @@ export default function ShopPage({
                       {/* Product Image Area - Clean aspect ratio container without broken icons */}
                       <div
                         className="shop-card-img-wrap"
-                        onClick={() => onSelectProduct && onSelectProduct(p)}
+                        onClick={() => {
+                          if (p.isCustomProduct) {
+                            if (onSelectCustomProduct) onSelectCustomProduct(p);
+                            else window.location.hash = `#/custom/${p.slug || p.id}`;
+                          } else {
+                            onSelectProduct && onSelectProduct(p);
+                          }
+                        }}
                         role="button"
                         tabIndex={0}
                         aria-label={`View ${p.name}`}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            onSelectProduct && onSelectProduct(p);
+                            if (p.isCustomProduct) {
+                              if (onSelectCustomProduct) onSelectCustomProduct(p);
+                              else window.location.hash = `#/custom/${p.slug || p.id}`;
+                            } else {
+                              onSelectProduct && onSelectProduct(p);
+                            }
                           }
                         }}
                       >
@@ -893,13 +937,25 @@ export default function ShopPage({
                         )}
                         <h3
                           className="shop-card-name"
-                          onClick={() => onSelectProduct && onSelectProduct(p)}
+                          onClick={() => {
+                            if (p.isCustomProduct) {
+                              if (onSelectCustomProduct) onSelectCustomProduct(p);
+                              else window.location.hash = `#/custom/${p.slug || p.id}`;
+                            } else {
+                              onSelectProduct && onSelectProduct(p);
+                            }
+                          }}
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              onSelectProduct && onSelectProduct(p);
+                              if (p.isCustomProduct) {
+                                if (onSelectCustomProduct) onSelectCustomProduct(p);
+                                else window.location.hash = `#/custom/${p.slug || p.id}`;
+                              } else {
+                                onSelectProduct && onSelectProduct(p);
+                              }
                             }
                           }}
                         >
@@ -920,17 +976,39 @@ export default function ShopPage({
                           )}
                         </div>
 
-                        {/* Add to Cart button */}
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.96 }}
-                          type="button"
-                          className={`shop-card-cart-btn ${addedIds[p.id || p._id] ? 'added' : ''}`}
-                          onClick={() => handleAddToCart(p)}
-                          aria-label={addedIds[p.id || p._id] ? `Go to cart with ${p.name}` : `Add ${p.name} to cart`}
-                        >
-                          {addedIds[p.id || p._id] ? 'Go to Cart →' : 'Add to Cart'}
-                        </motion.button>
+                        {/* Custom order button or standard Add to Cart button */}
+                        {p.isCustomProduct ? (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.96 }}
+                            type="button"
+                            className="shop-card-cart-btn shop-card-custom-btn"
+                            onClick={() => {
+                              if (onSelectCustomProduct) {
+                                onSelectCustomProduct(p);
+                              } else {
+                                window.location.hash = `#/custom/${p.slug || p.id}`;
+                              }
+                            }}
+                            aria-label={`Customize ${p.name} on WhatsApp`}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                            </svg>
+                            Order via WhatsApp
+                          </motion.button>
+                        ) : (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.96 }}
+                            type="button"
+                            className={`shop-card-cart-btn ${addedIds[p.id || p._id] ? 'added' : ''}`}
+                            onClick={() => handleAddToCart(p)}
+                            aria-label={addedIds[p.id || p._id] ? `Go to cart with ${p.name}` : `Add ${p.name} to cart`}
+                          >
+                            {addedIds[p.id || p._id] ? 'Go to Cart →' : 'Add to Cart'}
+                          </motion.button>
+                        )}
                       </div>
                     </motion.article>
                   );

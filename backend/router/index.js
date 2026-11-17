@@ -12,6 +12,7 @@ const orderRouter = require('./order.router');
 const mediaRouter = require('./media.router');
 const b2bRouter = require('./b2b.router');
 const reelRouter = require('./reel.router');
+const customProductRouter = require('./customProduct.router');
 
 router.use('/auth', authRouter);
 router.use('/categories', categoryRouter);
@@ -24,6 +25,7 @@ router.use('/orders', orderRouter);
 router.use('/media', mediaRouter);
 router.use('/b2b', b2bRouter);
 router.use('/reels', reelRouter);
+router.use('/custom-products', customProductRouter);
 
 // Health check endpoint
 router.get('/health', (req, res) => {
