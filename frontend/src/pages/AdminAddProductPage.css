@@ -166,7 +166,7 @@
 /* ── Stats Strip ── */
 .admin-product-stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
   margin-bottom: 28px;
 }
@@ -1052,4 +1052,110 @@
     max-width: 100%;
     min-width: 100%;
   }
+}
+
+/* ════ Customization Products Hub Styles ════ */
+.admin-custom-products-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-custom-subnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-custom-subtabs {
+  display: inline-flex;
+  background: #ffffff;
+  border: 1.5px solid rgba(210, 185, 140, 0.35);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.admin-custom-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-custom-subtab:hover {
+  color: #39332E;
+}
+
+.admin-custom-subtab.active {
+  background: #39332E;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(57, 51, 46, 0.2);
+}
+
+.custom-wa-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+.custom-req-preview {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  max-height: 80px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.custom-req-templates {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.custom-template-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400e;
+  background: rgba(210, 185, 140, 0.18);
+  border: 1px dashed var(--gold, #D2B98C);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-template-btn:hover {
+  background: rgba(210, 185, 140, 0.35);
+  border-color: #b45309;
+  color: #78350f;
+  transform: translateY(-1px);
 }

@@ -18,13 +18,21 @@ import {
   Box,
   Eye,
   RefreshCw,
+  MessageSquare,
+  FileText,
+  Plus,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { fetchAllProducts } from '../services/productService';
+import {
+  fetchCustomProducts,
+  createCustomProduct,
+  deleteCustomProduct,
+} from '../services/customProductService';
 import AdminEditProductModal from '../components/AdminEditProductModal';
 import './AdminAddProductPage.css';
 
-const PRESET_BADGES = ['Bestseller', 'New Launch', 'Devotional', '', 'Sale', 'Trending'];
+const PRESET_BADGES = ['Bestseller', 'New Launch', 'Devotional', 'Sale', 'Trending'];
 
 export default function AdminAddProductPage({
   onNavigateHome,
@@ -34,8 +42,9 @@ export default function AdminAddProductPage({
   onProductUpdated,
   onProductDeleted,
 }) {
-  // Navigation & Tabs State ('products' = catalog list, 'add' = add product form)
+  // Navigation & Tabs State ('products' = retail hub, 'custom' = customization hub)
   const [activeTab, setActiveTab] = useState('products');
+  const [retailSubTab, setRetailSubTab] = useState('list'); // 'list' | 'add'
 
   // Products Catalog State
   const [products, setProducts] = useState([]);
@@ -105,6 +114,229 @@ export default function AdminAddProductPage({
   useEffect(() => {
     loadProducts();
   }, []);
+
+  // ── Customization Products Hub State ──
+  const [customProducts, setCustomProducts] = useState([]);
+  const [isLoadingCustomProducts, setIsLoadingCustomProducts] = useState(false);
+  const [customSubTab, setCustomSubTab] = useState('list'); // 'list' | 'add'
+  const [customSearchQuery, setCustomSearchQuery] = useState('');
+
+  // Form fields for adding Custom Product
+  const [customName, setCustomName] = useState('');
+  const [customRequirements, setCustomRequirements] = useState('');
+  const [customCategory, setCustomCategory] = useState('Custom Frames');
+  const [customPrice, setCustomPrice] = useState('');
+  const [customOriginalPrice, setCustomOriginalPrice] = useState('');
+  const [customWhatsAppNumber, setCustomWhatsAppNumber] = useState('919876543210');
+  const [customDescription, setCustomDescription] = useState('');
+  const [customImages, setCustomImages] = useState([]);
+  const [customManualUrl, setCustomManualUrl] = useState('');
+  const [isUploadingCustomImages, setIsUploadingCustomImages] = useState(false);
+  const [customUploadError, setCustomUploadError] = useState(null);
+  const [isSubmittingCustom, setIsSubmittingCustom] = useState(false);
+  const customFileInputRef = useRef(null);
+
+  // Load Custom Products
+  const loadCustomProducts = async () => {
+    try {
+      setIsLoadingCustomProducts(true);
+      const list = await fetchCustomProducts();
+      setCustomProducts(list || []);
+    } catch (err) {
+      console.warn('[AdminAddProductPage] Could not load custom products:', err);
+    } finally {
+      setIsLoadingCustomProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomProducts();
+  }, []);
+
+  // Custom Product File Upload
+  const handleCustomFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    try {
+      setIsUploadingCustomImages(true);
+      setCustomUploadError(null);
+      const formData = new FormData();
+      files.forEach((file) => formData.append('images', file));
+
+      const res = await api.post('/media/upload-multiple', formData);
+      const newAssets = (res.data?.assets || []).map((a) => ({
+        url: a.url,
+        publicId: a.publicId,
+      }));
+      setCustomImages((prev) => [...prev, ...newAssets]);
+    } catch (err) {
+      setCustomUploadError(
+        err.data?.message || err.message || 'Image upload failed. You can paste an image URL directly.'
+      );
+    } finally {
+      setIsUploadingCustomImages(false);
+      if (customFileInputRef.current) customFileInputRef.current.value = '';
+    }
+  };
+
+  const handleAddCustomManualUrl = () => {
+    const trimmed = customManualUrl.trim();
+    if (!trimmed) return;
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && !trimmed.startsWith('/')) {
+      setCustomUploadError('Please enter a valid HTTP/HTTPS or local image URL.');
+      return;
+    }
+    const match = trimmed.match(/\/upload\/(?:v\d+\/)?([^\.]+)/);
+    const publicId = match ? match[1] : null;
+    setCustomImages((prev) => [...prev, { url: trimmed, publicId }]);
+    setCustomManualUrl('');
+    setCustomUploadError(null);
+  };
+
+  const removeCustomImage = async (index) => {
+    const target = customImages[index];
+    if (!target) return;
+    const url = typeof target === 'string' ? target : target.url;
+    const publicId = typeof target === 'string' ? null : target.publicId;
+
+    setCustomImages((prev) => prev.filter((_, i) => i !== index));
+
+    if (publicId || (url && url.includes('cloudinary.com'))) {
+      try {
+        const query = publicId
+          ? `publicId=${encodeURIComponent(publicId)}`
+          : `url=${encodeURIComponent(url)}`;
+        await api.delete(`/media?${query}`);
+      } catch (err) {
+        console.warn('[Media] Cloudinary cleanup notice:', err.message);
+      }
+    }
+  };
+
+  const insertRequirementsTemplate = (type) => {
+    if (type === 'frame') {
+      setCustomRequirements(
+        `• Required Photo: 1 or 2 high-resolution photos (portrait/landscape, min 1080p).\n• Optional Custom Text: Family name, anniversary date, or sacred mantra (e.g. 'The Sharma Family' or 'ॐ नमः शिवाय').\n• Custom Instructions: Choose LED backlighting tone (Warm Amber Gold, Crisp Natural White, or Ice Blue). Specify whether you need a wall-mounting hanging hook or an acrylic tabletop easel stand.`
+      );
+    } else if (type === 'clock') {
+      setCustomRequirements(
+        `• Required Silhouette: Choose your silhouette theme (Family portrait outline, Devotional deity, or Couple silhouette).\n• Optional Custom Text: Custom surname, couple names, or special date engraved cleanly at 6 o'clock.\n• Custom Instructions: Specify preferred wood finish (Rich Teak Walnut or Natural Pine Oak). Clock hands style (Sleek Modern Gold or Classic Black Needle).`
+      );
+    } else if (type === 'car') {
+      setCustomRequirements(
+        `• Required Motif: Specify chosen deity, portrait silhouette, or custom emblem (e.g. Mahadev, Khatu Shyam Ji, Ram Lalla, or personalized silhouette).\n• Optional Custom Text: Vehicle registration number or custom travel blessing engraved on the pedestal base.\n• Custom Instructions: Mention pedestal base type (Standard Clear Acrylic or Warm Sand Wood Base). Heavy-duty reusable non-slip 3M adhesive included.`
+      );
+    }
+  };
+
+  const handleCreateCustomProduct = async (e) => {
+    e.preventDefault();
+    if (!customName.trim()) {
+      setFeedback({ type: 'error', message: 'Product Name is required.' });
+      return;
+    }
+    if (!customRequirements.trim()) {
+      setFeedback({ type: 'error', message: 'Product Requirements instruction is required.' });
+      return;
+    }
+
+    const imageList = customImages
+      .map((img) => (typeof img === 'string' ? img : img.url))
+      .filter((url) => typeof url === 'string' && url.trim().length > 0);
+
+    if (imageList.length === 0) {
+      setFeedback({
+        type: 'error',
+        message: 'Please provide at least one product photo (upload file or add image URL).',
+      });
+      return;
+    }
+
+    try {
+      setIsSubmittingCustom(true);
+      const payload = {
+        name: customName.trim(),
+        requirements: customRequirements.trim(),
+        images: imageList,
+        category: customCategory.trim() || 'Personalized Decor',
+        price: customPrice ? Number(customPrice) : 0,
+        originalPrice: customOriginalPrice ? Number(customOriginalPrice) : null,
+        whatsappNumber: customWhatsAppNumber.trim() || '919876543210',
+        description: customDescription.trim(),
+      };
+
+      const created = await createCustomProduct(payload);
+
+      setFeedback({
+        type: 'success',
+        message: `Customization product "${created?.name || customName}" was created successfully!`,
+      });
+
+      // Reset form
+      setCustomName('');
+      setCustomRequirements('');
+      setCustomCategory('Custom Frames');
+      setCustomPrice('');
+      setCustomOriginalPrice('');
+      setCustomWhatsAppNumber('919876543210');
+      setCustomDescription('');
+      setCustomImages([]);
+      setCustomManualUrl('');
+      setCustomUploadError(null);
+
+      // Refresh list
+      await loadCustomProducts();
+
+      // Switch to custom catalog list view
+      setCustomSubTab('list');
+    } catch (err) {
+      const msg =
+        err.data?.errors?.length
+          ? err.data.errors.map((e) => e.message).join('. ')
+          : err.data?.message || err.message || 'Failed to create customization product.';
+      setFeedback({ type: 'error', message: msg });
+    } finally {
+      setIsSubmittingCustom(false);
+    }
+  };
+
+  const handleDeleteCustomProduct = async (id, prodName) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete customization product "${prodName}"? Customers will no longer be able to view or order it.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteCustomProduct(id);
+      setCustomProducts((prev) => prev.filter((p) => p._id !== id && p.id !== id));
+      setFeedback({
+        type: 'success',
+        message: `Customization product "${prodName}" was removed successfully.`,
+      });
+      await loadCustomProducts();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: `Delete failed: ${err.data?.message || err.message}`,
+      });
+    }
+  };
+
+  const filteredCustomProducts = useMemo(() => {
+    return customProducts.filter((p) => {
+      const q = customSearchQuery.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.requirements && p.requirements.toLowerCase().includes(q))
+      );
+    });
+  }, [customProducts, customSearchQuery]);
 
   // ── Load Categories ──
   useEffect(() => {
@@ -368,7 +600,8 @@ export default function AdminAddProductPage({
         onProductCreated(newProduct);
       }
 
-      // Switch to products catalog tab
+      // Switch to products catalog list
+      setRetailSubTab('list');
       setActiveTab('products');
     } catch (err) {
       const detailed = err.data?.errors?.length
@@ -489,6 +722,12 @@ export default function AdminAddProductPage({
           </div>
 
           <div className="admin-product-stat-card">
+            <span className="admin-product-stat-label">Customization Products</span>
+            <span className="admin-product-stat-value">{customProducts.length}</span>
+            <span className="admin-product-stat-sub">Bespoke WhatsApp-ordered products</span>
+          </div>
+
+          <div className="admin-product-stat-card">
             <span className="admin-product-stat-label">Total Inventory Units</span>
             <span className="admin-product-stat-value">
               {totalStockUnits.toLocaleString('en-IN')}
@@ -504,16 +743,14 @@ export default function AdminAddProductPage({
             className={`admin-product-tab ${activeTab === 'products' ? 'active' : ''}`}
             onClick={() => setActiveTab('products')}
           >
-            <Layers size={16} />
-            Retail Catalog ({products.length})
+            Retail Products ({products.length})
           </button>
           <button
             type="button"
-            className={`admin-product-tab ${activeTab === 'add' ? 'active' : ''}`}
-            onClick={() => setActiveTab('add')}
+            className={`admin-product-tab ${activeTab === 'custom' ? 'active' : ''}`}
+            onClick={() => setActiveTab('custom')}
           >
-            <PackagePlus size={16} />
-            + Add New Product
+            Customization Products ({customProducts.length})
           </button>
         </div>
 
@@ -537,9 +774,46 @@ export default function AdminAddProductPage({
           </div>
         )}
 
-        {/* ════ TAB 1: RETAIL PRODUCTS CATALOG TABLE ════ */}
+        {/* ════ TAB 1: RETAIL PRODUCTS (CATALOG & ADD PRODUCT) ════ */}
         {activeTab === 'products' && (
-          <div className="admin-product-card">
+          <div className="admin-custom-products-wrapper">
+            {/* ── Retail Sub Navigation ── */}
+            <div className="admin-custom-subnav">
+              <div className="admin-custom-subtabs">
+                <button
+                  type="button"
+                  className={`admin-custom-subtab ${retailSubTab === 'list' ? 'active' : ''}`}
+                  onClick={() => setRetailSubTab('list')}
+                >
+                  <Layers size={15} />
+                  Retail Catalog ({products.length})
+                </button>
+                <button
+                  type="button"
+                  className={`admin-custom-subtab ${retailSubTab === 'add' ? 'active' : ''}`}
+                  onClick={() => setRetailSubTab('add')}
+                >
+                  <PackagePlus size={15} />
+                  + Add New Product
+                </button>
+              </div>
+
+              {retailSubTab === 'list' && (
+                <button
+                  type="button"
+                  className="admin-btn-primary"
+                  style={{ padding: '8px 18px', fontSize: '13px' }}
+                  onClick={() => setRetailSubTab('add')}
+                >
+                  <PackagePlus size={15} />
+                  + Add New Product
+                </button>
+              )}
+            </div>
+
+            {/* ── SUB-VIEW 1: Retail Products Catalog Table ── */}
+            {retailSubTab === 'list' && (
+              <div className="admin-product-card">
             <div className="admin-product-card-header">
               <div className="admin-product-card-title-group">
                 <h2>Active Storefront Catalog ({products.length})</h2>
@@ -613,7 +887,7 @@ export default function AdminAddProductPage({
                     ? 'Try adjusting your search query or category filter.'
                     : 'Your catalog is empty. Click "+ Add New Product" above to publish your first artwork!'}
                 </p>
-                {(searchQuery || categoryFilter !== 'All') && (
+                {searchQuery || categoryFilter !== 'All' ? (
                   <button
                     type="button"
                     className="admin-btn-secondary"
@@ -623,6 +897,16 @@ export default function AdminAddProductPage({
                     }}
                   >
                     Clear Filters
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="admin-btn-primary"
+                    style={{ marginTop: '14px' }}
+                    onClick={() => setRetailSubTab('add')}
+                  >
+                    <PackagePlus size={16} />
+                    + Add First Product
                   </button>
                 )}
               </div>
@@ -736,17 +1020,25 @@ export default function AdminAddProductPage({
           </div>
         )}
 
-        {/* ════ TAB 2: ADD PRODUCT FORM ════ */}
-        {activeTab === 'add' && (
-          <div className="admin-product-card">
-            <div className="admin-product-card-header">
-              <div className="admin-product-card-title-group">
-                <h2>Add New Product to Store</h2>
-                <p>
-                  Fill in product details, upload high-resolution images, and configure pricing and variants.
-                </p>
-              </div>
-            </div>
+            {/* ── SUB-VIEW 2: Add Product Form ── */}
+            {retailSubTab === 'add' && (
+              <div className="admin-product-card">
+                <div className="admin-product-card-header">
+                  <div className="admin-product-card-title-group">
+                    <h2>+ Add New Product to Store</h2>
+                    <p>
+                      Fill in product details, upload high-resolution images, and configure pricing and variants.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="admin-btn-secondary"
+                    onClick={() => setRetailSubTab('list')}
+                  >
+                    View Catalog ({products.length})
+                  </button>
+                </div>
 
             <form onSubmit={handleCreateProduct} className="admin-product-form">
               {/* ── Card Section 1: General Info ── */}
@@ -1143,7 +1435,7 @@ export default function AdminAddProductPage({
                 <button
                   type="button"
                   className="admin-btn-secondary"
-                  onClick={() => setActiveTab('products')}
+                  onClick={() => setRetailSubTab('list')}
                   disabled={isSubmitting}
                 >
                   Cancel
@@ -1157,6 +1449,538 @@ export default function AdminAddProductPage({
                 </button>
               </div>
             </form>
+          </div>
+        )}
+      </div>
+    )}
+
+        {/* ════ TAB 3: CUSTOMIZATION PRODUCTS (WHATSAPP ORDERING) ════ */}
+        {activeTab === 'custom' && (
+          <div className="admin-custom-products-wrapper">
+            {/* ── Sub Navigation ── */}
+            <div className="admin-custom-subnav">
+              <div className="admin-custom-subtabs">
+                <button
+                  type="button"
+                  className={`admin-custom-subtab ${customSubTab === 'list' ? 'active' : ''}`}
+                  onClick={() => setCustomSubTab('list')}
+                >
+                  <Layers size={15} />
+                  Custom Catalog ({customProducts.length})
+                </button>
+                <button
+                  type="button"
+                  className={`admin-custom-subtab ${customSubTab === 'add' ? 'active' : ''}`}
+                  onClick={() => setCustomSubTab('add')}
+                >
+                  <PackagePlus size={15} />
+                  + Add Custom Product
+                </button>
+              </div>
+
+              {customSubTab === 'list' && (
+                <button
+                  type="button"
+                  className="admin-btn-primary"
+                  style={{ padding: '8px 18px', fontSize: '13px' }}
+                  onClick={() => setCustomSubTab('add')}
+                >
+                  <PackagePlus size={15} />
+                  + Add Custom Product
+                </button>
+              )}
+            </div>
+
+            {/* ── SUB-VIEW 1: Custom Products Table ── */}
+            {customSubTab === 'list' && (
+              <div className="admin-product-card">
+                <div className="admin-product-card-header">
+                  <div className="admin-product-card-title-group">
+                    <h2>Customization Products Catalog ({customProducts.length})</h2>
+                    <p>
+                      Personalized items where customers provide custom photos, text, or instructions, ordered directly via WhatsApp.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="admin-product-refresh-btn"
+                    onClick={loadCustomProducts}
+                    title="Refresh list from server"
+                  >
+                    <RefreshCw size={14} className={isLoadingCustomProducts ? 'spin-anim' : ''} />
+                    Refresh
+                  </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="admin-product-toolbar">
+                  <div className="admin-product-search-box" style={{ maxWidth: '440px' }}>
+                    <Search size={16} style={{ color: '#94a3b8' }} />
+                    <input
+                      type="text"
+                      placeholder="Search by name, category, or requirement keywords..."
+                      value={customSearchQuery}
+                      onChange={(e) => setCustomSearchQuery(e.target.value)}
+                      className="admin-product-search-input"
+                    />
+                    {customSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomSearchQuery('')}
+                        className="admin-product-search-clear"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Table Content */}
+                {isLoadingCustomProducts ? (
+                  <div className="admin-product-loading">
+                    <Loader2 size={24} className="spin-anim" style={{ color: 'var(--gold, #D2B98C)' }} />
+                    <span>Loading customization products...</span>
+                  </div>
+                ) : filteredCustomProducts.length === 0 ? (
+                  <div className="admin-product-empty">
+                    <Sparkles size={40} strokeWidth={1.5} style={{ color: '#94a3b8', marginBottom: '8px' }} />
+                    <strong>No customization products found</strong>
+                    <p>
+                      {customSearchQuery
+                        ? 'No custom products matched your search keyword.'
+                        : 'No custom products have been published yet.'}
+                    </p>
+                    <button
+                      type="button"
+                      className="admin-btn-primary"
+                      style={{ marginTop: '14px' }}
+                      onClick={() => setCustomSubTab('add')}
+                    >
+                      <PackagePlus size={16} />
+                      + Add First Custom Product
+                    </button>
+                  </div>
+                ) : (
+                  <div className="admin-product-table-wrap">
+                    <table className="admin-product-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '32%' }}>Product</th>
+                          <th style={{ width: '15%' }}>Category</th>
+                          <th style={{ width: '13%' }}>Price</th>
+                          <th style={{ width: '25%' }}>Admin Requirements</th>
+                          <th style={{ width: '15%', textAlign: 'center' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCustomProducts.map((p) => {
+                          const img =
+                            (Array.isArray(p.images) && p.images[0]) ||
+                            p.image ||
+                            '/new-images/product-placeholder.jpg';
+                          const priceVal = Number(p.price || 0);
+                          const origVal = p.originalPrice ? Number(p.originalPrice) : null;
+
+                          return (
+                            <tr key={p._id || p.id || p.slug}>
+                              <td className="product-col">
+                                <img
+                                  src={img}
+                                  alt={p.name}
+                                  className="table-thumb"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = '/new-images/product-placeholder.jpg';
+                                  }}
+                                />
+                                <div className="product-info-cell">
+                                  <span className="product-cell-name">{p.name}</span>
+                                  <div className="product-cell-sub">
+                                    <span className="product-cell-slug">/{p.slug}</span>
+                                    {p.whatsappNumber && (
+                                      <span className="custom-wa-pill">
+                                        <MessageSquare size={11} /> +{p.whatsappNumber}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td>
+                                <span className="admin-cat-pill">
+                                  {p.category || 'Personalized Decor'}
+                                </span>
+                              </td>
+
+                              <td>
+                                <div className="table-price-cell">
+                                  <strong>₹{priceVal.toLocaleString('en-IN')}</strong>
+                                  {origVal && origVal > priceVal && (
+                                    <span className="table-mrp">
+                                      ₹{origVal.toLocaleString('en-IN')}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td>
+                                <div className="custom-req-preview" title={p.requirements}>
+                                  {p.requirements || '—'}
+                                </div>
+                              </td>
+
+                              <td>
+                                <div className="table-actions-cell">
+                                  <a
+                                    href={`/#/custom/${p.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="admin-action-btn edit"
+                                    title="View live product on storefront"
+                                  >
+                                    <ExternalLink size={15} />
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteCustomProduct(p._id || p.id, p.name)}
+                                    className="admin-action-btn delete"
+                                    title="Delete customization product"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── SUB-VIEW 2: Add Custom Product Form ── */}
+            {customSubTab === 'add' && (
+              <div className="admin-product-card">
+                <div className="admin-product-card-header">
+                  <div className="admin-product-card-title-group">
+                    <h2>+ Add New Customization Product</h2>
+                    <p>
+                      Enter product name, photos, pricing, and requirement instructions. Customers will order this item directly via WhatsApp.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="admin-btn-secondary"
+                    onClick={() => setCustomSubTab('list')}
+                  >
+                    View All ({customProducts.length})
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateCustomProduct} className="admin-product-form">
+                  {/* Section 1: Basic Information */}
+                  <div className="form-section-box">
+                    <h3 className="form-section-title">
+                      <Sparkles size={18} style={{ color: 'var(--gold, #D2B98C)' }} />
+                      Product Information
+                    </h3>
+
+                    <div className="form-grid-2">
+                      <div className="form-field full-width">
+                        <label>
+                          Product Name <span className="req">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Custom Backlit Acrylic LED Wall Frame"
+                          value={customName}
+                          onChange={(e) => setCustomName(e.target.value)}
+                          className="form-input"
+                        />
+                        <p className="field-hint">
+                          The prominent headline displayed on the customization page and catalog.
+                        </p>
+                      </div>
+
+                      <div className="form-field">
+                        <label>
+                          Category <span className="req">*</span>
+                        </label>
+                        <select
+                          value={customCategory}
+                          onChange={(e) => setCustomCategory(e.target.value)}
+                          className="form-select"
+                        >
+                          <option value="Custom Frames">Custom Frames</option>
+                          <option value="Custom Clocks">Custom Clocks</option>
+                          <option value="Custom Car Decor">Custom Car Decor</option>
+                          <option value="Personalized Decor">Personalized Decor</option>
+                          <option value="Acrylic Art">Acrylic Art</option>
+                          <option value="Devotional Gifts">Devotional Gifts</option>
+                        </select>
+                        <p className="field-hint">Category grouping for the customization hub.</p>
+                      </div>
+
+                      <div className="form-field">
+                        <label>
+                          WhatsApp Order Number <span className="req">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="919876543210"
+                          value={customWhatsAppNumber}
+                          onChange={(e) => setCustomWhatsAppNumber(e.target.value)}
+                          className="form-input"
+                        />
+                        <p className="field-hint">
+                          Country code + phone (without +). Customers will be transferred to this WhatsApp.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Pricing */}
+                  <div className="form-section-box">
+                    <h3 className="form-section-title">
+                      <Tag size={18} style={{ color: 'var(--gold, #D2B98C)' }} />
+                      Pricing & Quotation
+                    </h3>
+
+                    <div className="form-grid-2">
+                      <div className="form-field">
+                        <label>
+                          Selling Price (₹) <span className="req">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          required
+                          placeholder="e.g. 1499"
+                          value={customPrice}
+                          onChange={(e) => setCustomPrice(e.target.value)}
+                          className="form-input"
+                        />
+                        <p className="field-hint">Base starting price displayed on the product card.</p>
+                      </div>
+
+                      <div className="form-field">
+                        <label>Original / MRP Price (₹) (Optional)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder="e.g. 2499"
+                          value={customOriginalPrice}
+                          onChange={(e) => setCustomOriginalPrice(e.target.value)}
+                          className="form-input"
+                        />
+                        <p className="field-hint">Strikethrough reference price to indicate discount.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Product Requirement (The Core Field) */}
+                  <div className="form-section-box">
+                    <h3 className="form-section-title">
+                      <FileText size={18} style={{ color: 'var(--gold, #D2B98C)' }} />
+                      Product Requirement (Customer Guidance) <span className="req">*</span>
+                    </h3>
+                    <p className="field-hint" style={{ marginBottom: '10px' }}>
+                      This text field will be shown directly to the customer on the product page to tell them exactly what details, photos, or text they need to provide when ordering via WhatsApp.
+                    </p>
+
+                    {/* Quick Template Inserters */}
+                    <div style={{ marginBottom: '12px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', marginRight: '8px' }}>
+                        Quick Presets:
+                      </span>
+                      <div className="custom-req-templates" style={{ display: 'inline-flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="custom-template-btn"
+                          onClick={() => insertRequirementsTemplate('frame')}
+                        >
+                          + Frame Preset
+                        </button>
+                        <button
+                          type="button"
+                          className="custom-template-btn"
+                          onClick={() => insertRequirementsTemplate('clock')}
+                        >
+                          + Clock Preset
+                        </button>
+                        <button
+                          type="button"
+                          className="custom-template-btn"
+                          onClick={() => insertRequirementsTemplate('car')}
+                        >
+                          + Car Decor Preset
+                        </button>
+                      </div>
+                    </div>
+
+                    <textarea
+                      required
+                      rows={6}
+                      value={customRequirements}
+                      onChange={(e) => setCustomRequirements(e.target.value)}
+                      placeholder={`e.g.\n• Required Photo: 1 or 2 high-resolution photos (portrait/landscape, min 1080p).\n• Optional Custom Text: Family name, anniversary date, or sacred mantra.\n• Custom Instructions: Choose LED backlighting tone (Warm Amber Gold or Ice Blue).`}
+                      className="form-textarea"
+                      style={{ fontFamily: 'inherit', fontSize: '13px', lineHeight: 1.6 }}
+                    />
+                  </div>
+
+                  {/* Section 4: Product Photos */}
+                  <div className="form-section-box">
+                    <h3 className="form-section-title">
+                      <UploadCloud size={18} style={{ color: 'var(--gold, #D2B98C)' }} />
+                      Product Photos <span className="req">*</span>
+                    </h3>
+                    <p className="field-hint" style={{ marginBottom: '14px' }}>
+                      Upload high-quality sample photos of the custom product. At least 1 photo is required.
+                    </p>
+
+                    {/* Upload Dropzone */}
+                    <div
+                      className="upload-dropzone"
+                      onClick={() => customFileInputRef.current && customFileInputRef.current.click()}
+                    >
+                      <input
+                        type="file"
+                        ref={customFileInputRef}
+                        multiple
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleCustomFileUpload}
+                      />
+                      <div className="upload-dropzone-content">
+                        <div className="upload-icon-circle">
+                          {isUploadingCustomImages ? (
+                            <Loader2 size={24} className="spin-anim" style={{ color: 'var(--gold, #D2B98C)' }} />
+                          ) : (
+                            <UploadCloud size={24} style={{ color: 'var(--gold, #D2B98C)' }} />
+                          )}
+                        </div>
+                        <strong style={{ fontSize: '14px', color: '#1e293b' }}>
+                          {isUploadingCustomImages ? 'Uploading images to cloud...' : 'Click to upload photos'}
+                        </strong>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                          PNG, JPG, WEBP up to 10MB each
+                        </p>
+                        <span className="upload-btn-chip">Browse Computer</span>
+                      </div>
+                    </div>
+
+                    {/* Manual Image URL */}
+                    <div className="manual-url-row">
+                      <input
+                        type="url"
+                        placeholder="Or paste an image URL (e.g. /new-images/cat-backlit-led-frames.jpg or https://...)"
+                        value={customManualUrl}
+                        onChange={(e) => setCustomManualUrl(e.target.value)}
+                        className="form-input"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddCustomManualUrl();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCustomManualUrl}
+                        className="admin-btn-secondary"
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        Add URL
+                      </button>
+                    </div>
+
+                    {customUploadError && (
+                      <div className="upload-error-banner">
+                        <AlertCircle size={16} />
+                        <span>{customUploadError}</span>
+                      </div>
+                    )}
+
+                    {/* Thumbnails Preview */}
+                    {customImages.length > 0 && (
+                      <div className="thumbnails-preview-wrap">
+                        <span className="thumbnails-preview-label">
+                          Selected Photos ({customImages.length})
+                        </span>
+                        <div className="thumbnails-grid">
+                          {customImages.map((img, idx) => {
+                            const url = typeof img === 'string' ? img : img.url;
+                            return (
+                              <div key={idx} className="thumbnail-item">
+                                <img src={url} alt={`Custom Product ${idx + 1}`} />
+                                <button
+                                  type="button"
+                                  onClick={() => removeCustomImage(idx)}
+                                  className="thumbnail-remove-btn"
+                                  title="Remove image"
+                                >
+                                  <X size={12} />
+                                </button>
+                                {idx === 0 && <span className="primary-thumb-badge">Cover</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Section 5: Description (Optional) */}
+                  <div className="form-section-box">
+                    <h3 className="form-section-title">
+                      <Box size={18} style={{ color: 'var(--gold, #D2B98C)' }} />
+                      Description (Optional)
+                    </h3>
+                    <textarea
+                      rows={3}
+                      value={customDescription}
+                      onChange={(e) => setCustomDescription(e.target.value)}
+                      placeholder="High-grade imported acrylic backlit frame with brilliant LED luminescence. Handcrafted to order..."
+                      className="form-textarea"
+                    />
+                  </div>
+
+                  {/* Submit Actions */}
+                  <div className="form-submit-actions">
+                    <button
+                      type="button"
+                      className="admin-btn-secondary"
+                      onClick={() => setCustomSubTab('list')}
+                      disabled={isSubmittingCustom}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="admin-btn-primary"
+                      disabled={isSubmittingCustom || isUploadingCustomImages}
+                    >
+                      {isSubmittingCustom ? (
+                        <>
+                          <Loader2 size={16} className="spin-anim" /> Publishing Custom Product...
+                        </>
+                      ) : (
+                        'Publish Customization Product'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -5,7 +5,9 @@
  * ─────────────────────────────────────────────────────────────
  */
 
-export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+import { api, API_BASE } from './api';
+
+export { API_BASE };
 
 // Fallback dummy products matching the 3 requested categories
 export const FALLBACK_CUSTOM_PRODUCTS = [
@@ -76,11 +78,10 @@ export const FALLBACK_CUSTOM_PRODUCTS = [
  */
 export async function fetchCustomProducts() {
   try {
-    const res = await fetch(`${API_BASE}/custom-products`, { credentials: 'include' });
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    const data = await res.json();
-    if (data?.data?.customProducts && data.data.customProducts.length > 0) {
-      return data.data.customProducts;
+    const data = await api.get('/custom-products');
+    const prods = data?.data?.customProducts || data?.customProducts;
+    if (prods && prods.length > 0) {
+      return prods;
     }
     return FALLBACK_CUSTOM_PRODUCTS;
   } catch (err) {
@@ -94,10 +95,8 @@ export async function fetchCustomProducts() {
  */
 export async function fetchCustomProductBySlug(slugOrId) {
   try {
-    const res = await fetch(`${API_BASE}/custom-products/${slugOrId}`, { credentials: 'include' });
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    const data = await res.json();
-    return data?.data?.customProduct || null;
+    const data = await api.get(`/custom-products/${slugOrId}`);
+    return data?.data?.customProduct || data?.customProduct || null;
   } catch {
     return (
       FALLBACK_CUSTOM_PRODUCTS.find(
@@ -105,6 +104,30 @@ export async function fetchCustomProductBySlug(slugOrId) {
       ) || null
     );
   }
+}
+
+/**
+ * Admin: Create new custom product
+ */
+export async function createCustomProduct(payload) {
+  const data = await api.post('/custom-products', payload);
+  return data?.data?.customProduct || data?.customProduct;
+}
+
+/**
+ * Admin: Update custom product
+ */
+export async function updateCustomProduct(id, payload) {
+  const data = await api.put(`/custom-products/${id}`, payload);
+  return data?.data?.customProduct || data?.customProduct;
+}
+
+/**
+ * Admin: Soft delete custom product
+ */
+export async function deleteCustomProduct(id) {
+  const data = await api.delete(`/custom-products/${id}`);
+  return data;
 }
 
 /**
