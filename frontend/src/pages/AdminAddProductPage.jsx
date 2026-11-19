@@ -21,6 +21,13 @@ import {
   MessageSquare,
   FileText,
   Plus,
+  ShoppingBag,
+  Truck,
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  Send,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { fetchAllProducts } from '../services/productService';
@@ -29,6 +36,10 @@ import {
   createCustomProduct,
   deleteCustomProduct,
 } from '../services/customProductService';
+import {
+  fetchAllOrdersAdmin,
+  updateOrderStatusAdmin,
+} from '../services/orderService';
 import AdminEditProductModal from '../components/AdminEditProductModal';
 import './AdminAddProductPage.css';
 
@@ -127,7 +138,7 @@ export default function AdminAddProductPage({
   const [customCategory, setCustomCategory] = useState('Custom Frames');
   const [customPrice, setCustomPrice] = useState('');
   const [customOriginalPrice, setCustomOriginalPrice] = useState('');
-  const [customWhatsAppNumber, setCustomWhatsAppNumber] = useState('919876543210');
+  const [customWhatsAppNumber, setCustomWhatsAppNumber] = useState('917014945523');
   const [customDescription, setCustomDescription] = useState('');
   const [customImages, setCustomImages] = useState([]);
   const [customManualUrl, setCustomManualUrl] = useState('');
@@ -152,6 +163,137 @@ export default function AdminAddProductPage({
   useEffect(() => {
     loadCustomProducts();
   }, []);
+
+  // ── Customer Orders Hub State ──
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [orderStatusFilter, setOrderStatusFilter] = useState('All');
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [orderUpdateForm, setOrderUpdateForm] = useState({
+    status: 'pending',
+    paymentStatus: 'pending',
+    adminMessage: '',
+    cancelReason: '',
+  });
+  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+
+  // Load Admin Orders (Server + Local Storage)
+  const loadOrders = async () => {
+    try {
+      setIsLoadingOrders(true);
+      const res = await fetchAllOrdersAdmin({
+        status: orderStatusFilter !== 'All' ? orderStatusFilter : undefined,
+        limit: 100,
+      });
+      const serverList = res?.orders || [];
+      let localList = [];
+      try {
+        localList = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
+      } catch (e) {
+        localList = [];
+      }
+      const seen = new Set();
+      const merged = [];
+      [...serverList, ...localList].forEach((o) => {
+        const key = o._id || o.orderNumber;
+        if (key && !seen.has(key)) {
+          seen.add(key);
+          merged.push(o);
+        }
+      });
+      setOrders(merged);
+    } catch (err) {
+      console.warn('[AdminAddProductPage] Failed to load admin orders:', err);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, [orderStatusFilter]);
+
+  const handleOpenUpdateOrder = (ord) => {
+    setEditingOrder(ord);
+    setOrderUpdateForm({
+      status: ord.status || 'pending',
+      paymentStatus: ord.paymentStatus || 'pending',
+      adminMessage: ord.adminMessage || '',
+      cancelReason: ord.cancelReason || '',
+    });
+  };
+
+  const handleSaveOrderUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingOrder) return;
+
+    setIsUpdatingOrder(true);
+    try {
+      const orderId = editingOrder._id;
+      if (orderId && orderId.length === 24) {
+        await updateOrderStatusAdmin(orderId, {
+          status: orderUpdateForm.status,
+          paymentStatus: orderUpdateForm.paymentStatus,
+          message: orderUpdateForm.adminMessage,
+          cancelReason: orderUpdateForm.cancelReason,
+        });
+      }
+
+      // Also persist to local storage history
+      try {
+        const localList = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
+        const updatedLocalList = localList.map((o) => {
+          if ((o._id && o._id === orderId) || (o.orderNumber && o.orderNumber === editingOrder.orderNumber)) {
+            return {
+              ...o,
+              status: orderUpdateForm.status,
+              paymentStatus: orderUpdateForm.paymentStatus,
+              adminMessage: orderUpdateForm.adminMessage.trim(),
+              cancelReason: orderUpdateForm.cancelReason,
+            };
+          }
+          return o;
+        });
+        localStorage.setItem('aaiprints_orders', JSON.stringify(updatedLocalList));
+      } catch (e) {
+        // ignore
+      }
+
+      setFeedback({
+        type: 'success',
+        message: `Order #${editingOrder.orderNumber || editingOrder._id} updated to "${orderUpdateForm.status.toUpperCase()}". Message attached and customer notified.`,
+      });
+      setEditingOrder(null);
+      await loadOrders();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: err.data?.message || err.message || 'Failed to update order status.',
+      });
+    } finally {
+      setIsUpdatingOrder(false);
+    }
+  };
+
+  // Filtered orders list
+  const filteredOrders = useMemo(() => {
+    return orders.filter((o) => {
+      if (orderStatusFilter !== 'All' && (o.status || '').toLowerCase() !== orderStatusFilter.toLowerCase()) {
+        return false;
+      }
+      if (orderSearchQuery.trim()) {
+        const q = orderSearchQuery.toLowerCase();
+        const matchNum = (o.orderNumber || o._id || '').toLowerCase().includes(q);
+        const matchName = (o.shippingAddress?.fullName || o.user?.name || '').toLowerCase().includes(q);
+        const matchPhone = (o.shippingAddress?.phone || o.user?.phone || '').toLowerCase().includes(q);
+        const matchEmail = (o.shippingAddress?.email || o.user?.email || '').toLowerCase().includes(q);
+        const matchCity = (o.shippingAddress?.city || '').toLowerCase().includes(q);
+        return matchNum || matchName || matchPhone || matchEmail || matchCity;
+      }
+      return true;
+    });
+  }, [orders, orderStatusFilter, orderSearchQuery]);
 
   // Custom Product File Upload
   const handleCustomFileUpload = async (e) => {
@@ -262,7 +404,7 @@ export default function AdminAddProductPage({
         category: customCategory.trim() || 'Personalized Decor',
         price: customPrice ? Number(customPrice) : 0,
         originalPrice: customOriginalPrice ? Number(customOriginalPrice) : null,
-        whatsappNumber: customWhatsAppNumber.trim() || '919876543210',
+        whatsappNumber: customWhatsAppNumber.trim() || '917014945523',
         description: customDescription.trim(),
       };
 
@@ -279,7 +421,7 @@ export default function AdminAddProductPage({
       setCustomCategory('Custom Frames');
       setCustomPrice('');
       setCustomOriginalPrice('');
-      setCustomWhatsAppNumber('919876543210');
+      setCustomWhatsAppNumber('917014945523');
       setCustomDescription('');
       setCustomImages([]);
       setCustomManualUrl('');
@@ -734,6 +876,14 @@ export default function AdminAddProductPage({
             </span>
             <span className="admin-product-stat-sub">Units available across variants</span>
           </div>
+
+          <div className="admin-product-stat-card">
+            <span className="admin-product-stat-label">Customer Orders</span>
+            <span className="admin-product-stat-value">{orders.length}</span>
+            <span className="admin-product-stat-sub">
+              {orders.filter((o) => (o.status || '').toLowerCase() === 'pending' || (o.status || '').toLowerCase() === 'confirmed').length} pending fulfillment
+            </span>
+          </div>
         </div>
 
         {/* ── Tabs Navigation ── */}
@@ -751,6 +901,13 @@ export default function AdminAddProductPage({
             onClick={() => setActiveTab('custom')}
           >
             Customization Products ({customProducts.length})
+          </button>
+          <button
+            type="button"
+            className={`admin-product-tab ${activeTab === 'orders' ? 'active' : ''}`}
+            onClick={() => setActiveTab('orders')}
+          >
+            Customer Orders ({orders.length})
           </button>
         </div>
 
@@ -1733,7 +1890,7 @@ export default function AdminAddProductPage({
                         <input
                           type="text"
                           required
-                          placeholder="919876543210"
+                          placeholder="917014945523"
                           value={customWhatsAppNumber}
                           onChange={(e) => setCustomWhatsAppNumber(e.target.value)}
                           className="form-input"
@@ -1983,7 +2140,372 @@ export default function AdminAddProductPage({
             )}
           </div>
         )}
+
+        {/* ════ TAB 3: CUSTOMER ORDERS & FULFILLMENT ════ */}
+        {activeTab === 'orders' && (
+          <div className="admin-orders-wrapper">
+            {/* Filter and Search Bar */}
+            <div className="admin-orders-filter-bar">
+              <div className="admin-orders-status-filters">
+                {['All', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map(
+                  (st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      className={`admin-orders-status-btn ${orderStatusFilter.toLowerCase() === st.toLowerCase() ? 'active' : ''}`}
+                      onClick={() => setOrderStatusFilter(st)}
+                    >
+                      {st === 'All' ? 'All Orders' : st.charAt(0).toUpperCase() + st.slice(1)}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ position: 'relative', width: '260px' }}>
+                  <Search
+                    size={15}
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8',
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by Order #, Name, Phone..."
+                    value={orderSearchQuery}
+                    onChange={(e) => setOrderSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px 8px 34px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12.5px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="admin-product-crumb-btn"
+                  onClick={loadOrders}
+                  style={{ background: '#39332E', color: '#fff', border: 'none', padding: '8px 14px' }}
+                  title="Refresh orders from server"
+                >
+                  <RefreshCw size={13} className={isLoadingOrders ? 'spin-anim' : ''} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Orders Table Card */}
+            <div className="admin-product-table-card">
+              <div className="admin-product-table-header">
+                <div className="admin-product-table-title">
+                  <ShoppingBag size={18} style={{ color: 'var(--gold)' }} />
+                  <div>
+                    <h3>Customer Order Fulfillment Log</h3>
+                    <p>
+                      Showing {filteredOrders.length} of {orders.length} order{orders.length === 1 ? '' : 's'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {isLoadingOrders ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
+                  <Loader2 size={28} className="spin-anim" style={{ margin: '0 auto 12px', display: 'block' }} />
+                  <p style={{ margin: 0, fontWeight: 500 }}>Fetching live orders from database...</p>
+                </div>
+              ) : filteredOrders.length > 0 ? (
+                <div className="admin-product-table-wrap">
+                  <table className="admin-product-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '140px' }}>Order &amp; Date</th>
+                        <th style={{ width: '240px' }}>Customer &amp; Shipping Address</th>
+                        <th>Ordered Items</th>
+                        <th style={{ width: '130px' }}>Total &amp; Payment</th>
+                        <th style={{ width: '150px' }}>Fulfillment Status</th>
+                        <th style={{ width: '220px' }}>Admin Update Note</th>
+                        <th style={{ width: '100px', textAlign: 'center' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredOrders.map((ord) => {
+                        const orderNum = ord.orderNumber || ord._id;
+                        const dateStr = ord.createdAt || ord.orderDate
+                          ? new Date(ord.createdAt || ord.orderDate).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : '—';
+                        const timeStr = ord.createdAt
+                          ? new Date(ord.createdAt).toLocaleTimeString('en-IN', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : '';
+                        const status = (ord.status || 'pending').toLowerCase();
+                        const paymentStatus = (ord.paymentStatus || 'pending').toLowerCase();
+                        const addr = ord.shippingAddress || {};
+                        const customerName = addr.fullName || ord.user?.name || 'Guest Customer';
+                        const customerPhone = addr.phone || ord.user?.phone || '—';
+                        const customerEmail = addr.email || ord.user?.email || '—';
+                        const total = ord.pricing?.total != null ? ord.pricing.total : (ord.totalAmount || 0);
+
+                        return (
+                          <tr key={ord._id || orderNum}>
+                            <td>
+                              <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a', fontSize: '13px' }}>
+                                #{orderNum}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                                {dateStr} {timeStr}
+                              </div>
+                              {ord.shippingMethod && (
+                                <span style={{ fontSize: '10.5px', color: '#0369a1', fontWeight: 600, textTransform: 'uppercase' }}>
+                                  {ord.shippingMethod} delivery
+                                </span>
+                              )}
+                            </td>
+
+                            <td>
+                              <div className="admin-order-customer-info">
+                                <span className="admin-order-customer-name">{customerName}</span>
+                                <span className="admin-order-customer-contact">
+                                  <Phone size={11} /> +91 {customerPhone}
+                                </span>
+                                {customerEmail !== '—' && (
+                                  <span className="admin-order-customer-contact">
+                                    <Mail size={11} /> {customerEmail}
+                                  </span>
+                                )}
+                                {(addr.street || addr.city) && (
+                                  <div className="admin-order-customer-address">
+                                    <MapPin size={11} style={{ display: 'inline', marginRight: '3px' }} />
+                                    {addr.street ? `${addr.street}, ` : ''}
+                                    {addr.landmark ? `${addr.landmark}, ` : ''}
+                                    {addr.city ? `${addr.city}, ` : ''}
+                                    {addr.state ? `${addr.state} ` : ''}
+                                    {addr.postalCode ? `— ${addr.postalCode}` : ''}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+
+                            <td>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {(ord.items || []).map((it, idx) => (
+                                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+                                    <span style={{ fontWeight: 600, color: '#334155' }}>
+                                      {it.quantity || 1}x {it.name || it.product?.name || 'Art Print'}
+                                    </span>
+                                    {it.variantName && (
+                                      <span style={{ fontSize: '11px', color: '#64748b' }}>
+                                        ({it.variantName})
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+
+                            <td>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <strong style={{ color: '#0f172a', fontSize: '14px' }}>
+                                  ₹{Number(total).toLocaleString('en-IN')}
+                                </strong>
+                                <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>
+                                  {ord.paymentMethod || 'COD'}
+                                </span>
+                                <span className={`admin-order-payment-badge ${paymentStatus}`}>
+                                  {paymentStatus}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td>
+                              <span className={`admin-order-status-badge ${status}`}>
+                                {status}
+                              </span>
+                            </td>
+
+                            <td>
+                              {ord.adminMessage ? (
+                                <div className="admin-order-msg-preview">
+                                  <MessageSquare size={12} style={{ flexShrink: 0, marginTop: '2px', color: '#b45309' }} />
+                                  <span>{ord.adminMessage}</span>
+                                </div>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>
+                                  No message attached
+                                </span>
+                              )}
+                            </td>
+
+                            <td style={{ textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                className="action-btn edit"
+                                onClick={() => handleOpenUpdateOrder(ord)}
+                                title="Update Status & Message"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
+                  <ShoppingBag size={32} style={{ margin: '0 auto 12px', display: 'block', color: '#94a3b8' }} />
+                  <h4 style={{ margin: '0 0 6px', color: '#1e293b' }}>No orders found</h4>
+                  <p style={{ margin: 0, fontSize: '13px' }}>
+                    {orderSearchQuery || orderStatusFilter !== 'All'
+                      ? 'No orders match your filter criteria. Try resetting filters.'
+                      : 'Orders placed on the storefront will appear here for fulfillment tracking.'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ════ UPDATE ORDER STATUS & ADMIN MESSAGE MODAL ════ */}
+      {editingOrder && (
+        <div className="admin-order-modal-backdrop" onClick={() => setEditingOrder(null)}>
+          <div className="admin-order-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-order-modal-header">
+              <h3>Update Order #{editingOrder.orderNumber || editingOrder._id}</h3>
+              <button
+                type="button"
+                className="admin-product-crumb-btn"
+                onClick={() => setEditingOrder(null)}
+                style={{ padding: '6px' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveOrderUpdate}>
+              <div className="admin-order-modal-body">
+                {/* Customer summary card */}
+                <div className="admin-order-modal-customer-card">
+                  <div>
+                    <strong>Customer:</strong> {editingOrder.shippingAddress?.fullName || editingOrder.user?.name || 'Guest'} (+91 {editingOrder.shippingAddress?.phone || editingOrder.user?.phone || '—'})
+                  </div>
+                  <div>
+                    <strong>Destination:</strong> {editingOrder.shippingAddress?.city}, {editingOrder.shippingAddress?.state} — {editingOrder.shippingAddress?.postalCode}
+                  </div>
+                  <div>
+                    <strong>Total Amount:</strong> ₹{Number(editingOrder.pricing?.total || editingOrder.totalAmount || 0).toLocaleString('en-IN')} via {(editingOrder.paymentMethod || 'COD').toUpperCase()}
+                  </div>
+                </div>
+
+                {/* Fulfillment Status Select */}
+                <div className="form-group">
+                  <label className="form-label">Order Fulfillment Status *</label>
+                  <select
+                    className="form-input"
+                    value={orderUpdateForm.status}
+                    onChange={(e) => setOrderUpdateForm({ ...orderUpdateForm, status: e.target.value })}
+                    required
+                  >
+                    <option value="pending">Pending (Awaiting Confirmation)</option>
+                    <option value="confirmed">Confirmed (Order Accepted)</option>
+                    <option value="processing">Processing (Under Printing & Framing)</option>
+                    <option value="shipped">Shipped (In Transit with Courier)</option>
+                    <option value="delivered">Delivered (Handed to Customer)</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                {/* Payment Status Select */}
+                <div className="form-group">
+                  <label className="form-label">Payment Status *</label>
+                  <select
+                    className="form-input"
+                    value={orderUpdateForm.paymentStatus}
+                    onChange={(e) => setOrderUpdateForm({ ...orderUpdateForm, paymentStatus: e.target.value })}
+                    required
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid (Confirmed by Gateway or Cash)</option>
+                    <option value="failed">Failed</option>
+                    <option value="refunded">Refunded</option>
+                  </select>
+                </div>
+
+                {/* Admin Message / Tracking Note Field */}
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MessageSquare size={14} style={{ color: 'var(--gold)' }} />
+                    <span>Attach Message / Tracking Note for Customer</span>
+                  </label>
+                  <textarea
+                    className="form-textarea"
+                    rows={4}
+                    placeholder="e.g. Your package has been dispatched via BlueDart AWB #12345678. Expected delivery by Thursday."
+                    value={orderUpdateForm.adminMessage}
+                    onChange={(e) => setOrderUpdateForm({ ...orderUpdateForm, adminMessage: e.target.value })}
+                  />
+                  <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                    This note will be attached to the order update, emailed directly to the customer, and displayed in their account order tracker.
+                  </span>
+                </div>
+
+                {/* If Cancelled: Cancellation Reason */}
+                {orderUpdateForm.status === 'cancelled' && (
+                  <div className="form-group">
+                    <label className="form-label">Reason for Cancellation</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g., Customer requested cancellation / Out of stock"
+                      value={orderUpdateForm.cancelReason}
+                      onChange={(e) => setOrderUpdateForm({ ...orderUpdateForm, cancelReason: e.target.value })}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-order-modal-footer">
+                <button
+                  type="button"
+                  className="admin-btn-secondary"
+                  onClick={() => setEditingOrder(null)}
+                  disabled={isUpdatingOrder}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="admin-btn-primary"
+                  disabled={isUpdatingOrder}
+                >
+                  {isUpdatingOrder ? (
+                    <>
+                      <Loader2 size={15} className="spin-anim" /> Updating Order...
+                    </>
+                  ) : (
+                    'Save Order Update & Send Note'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ════ EDIT PRODUCT MODAL (Connected via AdminEditProductModal) ════ */}
       {editingProduct && (

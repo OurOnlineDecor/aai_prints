@@ -10,7 +10,7 @@ const {
   verifyPaymentSignature,
   verifyWebhookSignature
 } = require('../utils/razorpay.util');
-const { sendOrderConfirmationEmail } = require('../utils/brevo.util');
+const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require('../utils/brevo.util');
 
 // Atomic stock decrement with auto-rollback on insufficient inventory
 const decrementStockAtomically = async (orderItems) => {
@@ -562,12 +562,14 @@ const getAllOrders = async (req, res, next) => {
 // @access  Private/Admin
 const updateOrderStatus = async (req, res, next) => {
   try {
-    const { status, paymentStatus, cancelReason } = req.body;
+    const { status, paymentStatus, cancelReason, message, adminMessage } = req.body;
     const order = await Order.findById(req.params.id);
 
     if (!order) {
       return next(new ApiError(404, 'Order not found'));
     }
+
+    const previousStatus = order.status;
 
     if (status) {
       // If cancelling an order, restock items only if stock was decremented
@@ -610,7 +612,30 @@ const updateOrderStatus = async (req, res, next) => {
       order.paymentStatus = paymentStatus;
     }
 
+    const attachedMsg = (message !== undefined ? message : adminMessage !== undefined ? adminMessage : null);
+    if (attachedMsg !== null) {
+      order.adminMessage = attachedMsg.trim();
+    }
+
+    if (!order.statusHistory) {
+      order.statusHistory = [];
+    }
+
+    if (status || attachedMsg) {
+      order.statusHistory.push({
+        status: order.status,
+        message: attachedMsg ? attachedMsg.trim() : null,
+        updatedAt: new Date()
+      });
+    }
+
     await order.save();
+
+    // Send email notification to customer if status changed or message was added
+    if (status !== previousStatus || attachedMsg) {
+      sendOrderStatusUpdateEmail(order, attachedMsg ? attachedMsg.trim() : '').catch(() => null);
+    }
+
     return ApiResponse.send(res, 200, { order }, 'Order status updated');
   } catch (error) {
     next(error);

@@ -94,7 +94,7 @@ export default function CheckoutPage({
   onSelectProduct,
 }) {
   const { cart, cartCount, clearCart } = useWishlist();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, addAddress } = useAuth();
 
   // ── Form State ──
   const [formData, setFormData] = useState({
@@ -384,6 +384,20 @@ export default function CheckoutPage({
           paymentStatus: 'pending',
         };
 
+        // Save delivery address if customer opted in
+        if (formData.saveAddress && isAuthenticated && addAddress) {
+          addAddress({
+            fullName: formData.fullName.trim(),
+            phone: formData.phone.trim(),
+            street: formData.street.trim(),
+            landmark: formData.apartment.trim() || '',
+            city: formData.city.trim(),
+            state: formData.state.trim(),
+            postalCode: formData.postalCode.trim(),
+            isDefault: !user?.addresses || user.addresses.length === 0,
+          }).catch((err) => console.warn('[CheckoutPage] Could not auto-save address:', err));
+        }
+
         // Persist to local storage history
         try {
           const existingOrders = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
@@ -414,6 +428,19 @@ export default function CheckoutPage({
             status: 'confirmed',
             paymentStatus: 'paid',
           };
+
+          if (formData.saveAddress && isAuthenticated && addAddress) {
+            addAddress({
+              fullName: formData.fullName.trim(),
+              phone: formData.phone.trim(),
+              street: formData.street.trim(),
+              landmark: formData.apartment.trim() || '',
+              city: formData.city.trim(),
+              state: formData.state.trim(),
+              postalCode: formData.postalCode.trim(),
+              isDefault: !user?.addresses || user.addresses.length === 0,
+            }).catch((err) => console.warn('[CheckoutPage] Could not auto-save address:', err));
+          }
 
           const existingOrders = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
           localStorage.setItem('aaiprints_orders', JSON.stringify([finalOrder, ...existingOrders]));
@@ -477,6 +504,19 @@ export default function CheckoutPage({
                   razorpayOrderId: paymentResponse.razorpay_order_id,
                 },
               };
+
+              if (formData.saveAddress && isAuthenticated && addAddress) {
+                addAddress({
+                  fullName: formData.fullName.trim(),
+                  phone: formData.phone.trim(),
+                  street: formData.street.trim(),
+                  landmark: formData.apartment.trim() || '',
+                  city: formData.city.trim(),
+                  state: formData.state.trim(),
+                  postalCode: formData.postalCode.trim(),
+                  isDefault: !user?.addresses || user.addresses.length === 0,
+                }).catch((err) => console.warn('[CheckoutPage] Could not auto-save address:', err));
+              }
 
               // Persist confirmed order to browser history
               const existingOrders = JSON.parse(localStorage.getItem('aaiprints_orders') || '[]');
@@ -874,7 +914,7 @@ export default function CheckoutPage({
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder="98765 43210"
+                        placeholder="70149 45523"
                         maxLength={12}
                         autoComplete="tel"
                       />
@@ -1435,7 +1475,7 @@ export default function CheckoutPage({
                 </div>
                 <div className="checkout-trust-item">
                   <HelpCircle size={16} className="checkout-trust-icon" />
-                  <span>Customer Support: help@aaiprints.com</span>
+                  <span>Customer Support: ouronlinedecor@aaiprints.com | +91 70149 45523</span>
                 </div>
               </div>
             </div>

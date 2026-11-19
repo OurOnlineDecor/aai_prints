@@ -411,10 +411,62 @@ async function sendB2BInquiryNotification(inquiry) {
   return { success: true };
 }
 
+/**
+ * Send order status update notification to customer
+ */
+async function sendOrderStatusUpdateEmail(order, updateMessage = '') {
+  const recipientEmail = order.shippingAddress?.email || (order.user && order.user.email);
+  if (!recipientEmail) return { skipped: true };
+
+  const customerName = order.shippingAddress?.fullName || 'Valued Customer';
+  const statusLabels = {
+    pending: 'Order Received',
+    confirmed: 'Order Confirmed',
+    processing: 'In Production & Framing',
+    shipped: 'Shipped & Out for Delivery',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled'
+  };
+
+  const statusTitle = statusLabels[order.status] || (order.status ? order.status.toUpperCase() : 'Updated');
+  const subject = `Update on your order #${order.orderNumber}: ${statusTitle}`;
+
+  const messageBlock = updateMessage && updateMessage.trim()
+    ? `<div style="background: #f8fafc; border-left: 4px solid #D2B98C; padding: 14px 16px; margin: 18px 0; border-radius: 0 8px 8px 0; color: #334155; font-size: 14px;"><strong>Admin Note / Tracking Details:</strong><br/>${updateMessage.trim()}</div>`
+    : '';
+
+  const innerHtml = `
+    <h2 style="color: #39332E; margin-top: 0; font-family: 'Cormorant', Georgia, serif; font-size: 26px;">Order Status Update</h2>
+    <p style="color: #475569; font-size: 15px; line-height: 1.6;">Namaste <strong>${customerName}</strong>,</p>
+    <p style="color: #475569; font-size: 15px; line-height: 1.6;">Your order <strong>#${order.orderNumber}</strong> status is now: <span style="background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; font-weight: 700;">${statusTitle}</span></p>
+    ${messageBlock}
+    <p style="color: #64748b; font-size: 13.5px; line-height: 1.6; margin-top: 24px;">
+      For any queries, contact our customer team at <a href="mailto:ouronlinedecor@aaiprints.com" style="color: #D2B98C; text-decoration: none; font-weight: 600;">ouronlinedecor@aaiprints.com</a> or via WhatsApp at <a href="https://wa.me/917014945523" style="color: #047857; text-decoration: none; font-weight: 600;">+91 70149 45523</a>.
+    </p>
+  `;
+
+  const htmlContent = wrapBrandTemplate({
+    preheader: `Update on order #${order.orderNumber}: ${statusTitle}`,
+    content: innerHtml,
+    actionText: 'View Storefront',
+    actionUrl: process.env.CLIENT_URL || 'https://aaiprints.com',
+  });
+
+  return sendEmail({
+    to: [{ email: recipientEmail, name: customerName }],
+    subject,
+    htmlContent
+  }).catch((err) => {
+    console.warn('[Brevo] Status update email error:', err.message);
+    return { skipped: true, error: err.message };
+  });
+}
+
 module.exports = {
   getBrevoClient,
   sendEmail,
   sendOrderConfirmationEmail,
+  sendOrderStatusUpdateEmail,
   sendB2BInquiryNotification,
   wrapBrandTemplate,
 };

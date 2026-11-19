@@ -116,7 +116,7 @@ const createCustomProduct = async (req, res, next) => {
       price: Number(price) || 0,
       originalPrice: originalPrice ? Number(originalPrice) : null,
       description: description || '',
-      whatsappNumber: whatsappNumber || '919876543210',
+      whatsappNumber: whatsappNumber || '917014945523',
       order: Number(order) || 0,
     });
 

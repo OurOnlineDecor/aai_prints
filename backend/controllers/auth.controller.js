@@ -446,6 +446,44 @@ const deleteAddress = async (req, res, next) => {
   }
 };
 
+// @desc    Update shipping address
+// @route   PUT /api/v1/auth/addresses/:addressId
+// @access  Private
+const updateAddress = async (req, res, next) => {
+  try {
+    const { fullName, phone, street, landmark, city, state, postalCode, isDefault } = req.body;
+    const user = await User.findById(req.user._id);
+
+    const addr =
+      user.addresses.id(req.params.addressId) ||
+      user.addresses.find((a) => a._id.toString() === req.params.addressId);
+
+    if (!addr) {
+      return next(new ApiError(404, 'Address not found'));
+    }
+
+    if (isDefault) {
+      user.addresses.forEach((a) => {
+        a.isDefault = false;
+      });
+    }
+
+    if (fullName !== undefined) addr.fullName = fullName.trim();
+    if (phone !== undefined) addr.phone = phone.trim();
+    if (street !== undefined) addr.street = street.trim();
+    if (landmark !== undefined) addr.landmark = landmark ? landmark.trim() : '';
+    if (city !== undefined) addr.city = city.trim();
+    if (state !== undefined) addr.state = state.trim();
+    if (postalCode !== undefined) addr.postalCode = postalCode.trim();
+    if (isDefault !== undefined) addr.isDefault = isDefault;
+
+    await user.save();
+    return ApiResponse.send(res, 200, { addresses: user.addresses }, 'Address updated successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -456,5 +494,6 @@ module.exports = {
   getMe,
   updateProfile,
   addAddress,
+  updateAddress,
   deleteAddress
 };

@@ -103,7 +103,19 @@ const orderSchema = new mongoose.Schema(
     cancelReason: {
       type: String,
       default: null
-    }
+    },
+    adminMessage: {
+      type: String,
+      default: null,
+      trim: true
+    },
+    statusHistory: [
+      {
+        status: { type: String, required: true },
+        message: { type: String, default: null },
+        updatedAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   {
     timestamps: true

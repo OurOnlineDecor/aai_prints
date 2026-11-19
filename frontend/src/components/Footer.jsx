@@ -6,7 +6,7 @@ import './Footer.css';
 const policyContents = {
   'Contact Us': {
     title: 'Customer Care & Support',
-    body: 'Our customer care team is dedicated to helping you with product inquiries, bulk orders, and custom dimensions.\n\n• Email: care@aaiprints.com\n• Helpline: +91 98765 43210 (Mon-Sat, 10 AM - 7 PM IST)\n• Artisan Studio: Ananta Art International, India',
+    body: 'Our customer care team is dedicated to helping you with product inquiries, bulk orders, and custom dimensions.\n\n• Email: ouronlinedecor@aaiprints.com\n• Helpline: +91 70149 45523 (Mon-Sat, 10 AM - 7 PM IST)\n• WhatsApp: +91 70149 45523\n• Artisan Studio: Ananta Art International, India',
   },
   'FAQs': {
     title: 'Frequently Asked Questions',
@@ -18,7 +18,7 @@ const policyContents = {
   },
   'Returns & Refunds': {
     title: 'Transit Guarantee & Replacements',
-    body: 'We stand 100% behind the craftsmanship of every art piece. In the rare event of transit damage, we provide an immediate 7-day hassle-free replacement upon sharing unboxing photos or video to care@aaiprints.com.',
+    body: 'We stand 100% behind the craftsmanship of every art piece. In the rare event of transit damage, we provide an immediate 7-day hassle-free replacement upon sharing unboxing photos or video to ouronlinedecor@aaiprints.com.',
   },
   'Privacy Policy': {
     title: 'Privacy Policy',
@@ -80,18 +80,61 @@ export default function Footer({ onNavigate }) {
               loading="lazy"
             />
             <div className="footer-socials" aria-label="Connect with us">
-              <a href="#" className="social-link" aria-label="Chat with Customer Support" onClick={(e) => e.preventDefault()} title="Customer Support">
+              <a
+                href="https://wa.me/917014945523?text=Namaste%20Aai%20Prints%20Team%2C%20I%20have%20an%20inquiry%20regarding%20your%20products."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                aria-label="Chat on WhatsApp (+91 70149 45523)"
+                title="Chat on WhatsApp (+91 70149 45523)"
+              >
                 <MessageCircle size={17} />
               </a>
-              <a href="#" className="social-link" aria-label="Official Website" onClick={(e) => e.preventDefault()} title="Artisan Community">
+              <a
+                href="#/"
+                className="social-link"
+                aria-label="Aai Prints Official Store"
+                onClick={(e) => {
+                  if (onNavigate) {
+                    e.preventDefault();
+                    onNavigate('home');
+                  }
+                }}
+                title="Aai Prints Official Store"
+              >
                 <Globe size={17} />
               </a>
-              <a href="mailto:care@aaiprints.com" className="social-link" aria-label="Email Customer Care" title="care@aaiprints.com">
+              <a
+                href="mailto:ouronlinedecor@aaiprints.com"
+                className="social-link"
+                aria-label="Email Customer Care (ouronlinedecor@aaiprints.com)"
+                title="ouronlinedecor@aaiprints.com"
+              >
                 <Mail size={17} />
               </a>
-              <a href="#" className="social-link" aria-label="Share Collection" onClick={(e) => e.preventDefault()} title="Share Collection">
+              <button
+                type="button"
+                className="social-link social-link--btn"
+                aria-label="Share Store Collection"
+                title="Share Store Collection"
+                onClick={async () => {
+                  const shareData = {
+                    title: 'Aai Prints | Premium Home Decor & Devotional Art',
+                    text: 'Explore handcrafted backlit LED frames, devotional art, and customized decor from Aai Prints!',
+                    url: window.location.origin,
+                  };
+                  if (navigator.share) {
+                    try {
+                      await navigator.share(shareData);
+                    } catch {}
+                  } else {
+                    navigator.clipboard.writeText(shareData.url);
+                    alert('Store link copied to clipboard!');
+                  }
+                }}
+              >
                 <Share2 size={17} />
-              </a>
+              </button>
             </div>
           </div>
 
@@ -199,6 +242,64 @@ export default function Footer({ onNavigate }) {
                 .map((para, i) => (
                   <p key={i}>{para}</p>
                 ))}
+              {activePolicy === 'Contact Us' && (
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
+                  <a
+                    href="https://wa.me/917014945523?text=Namaste%20Aai%20Prints%20Team%2C%20I%20have%20an%20inquiry."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      padding: '10px 18px',
+                      borderRadius: '8px',
+                      background: '#25D366',
+                      color: '#ffffff',
+                      textDecoration: 'none',
+                      fontWeight: '600',
+                      fontSize: '13px',
+                      boxShadow: '0 2px 8px rgba(37, 211, 102, 0.25)',
+                    }}
+                  >
+                    <MessageCircle size={16} /> WhatsApp: +91 70149 45523
+                  </a>
+                  <a
+                    href="mailto:ouronlinedecor@aaiprints.com"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      padding: '10px 18px',
+                      borderRadius: '8px',
+                      background: 'var(--accent, #D2B98C)',
+                      color: '#39332E',
+                      textDecoration: 'none',
+                      fontWeight: '600',
+                      fontSize: '13px',
+                    }}
+                  >
+                    <Mail size={16} /> Email Us
+                  </a>
+                  <a
+                    href="tel:+917014945523"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      padding: '10px 18px',
+                      borderRadius: '8px',
+                      background: '#f1f5f9',
+                      color: '#334155',
+                      textDecoration: 'none',
+                      fontWeight: '600',
+                      fontSize: '13px',
+                    }}
+                  >
+                    Call: +91 70149 45523
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>,

@@ -101,6 +101,9 @@
   color: #39332E;
   box-shadow: 0 2px 6px rgba(57, 51, 46, 0.06);
   transition: all var(--transition-normal);
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
 }
 
 .social-link:hover {

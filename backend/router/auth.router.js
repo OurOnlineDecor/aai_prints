@@ -12,6 +12,7 @@ const {
   getMe,
   updateProfile,
   addAddress,
+  updateAddress,
   deleteAddress
 } = require('../controllers/auth.controller');
 const { protect } = require('../middlewares/auth.middleware');
@@ -79,6 +80,20 @@ router.post(
   ],
   validate,
   addAddress
+);
+router.put(
+  '/addresses/:addressId',
+  protect,
+  [
+    body('fullName').optional().trim().notEmpty().withMessage('Full name cannot be empty'),
+    body('phone').optional().trim().notEmpty().withMessage('Phone cannot be empty'),
+    body('street').optional().trim().notEmpty().withMessage('Street address cannot be empty'),
+    body('city').optional().trim().notEmpty().withMessage('City cannot be empty'),
+    body('state').optional().trim().notEmpty().withMessage('State cannot be empty'),
+    body('postalCode').optional().trim().notEmpty().withMessage('Postal code cannot be empty')
+  ],
+  validate,
+  updateAddress
 );
 router.delete('/addresses/:addressId', protect, deleteAddress);
 

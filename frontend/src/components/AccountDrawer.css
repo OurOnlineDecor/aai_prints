@@ -642,3 +642,491 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ==============================================
+   Sub-Views: Address Management & Order Tracking
+   ============================================== */
+
+.account-sub-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 16px;
+  border-bottom: 1px solid var(--cream-border, #EAE3D2);
+  margin-bottom: 16px;
+}
+
+.account-sub-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans, 'Montserrat', sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal, #1e5257);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.account-sub-back-btn:hover {
+  background: rgba(30, 82, 87, 0.08);
+  transform: translateX(-2px);
+}
+
+.account-sub-title {
+  font-family: var(--font-serif, 'Cinzel', serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--teal-deep, #143538);
+}
+
+.account-sub-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--teal, #1e5257);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  font-family: var(--font-sans, 'Montserrat', sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-sub-action-btn:hover {
+  background: var(--teal-deep, #143538);
+  transform: translateY(-1px);
+}
+
+/* Address Cards */
+.address-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.address-card {
+  background: #ffffff;
+  border: 1.5px solid var(--taupe-border, #EAE3D2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.address-card.is-default {
+  border-color: var(--gold, #C59B27);
+  background: #FFFDF8;
+  box-shadow: 0 4px 16px rgba(197, 155, 39, 0.08);
+}
+
+.address-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.address-card-name {
+  font-family: var(--font-sans, 'Montserrat', sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-deep, #143538);
+}
+
+.address-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(197, 155, 39, 0.15);
+  color: #8C6A0A;
+  border: 1px solid rgba(197, 155, 39, 0.35);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.address-card-body {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #4A4A4A;
+  margin-bottom: 10px;
+}
+
+.address-card-phone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--teal, #1e5257);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.address-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.address-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--taupe-border, #EAE3D2);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-color, #333333);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.address-action-btn:hover {
+  background: var(--cream, #F7F3EA);
+  border-color: var(--teal, #1e5257);
+  color: var(--teal, #1e5257);
+}
+
+.address-action-btn.delete {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.address-action-btn.delete:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.address-action-btn.set-default {
+  color: var(--gold-dark, #8C6A0A);
+  border-color: rgba(197, 155, 39, 0.3);
+}
+
+.address-action-btn.set-default:hover {
+  background: #FFFDF8;
+  border-color: var(--gold, #C59B27);
+}
+
+/* Address Form */
+.address-form-wrapper {
+  background: #ffffff;
+  border: 1px solid var(--taupe-border, #EAE3D2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.address-form-title {
+  font-family: var(--font-serif, 'Cinzel', serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-deep, #143538);
+  margin-bottom: 14px;
+}
+
+.address-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.address-form-grid .full-span {
+  grid-column: span 2;
+}
+
+.address-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.address-form-btn-save {
+  flex: 1;
+  padding: 11px;
+  background: var(--teal, #1e5257);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.address-form-btn-save:hover:not(:disabled) {
+  background: var(--teal-deep, #143538);
+  transform: translateY(-1px);
+}
+
+.address-form-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.address-form-btn-cancel {
+  padding: 11px 16px;
+  background: transparent;
+  border: 1px solid var(--taupe-border, #EAE3D2);
+  color: var(--text-color, #333333);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.address-form-btn-cancel:hover {
+  background: var(--cream, #F7F3EA);
+}
+
+/* Orders List in Drawer */
+.order-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.account-order-card {
+  background: #ffffff;
+  border: 1.5px solid var(--taupe-border, #EAE3D2);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.account-order-card:hover {
+  border-color: rgba(30, 82, 87, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.account-order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--cream-border, #EAE3D2);
+}
+
+.account-order-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--teal-deep, #143538);
+}
+
+.account-order-date {
+  font-size: 11px;
+  color: #71717a;
+}
+
+.account-order-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+
+.account-order-status-pill.confirmed {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.account-order-status-pill.processing {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.account-order-status-pill.shipped {
+  background: #ccfbf1;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+
+.account-order-status-pill.delivered {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.account-order-status-pill.cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.account-order-status-pill.pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.account-order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-order-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-order-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--cream-border, #EAE3D2);
+  background: #f4efe6;
+  flex-shrink: 0;
+}
+
+.account-order-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-order-item-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-order-item-meta {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.account-order-admin-note {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 4px;
+}
+
+.account-order-admin-note-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.account-order-admin-note p {
+  font-size: 12px;
+  color: #78350f;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.account-order-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.account-order-total {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal-deep, #143538);
+}
+
+.account-order-help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #128C7E;
+  text-decoration: none;
+  background: #e6f7f2;
+  border: 1px solid #a7f3d0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.account-order-help-btn:hover {
+  background: #128C7E;
+  color: #ffffff;
+}
+
+/* Empty State */
+.account-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 16px;
+  background: #ffffff;
+  border: 1.5px dashed var(--taupe-border, #EAE3D2);
+  border-radius: 12px;
+  gap: 8px;
+}
+
+.account-empty-state-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(30, 82, 87, 0.08);
+  color: var(--teal, #1e5257);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.account-empty-state h4 {
+  font-family: var(--font-serif, 'Cinzel', serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-deep, #143538);
+  margin: 0;
+}
+
+.account-empty-state p {
+  font-size: 12px;
+  color: #71717a;
+  max-width: 240px;
+  margin: 0;
+  line-height: 1.4;
+}

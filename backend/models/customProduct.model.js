@@ -59,7 +59,7 @@ const customProductSchema = new mongoose.Schema(
     whatsappNumber: {
       type: String,
       trim: true,
-      default: '919876543210',
+      default: '917014945523',
     },
     order: {
       type: Number,

@@ -9,7 +9,7 @@ import { api, API_BASE } from './api';
 
 export { API_BASE };
 
-// Fallback dummy products matching the 3 requested categories
+// Fallback catalog products for offline resilience
 export const FALLBACK_CUSTOM_PRODUCTS = [
   {
     _id: 'cust_01',
@@ -28,7 +28,7 @@ export const FALLBACK_CUSTOM_PRODUCTS = [
       `• Required Photo: 1 or 2 high-resolution photos (portrait/landscape, min 1080p).
 • Optional Custom Text: Family name, anniversary date, or sacred mantra (e.g. 'The Sharma Family' or 'ॐ नमः शिवाय').
 • Custom Instructions: Choose LED backlighting tone (Warm Amber Gold, Crisp Natural White, or Ice Blue). Specify whether you need a wall-mounting hanging hook or an acrylic tabletop easel stand.`,
-    whatsappNumber: '919876543210',
+    whatsappNumber: '917014945523',
     isActive: true,
   },
   {
@@ -48,7 +48,7 @@ export const FALLBACK_CUSTOM_PRODUCTS = [
       `• Required Silhouette: Choose your silhouette theme (Family portrait outline, Devotional deity, or Couple silhouette).
 • Optional Custom Text: Custom surname, couple names, or special date engraved cleanly at 6 o'clock.
 • Custom Instructions: Specify preferred wood finish (Rich Teak Walnut or Natural Pine Oak). Clock hands style (Sleek Modern Gold or Classic Black Needle).`,
-    whatsappNumber: '919876543210',
+    whatsappNumber: '917014945523',
     isActive: true,
   },
   {
@@ -68,7 +68,7 @@ export const FALLBACK_CUSTOM_PRODUCTS = [
       `• Required Motif: Specify chosen deity, portrait silhouette, or custom emblem (e.g. Mahadev, Khatu Shyam Ji, Ram Lalla, or personalized silhouette).
 • Optional Custom Text: Vehicle registration number or custom travel blessing engraved on the pedestal base.
 • Custom Instructions: Mention pedestal base type (Standard Clear Acrylic or Warm Sand Wood Base). Heavy-duty reusable non-slip 3M adhesive included.`,
-    whatsappNumber: '919876543210',
+    whatsappNumber: '917014945523',
     isActive: true,
   },
 ];
@@ -134,7 +134,7 @@ export async function deleteCustomProduct(id) {
  * Build pre-filled WhatsApp URL for instant custom ordering
  */
 export function buildWhatsAppOrderUrl(product, customerNotes = '') {
-  const phone = product?.whatsappNumber || import.meta.env.VITE_WHATSAPP_NUMBER || '919876543210';
+  const phone = product?.whatsappNumber || import.meta.env.VITE_WHATSAPP_NUMBER || '917014945523';
   const cleanPhone = phone.replace(/[^0-9]/g, '');
 
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://aaiprints.com';

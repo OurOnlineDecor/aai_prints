@@ -121,6 +121,19 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Update delivery address
+  const updateAddress = async (addressId, addressData) => {
+    try {
+      const res = await api.put(`/auth/addresses/${addressId}`, addressData);
+      if (res?.data?.addresses && user) {
+        setUser({ ...user, addresses: res.data.addresses });
+      }
+      return res?.data?.addresses;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   // Delete delivery address
   const deleteAddress = async (addressId) => {
     try {
@@ -145,6 +158,7 @@ export function AuthProvider({ children }) {
     logout,
     checkAuth,
     addAddress,
+    updateAddress,
     deleteAddress,
   };
 

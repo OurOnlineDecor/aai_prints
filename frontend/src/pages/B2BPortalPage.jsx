@@ -572,12 +572,12 @@ export default function B2BPortalPage({
 
             {/* Direct Contact Channels */}
             <div className="wholesale-contact-channels">
-              <a href="tel:+919876543210" className="contact-channel-pill">
+              <a href="tel:+917014945523" className="contact-channel-pill">
                 <Phone size={15} />
-                <span>+91 98765 43210</span>
+                <span>+91 70149 45523</span>
               </a>
               <a
-                href="https://wa.me/919876543210?text=Hello%20Aai%20Prints%20Wholesale%20Team,%20I%20have%20an%20inquiry"
+                href="https://wa.me/917014945523?text=Namaste%20Aai%20Prints%20Wholesale%20Team,%20I%20have%20an%20inquiry%20regarding%20bulk%20orders."
                 target="_blank"
                 rel="noreferrer"
                 className="contact-channel-pill whatsapp"
@@ -585,9 +585,9 @@ export default function B2BPortalPage({
                 <MessageCircle size={15} />
                 <span>Chat on WhatsApp</span>
               </a>
-              <a href="mailto:wholesale@aaiprints.com" className="contact-channel-pill">
+              <a href="mailto:ouronlinedecor@aaiprints.com" className="contact-channel-pill">
                 <Mail size={15} />
-                <span>wholesale@aaiprints.com</span>
+                <span>ouronlinedecor@aaiprints.com</span>
               </a>
             </div>
 
@@ -617,7 +617,7 @@ export default function B2BPortalPage({
                     <input
                       type="tel"
                       required
-                      placeholder="e.g. +91 98765 43210"
+                      placeholder="e.g. +91 70149 45523"
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                     />

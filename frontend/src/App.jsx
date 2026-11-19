@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import WishlistDrawer from './components/WishlistDrawer';
 import CartDrawer from './components/CartDrawer';
 import AccountDrawer from './components/AccountDrawer';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
 import ShopPage from './pages/ShopPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
@@ -594,6 +595,9 @@ function App() {
             onClose={() => setIsAccountOpen(false)}
             onNavigate={navigateTo}
           />
+
+          {/* ── 9. Floating WhatsApp Direct Connect ── */}
+          <FloatingWhatsApp />
         </div>
       </WishlistProvider>
     </AuthProvider>
