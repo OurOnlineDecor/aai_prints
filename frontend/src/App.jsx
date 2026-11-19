@@ -37,7 +37,6 @@ import {
 import {
   fetchCustomProducts,
   fetchCustomProductBySlug,
-  FALLBACK_CUSTOM_PRODUCTS,
 } from './services/customProductService';
 import './App.css';
 
@@ -46,7 +45,7 @@ function App() {
   const [allProducts, setAllProducts] = useState(() => getAllProducts());
 
   // Live custom products state
-  const [customProducts, setCustomProducts] = useState(() => FALLBACK_CUSTOM_PRODUCTS);
+  const [customProducts, setCustomProducts] = useState([]);
   const [selectedCustomProduct, setSelectedCustomProduct] = useState(null);
 
   useEffect(() => {
@@ -58,7 +57,7 @@ function App() {
     });
 
     fetchCustomProducts().then((customLive) => {
-      if (isMounted && Array.isArray(customLive) && customLive.length > 0) {
+      if (isMounted && Array.isArray(customLive)) {
         setCustomProducts([...customLive]);
       }
     });
@@ -364,14 +363,10 @@ function App() {
       return (
         customProducts.find(
           (p) => (p.slug && p.slug.toLowerCase() === normalized) || String(p._id) === normalized
-        ) ||
-        FALLBACK_CUSTOM_PRODUCTS.find(
-          (p) => (p.slug && p.slug.toLowerCase() === normalized) || String(p._id) === normalized
-        ) ||
-        null
+        ) || null
       );
     }
-    return customProducts[0] || FALLBACK_CUSTOM_PRODUCTS[0] || null;
+    return customProducts[0] || null;
   }, [selectedCustomProduct, activeCustomProductSlug, customProducts]);
 
   return (
