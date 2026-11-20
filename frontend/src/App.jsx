@@ -495,7 +495,6 @@ function App() {
               <AdminGuard onNavigateHome={() => navigateTo('home')}>
                 <AdminReelsPage
                   onNavigateHome={() => navigateTo('home')}
-                  onSelectProduct={handleSelectProduct}
                 />
               </AdminGuard>
             ) : currentPage === 'b2b' ? (
@@ -549,7 +548,7 @@ function App() {
                 )}
 
                 {/* Whatmore-style Short Videos / Reels Showcase (Homepage only) */}
-                <ReelsSection onSelectProduct={handleSelectProduct} />
+                <ReelsSection />
 
                 {/* Curated Gallery Showcase (2:1 visual slider) */}
                 <HeroSlider onSelectCategory={(cat) => navigateTo('shop', cat)} />

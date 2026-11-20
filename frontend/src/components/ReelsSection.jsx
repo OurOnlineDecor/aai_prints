@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   X,
-  ShoppingBag,
-  Eye,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause
 } from 'lucide-react';
+import InstagramIcon from './InstagramIcon';
 import { reelService } from '../services/reelService';
 import './ReelsSection.css';
 
@@ -50,16 +49,13 @@ function ReelCardMedia({ reel, isModalOpen }) {
     const video = videoRef.current;
     if (!video || videoError) return;
 
-    // Browser autoplay requirements
     video.muted = true;
     video.defaultMuted = true;
 
     if (!isModalOpen && isInView) {
       const playPromise = video.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Gracefully ignore autoplay postponement by browser
-        });
+        playPromise.catch(() => {});
       }
     } else {
       video.pause();
@@ -71,7 +67,6 @@ function ReelCardMedia({ reel, isModalOpen }) {
       <video
         ref={videoRef}
         src={reel.videoUrl}
-        poster={reel.thumbnailUrl || undefined}
         className="reel-card-video-preview"
         autoPlay
         muted
@@ -80,40 +75,29 @@ function ReelCardMedia({ reel, isModalOpen }) {
         playsInline
         preload="auto"
         onError={() => setVideoError(true)}
-        onLoadedData={(e) => {
-          e.currentTarget.muted = true;
-          if (!isModalOpen && isInView) {
-            e.currentTarget.play().catch(() => {});
-          }
-        }}
       />
     );
   }
 
-  if (reel.thumbnailUrl) {
-    return (
-      <img
-        src={reel.thumbnailUrl}
-        alt={reel.title}
-        className="reel-card-thumbnail"
-        loading="lazy"
-      />
-    );
-  }
-
-  return <div className="reel-card-fallback-poster" />;
+  return (
+    <div className="reel-card-instagram-placeholder">
+      <div className="reel-card-ig-icon-glow">
+        <InstagramIcon size={42} strokeWidth={1.5} />
+      </div>
+      <span className="reel-card-ig-tag">Watch Reel</span>
+    </div>
+  );
 }
 
-export default function ReelsSection({ onSelectProduct }) {
+export default function ReelsSection() {
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeReelIndex, setActiveReelIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false); // Unmuted by default as requested
+  const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [tapFeedback, setTapFeedback] = useState(null);
-  const [audioBlockedNotice, setAudioBlockedNotice] = useState(false);
-  const [slideDirection, setSlideDirection] = useState('up'); // 'up' | 'down'
+  const [slideDirection, setSlideDirection] = useState('up');
   const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   const scrollTrackRef = useRef(null);
@@ -121,7 +105,6 @@ export default function ReelsSection({ onSelectProduct }) {
   const touchStartY = useRef(null);
   const touchStartX = useRef(null);
   const isSwiping = useRef(false);
-  const lastWheelTime = useRef(0);
 
   // Fetch reels on mount
   useEffect(() => {
@@ -133,7 +116,7 @@ export default function ReelsSection({ onSelectProduct }) {
           setReels(data || []);
           setLoading(false);
         }
-      } catch (err) {
+      } catch (_err) {
         if (isMounted) {
           setLoading(false);
         }
@@ -146,13 +129,12 @@ export default function ReelsSection({ onSelectProduct }) {
 
   const activeReel = activeReelIndex !== null ? reels[activeReelIndex] : null;
 
-  // Open modal handler (direct user gesture -> unmuted playback allowed)
+  // Open modal handler
   const openReelModal = (index) => {
     setActiveReelIndex(index);
-    setIsMuted(false); // By default it will be unmute
+    setIsMuted(false);
     setIsPlaying(true);
     setProgress(0);
-    setAudioBlockedNotice(false);
     setSlideDirection('up');
     setShowSwipeHint(true);
 
@@ -172,7 +154,7 @@ export default function ReelsSection({ onSelectProduct }) {
     setShowSwipeHint(false);
   }, []);
 
-  // Cycle to next reel (vertical scroll/swipe down -> up)
+  // Cycle to next reel
   const nextReel = useCallback(
     (e) => {
       if (e) e.stopPropagation();
@@ -186,7 +168,7 @@ export default function ReelsSection({ onSelectProduct }) {
     [reels.length]
   );
 
-  // Cycle to previous reel (vertical scroll/swipe up -> down)
+  // Cycle to previous reel
   const prevReel = useCallback(
     (e) => {
       if (e) e.stopPropagation();
@@ -200,7 +182,7 @@ export default function ReelsSection({ onSelectProduct }) {
     [reels.length]
   );
 
-  // Auto-play when active reel changes
+  // Auto-play when active reel changes in modal
   useEffect(() => {
     if (activeReelIndex === null || !videoRef.current) return;
 
@@ -213,32 +195,26 @@ export default function ReelsSection({ onSelectProduct }) {
       playPromise
         .then(() => {
           setIsPlaying(true);
-          setAudioBlockedNotice(false);
         })
-        .catch((err) => {
-          // If browser policy blocks unmuted autoplay without sufficient interaction
-          console.warn('[ReelsSection] Unmuted autoplay prevented by browser policy, falling back to muted:', err);
+        .catch(() => {
+          // Fallback to muted if unmuted autoplay prevented
           videoEl.muted = true;
           setIsMuted(true);
-          setAudioBlockedNotice(true);
           videoEl.play().catch(() => {});
         });
     }
   }, [activeReelIndex]);
 
-  // Sync mute state changes to video element
+  // Toggle Mute
   const toggleMute = (e) => {
     if (e) e.stopPropagation();
     if (!videoRef.current) return;
     const nextMuteState = !isMuted;
     videoRef.current.muted = nextMuteState;
     setIsMuted(nextMuteState);
-    if (!nextMuteState) {
-      setAudioBlockedNotice(false);
-    }
   };
 
-  // Toggle play/pause
+  // Toggle Play / Pause
   const togglePlay = () => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) {
@@ -262,7 +238,30 @@ export default function ReelsSection({ onSelectProduct }) {
     }
   };
 
-  // Vertical Touch Swipe Gesture Navigation (Mobile Reels / TikTok / Whatmore style)
+  // Lock body scroll and listen for Escape / Arrow keys when modal is open
+  useEffect(() => {
+    if (activeReelIndex === null) return;
+
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeReelModal();
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextReel();
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevReel();
+      if (e.key === ' ') {
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeReelIndex, closeReelModal, nextReel, prevReel]);
+
+  // Touch navigation for mobile vertical swipe
   const handleTouchStart = (e) => {
     if (e.touches && e.touches.length === 1) {
       touchStartY.current = e.touches[0].clientY;
@@ -278,13 +277,10 @@ export default function ReelsSection({ onSelectProduct }) {
     const deltaY = touchStartY.current - touchEndY;
     const deltaX = touchStartX.current - touchEndX;
 
-    // Minimum swipe threshold (40px) & primarily vertical
-    if (Math.abs(deltaY) > 40 && Math.abs(deltaY) > Math.abs(deltaX)) {
+    if (Math.abs(deltaY) > 45 && Math.abs(deltaY) > Math.abs(deltaX)) {
       if (deltaY > 0) {
-        // Swiped UP -> Go to Next reel
         nextReel();
       } else {
-        // Swiped DOWN -> Go to Prev reel
         prevReel();
       }
     }
@@ -294,108 +290,34 @@ export default function ReelsSection({ onSelectProduct }) {
     isSwiping.current = false;
   };
 
-  // Mouse Wheel / Trackpad Vertical Scroll Navigation (with 450ms debounce)
-  const handleWheel = (e) => {
-    e.preventDefault();
-    const now = Date.now();
-    if (now - lastWheelTime.current < 450) return;
-    if (Math.abs(e.deltaY) > 25) {
-      lastWheelTime.current = now;
-      if (e.deltaY > 0) {
-        nextReel();
-      } else {
-        prevReel();
-      }
-    }
-  };
-
-  // Keyboard navigation (Supports ArrowDown/ArrowUp + ArrowRight/ArrowLeft + Esc + Space + M)
-  useEffect(() => {
-    if (activeReelIndex === null) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        closeReelModal();
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        nextReel();
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        prevReel();
-      } else if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        togglePlay();
-      } else if (e.key === 'm' || e.key === 'M') {
-        toggleMute();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeReelIndex, closeReelModal, nextReel, prevReel, isMuted]);
-
-  // Lock body & document scroll when reel modal is open
-  useEffect(() => {
-    if (activeReelIndex !== null) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, [activeReelIndex]);
-
-  // Horizontal scroll buttons for the carousel shelf
+  // Horizontal shelf scroll
   const scrollShelf = (direction) => {
     if (!scrollTrackRef.current) return;
-    const scrollAmount = direction === 'left' ? -360 : 360;
+    const scrollAmount = direction === 'left' ? -340 : 340;
     scrollTrackRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };
 
-  // Handle shoppable product click
-  const handleProductClick = (product, e) => {
-    if (e) e.stopPropagation();
-    if (!product) return;
-    closeReelModal();
-    if (onSelectProduct) {
-      onSelectProduct(product);
-    }
-  };
-
-  if (loading) {
-    return (
-      <section className="reels-section-wrapper" aria-label="Short Videos Loading">
-        <div className="reels-container">
-          <div className="reels-header-skeleton" />
-          <div className="reels-carousel-skeleton">
-            {[1, 2, 3, 4, 5].map((k) => (
-              <div key={k} className="reel-card-skeleton" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (!reels || reels.length === 0) {
-    return null; // Homepage remains clean if no reels available
+  // Don't render section if no reels exist and not loading
+  if (!loading && reels.length === 0) {
+    return null;
   }
 
   return (
-    <section className="reels-section-wrapper" aria-label="Short Videos & Stories">
+    <section className="reels-section-wrapper" aria-label="Short Videos Showcase">
       <div className="reels-container">
         {/* Section Header */}
         <div className="reels-header">
           <div className="reels-header-left">
-            <h2 className="reels-title">Our Products as Stories</h2>
+            <span className="reels-eyebrow">
+              <Sparkles size={14} className="reels-eyebrow-icon" />
+              HANDCRAFTED STORIES • WATCH ON REELS
+            </span>
+            <h2 className="reels-title">Artisan Reels &amp; Highlights</h2>
             <p className="reels-subtitle">
-              Experience the warm ambient glow of our products in motion.
+              Glimpses of sacred craftsmanship, divine luminescence, and intricate details direct from our workshop.
             </p>
           </div>
 
-          {/* Shelf Navigation Arrows */}
           <div className="reels-header-arrows">
             <button
               type="button"
@@ -419,69 +341,52 @@ export default function ReelsSection({ onSelectProduct }) {
         {/* Horizontal Carousel Shelf */}
         <div className="reels-track-container" ref={scrollTrackRef}>
           <div className="reels-track">
-            {reels.map((reel, idx) => {
-              const prod = reel.product;
-              return (
-                <div
-                  key={reel._id || reel.id || idx}
-                  className="reel-card"
-                  onClick={() => openReelModal(idx)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      openReelModal(idx);
-                    }
-                  }}
-                  aria-label={`Watch reel: ${reel.title}`}
-                >
-                  {/* Card Visual / Thumbnail / Autoplaying Video Preview */}
-                  <div className="reel-card-media-wrap">
-                    <ReelCardMedia
-                      reel={reel}
-                      isModalOpen={activeReelIndex !== null}
-                    />
+            {reels.map((reel, idx) => (
+              <div
+                key={reel._id || reel.id || idx}
+                className="reel-card"
+                onClick={() => openReelModal(idx)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    openReelModal(idx);
+                  }
+                }}
+                aria-label={reel.title ? `Watch reel: ${reel.title}` : 'Watch reel'}
+              >
+                {/* Card Visual / Autoplaying Video Preview */}
+                <div className="reel-card-media-wrap">
+                  <ReelCardMedia
+                    reel={reel}
+                    isModalOpen={activeReelIndex !== null}
+                  />
 
-                    {/* Gradient Overlay */}
-                    <div className="reel-card-gradient" />
+                  {/* Gradient Overlay */}
+                  <div className="reel-card-gradient" />
 
-                    {/* Bottom Shoppable Product Dock on Card */}
-                    {prod && (
-                      <div
-                        className="reel-card-product-chip"
-                        onClick={(e) => handleProductClick(prod, e)}
-                        title={`Shop ${prod.name}`}
-                      >
-                        <img
-                          src={prod.image || reel.thumbnailUrl}
-                          alt={prod.name}
-                          className="reel-card-product-thumb"
-                        />
-                        <div className="reel-card-product-info">
-                          <span className="reel-card-product-name">{prod.name}</span>
-                          <span className="reel-card-product-price">
-                            ₹{Number(prod.price || prod.basePrice || 0).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="reel-card-product-action">
-                          <ShoppingBag size={15} />
-                        </div>
-                      </div>
-                    )}
+                  {/* Bottom Action Pill */}
+                  <div className="reel-card-action-bar">
+                    <span className="reel-card-action-text">
+                      <Play size={13} fill="currentColor" style={{ marginRight: '6px' }} />
+                      Watch Video
+                    </span>
                   </div>
+                </div>
 
-                  {/* Caption / Title under card */}
+                {/* Optional Title under card */}
+                {reel.title ? (
                   <div className="reel-card-meta">
                     <h3 className="reel-card-title">{reel.title}</h3>
                   </div>
-                </div>
-              );
-            })}
+                ) : null}
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ── SHOPIFY WHATMORE-STYLE STORY MODAL PLAYER (Portaled to document.body) ── */}
+      {/* ── FULL-SCREEN PURE VERTICAL STORY MODAL PLAYER (Portaled to document.body) ── */}
       {activeReel && createPortal(
         <div
           className="reel-modal-backdrop"
@@ -490,14 +395,14 @@ export default function ReelsSection({ onSelectProduct }) {
           onTouchMove={(e) => e.preventDefault()}
           role="dialog"
           aria-modal="true"
-          aria-label="Reel Video Player"
+          aria-label="Full Screen Video Player"
         >
           {/* Previous Arrow Button */}
           <button
             type="button"
             className="reel-modal-nav-btn prev"
             onClick={prevReel}
-            aria-label="Previous story"
+            aria-label="Previous reel"
           >
             <ChevronLeft size={28} />
           </button>
@@ -506,7 +411,6 @@ export default function ReelsSection({ onSelectProduct }) {
           <div
             className="reel-modal-card"
             onClick={(e) => e.stopPropagation()}
-            onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
@@ -521,19 +425,21 @@ export default function ReelsSection({ onSelectProduct }) {
             {/* Top Controls Overlay */}
             <div className="reel-modal-header">
               <div className="reel-modal-header-brand">
-                <span className="reel-modal-header-title">{activeReel.title}</span>
+                {activeReel.title ? (
+                  <span className="reel-modal-header-title">{activeReel.title}</span>
+                ) : null}
               </div>
 
               <div className="reel-modal-header-actions">
-                {/* Mute / Unmute Button (Unmuted by default) */}
+                {/* Audio Mute/Unmute Button */}
                 <button
                   type="button"
                   className={`reel-modal-icon-btn ${!isMuted ? 'active-audio' : ''}`}
                   onClick={toggleMute}
-                  aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
-                  title={isMuted ? 'Turn Sound ON' : 'Mute Sound'}
+                  aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                  title={isMuted ? 'Sound ON' : 'Mute Sound'}
                 >
-                  {isMuted ? <VolumeX size={19} /> : <Volume2 size={19} />}
+                  {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 </button>
 
                 {/* Close Button */}
@@ -541,7 +447,7 @@ export default function ReelsSection({ onSelectProduct }) {
                   type="button"
                   className="reel-modal-icon-btn close-btn"
                   onClick={closeReelModal}
-                  aria-label="Close story player"
+                  aria-label="Close reel player"
                 >
                   <X size={20} />
                 </button>
@@ -556,7 +462,7 @@ export default function ReelsSection({ onSelectProduct }) {
               </div>
             )}
 
-            {/* Video Viewport (Tap to Play/Pause, Animated Vertical Slide) */}
+            {/* Video Viewport (Tap to Play/Pause, 100% Pure Video) */}
             <div
               key={`reel-${activeReel._id || activeReel.id || activeReelIndex}`}
               className={`reel-modal-viewport ${slideDirection === 'up' ? 'slide-up' : 'slide-down'}`}
@@ -568,9 +474,9 @@ export default function ReelsSection({ onSelectProduct }) {
               <video
                 ref={videoRef}
                 src={activeReel.videoUrl}
-                poster={activeReel.thumbnailUrl}
                 playsInline
                 loop
+                autoPlay
                 onTimeUpdate={handleTimeUpdate}
                 className="reel-modal-video"
               />
@@ -587,43 +493,22 @@ export default function ReelsSection({ onSelectProduct }) {
               )}
             </div>
 
-            {/* Attached Shoppable Product Dock Overlay (Whatmore Extension Pattern) */}
-            {activeReel.product && (
-              <div className="reel-modal-product-dock">
-                <div
-                  className="reel-modal-product-card"
-                  onClick={(e) => handleProductClick(activeReel.product, e)}
+            {/* Bottom Floating Bar: Visit Original Reel CTA (No Product Association) */}
+            {activeReel.instagramUrl && (
+              <div className="reel-modal-footer-dock">
+                <a
+                  href={activeReel.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="reel-modal-visit-original-btn"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <img
-                    src={activeReel.product.image || activeReel.thumbnailUrl}
-                    alt={activeReel.product.name}
-                    className="reel-modal-product-img"
-                  />
-
-                  <div className="reel-modal-product-details">
-                    <h4 className="reel-modal-product-name">{activeReel.product.name}</h4>
-                    <div className="reel-modal-product-pricing">
-                      <span className="reel-modal-product-price">
-                        ₹{Number(activeReel.product.price || activeReel.product.basePrice || 0).toLocaleString()}
-                      </span>
-                      {activeReel.product.originalPrice && activeReel.product.originalPrice > (activeReel.product.price || 0) && (
-                        <span className="reel-modal-product-original-price">
-                          ₹{Number(activeReel.product.originalPrice).toLocaleString()}
-                        </span>
-                      )}
-                    </div>
+                  <div className="reel-modal-btn-ig-icon">
+                    <InstagramIcon size={18} />
                   </div>
-
-                  <button
-                    type="button"
-                    className="reel-modal-shop-cta"
-                    onClick={(e) => handleProductClick(activeReel.product, e)}
-                    aria-label={`Shop ${activeReel.product.name}`}
-                  >
-                    <span>Shop Now</span>
-                    <ShoppingBag size={14} />
-                  </button>
-                </div>
+                  <span>Visit Original Reel</span>
+                  <ExternalLink size={16} className="reel-modal-btn-arrow" />
+                </a>
               </div>
             )}
           </div>
@@ -633,7 +518,7 @@ export default function ReelsSection({ onSelectProduct }) {
             type="button"
             className="reel-modal-nav-btn next"
             onClick={nextReel}
-            aria-label="Next story"
+            aria-label="Next reel"
           >
             <ChevronRight size={28} />
           </button>

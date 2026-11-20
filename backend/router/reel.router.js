@@ -24,9 +24,9 @@ router.post(
   protect,
   authorize('admin'),
   [
-    body('title').trim().notEmpty().withMessage('Reel title is required'),
+    body('title').optional().trim(),
     body('videoUrl').trim().notEmpty().withMessage('Video URL is required'),
-    body('product').isMongoId().withMessage('Valid product ID is required')
+    body('instagramUrl').optional().trim()
   ],
   validate,
   createReel

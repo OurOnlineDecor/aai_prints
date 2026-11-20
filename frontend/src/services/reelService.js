@@ -18,7 +18,9 @@ export const reelService = {
         return response.data.reels.map((reel) => ({
           ...reel,
           id: reel._id,
-          product: reel.product || null
+          instagramUrl: reel.instagramUrl || reel.videoUrl || '',
+          videoUrl: reel.videoUrl || reel.instagramUrl || '',
+          thumbnailUrl: reel.thumbnailUrl || '',
         }));
       }
       return [];
@@ -42,7 +44,7 @@ export const reelService = {
   },
 
   /**
-   * Create a new reel and attach to a product (Admin only)
+   * Create a new reel with an Instagram link (Admin only)
    */
   async createReel(reelData) {
     const response = await apiClient('/reels', {
@@ -65,7 +67,7 @@ export const reelService = {
   /**
    * Upload video file directly to Cloudinary via backend media API
    */
-  async uploadVideo(file, onProgress) {
+  async uploadVideo(file) {
     const formData = new FormData();
     formData.append('video', file);
     formData.append('folder', 'aai_prints/reels');

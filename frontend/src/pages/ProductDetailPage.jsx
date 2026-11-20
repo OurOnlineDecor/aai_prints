@@ -106,7 +106,6 @@ export default function ProductDetailPage({
     setActiveImageIndex(0);
     setQuantity(1);
     setAddedToast(false);
-    setIsAdding(false);
     if (product?.variants && product.variants.length > 0) {
       setSelectedVariant(product.variants[0]);
     } else {

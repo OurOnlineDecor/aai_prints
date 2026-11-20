@@ -12,11 +12,7 @@ const getReels = async (req, res, next) => {
     const filter = all === 'true' ? {} : { isActive: true };
 
     const reels = await Reel.find(filter)
-      .sort({ order: 1, createdAt: -1 })
-      .populate({
-        path: 'product',
-        select: '_id name slug price basePrice originalPrice image images category stock inStock ratingAverage reviewCount tags badges shortDescription'
-      });
+      .sort({ order: 1, createdAt: -1 });
 
     return ApiResponse.send(res, 200, {
       count: reels.length,
@@ -32,10 +28,7 @@ const getReels = async (req, res, next) => {
 // @access  Public
 const getReelById = async (req, res, next) => {
   try {
-    const reel = await Reel.findById(req.params.id).populate({
-      path: 'product',
-      select: '_id name slug price basePrice originalPrice image images category stock inStock ratingAverage reviewCount tags badges shortDescription'
-    });
+    const reel = await Reel.findById(req.params.id);
 
     if (!reel) {
       return next(new ApiError(404, 'Reel not found'));
@@ -52,31 +45,25 @@ const getReelById = async (req, res, next) => {
 // @access  Private/Admin
 const createReel = async (req, res, next) => {
   try {
-    const { title, videoUrl, thumbnailUrl, product, caption, duration, order, isActive } = req.body;
+    const { title, videoUrl, instagramUrl, duration, order, isActive } = req.body;
+    const finalVideoUrl = (videoUrl || '').trim();
 
-    // Verify product exists
-    const existingProduct = await Product.findById(product);
-    if (!existingProduct) {
-      return next(new ApiError(404, 'Referenced product not found'));
+    if (!finalVideoUrl) {
+      return next(new ApiError(400, 'Video URL or upload is required'));
     }
 
     const reel = await Reel.create({
-      title,
-      videoUrl,
-      thumbnailUrl: thumbnailUrl || existingProduct.image || '',
-      product,
-      caption,
+      title: (title || '').trim(),
+      videoUrl: finalVideoUrl,
+      instagramUrl: (instagramUrl || '').trim(),
+      thumbnailUrl: '',
+      caption: '',
       duration: duration || 0,
       order: order !== undefined ? order : 0,
       isActive: isActive !== undefined ? isActive : true
     });
 
-    const populatedReel = await Reel.findById(reel._id).populate({
-      path: 'product',
-      select: '_id name slug price basePrice originalPrice image images category stock inStock ratingAverage reviewCount tags badges'
-    });
-
-    return ApiResponse.send(res, 201, { reel: populatedReel }, 'Reel created successfully');
+    return ApiResponse.send(res, 201, { reel }, 'Reel created successfully');
   } catch (error) {
     next(error);
   }
@@ -92,21 +79,16 @@ const updateReel = async (req, res, next) => {
       return next(new ApiError(404, 'Reel not found'));
     }
 
-    if (req.body.product) {
-      const productExists = await Product.findById(req.body.product);
-      if (!productExists) {
-        return next(new ApiError(404, 'Referenced product not found'));
-      }
+    const updateData = { ...req.body };
+    if (updateData.instagramUrl && !updateData.videoUrl) {
+      updateData.videoUrl = updateData.instagramUrl;
     }
 
     const updatedReel = await Reel.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: updateData },
       { new: true, runValidators: true }
-    ).populate({
-      path: 'product',
-      select: '_id name slug price basePrice originalPrice image images category stock inStock ratingAverage reviewCount tags badges'
-    });
+    );
 
     return ApiResponse.send(res, 200, { reel: updatedReel }, 'Reel updated successfully');
   } catch (error) {

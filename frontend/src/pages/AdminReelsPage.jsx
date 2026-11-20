@@ -6,34 +6,24 @@ import {
   CheckCircle,
   AlertCircle,
   Trash2,
-  Eye,
-  Plus,
-  Play,
-  Pause,
   ExternalLink,
   Sparkles,
-  ShoppingBag,
-  Search
+  PlusCircle,
+  Play,
+  Loader2
 } from 'lucide-react';
+import InstagramIcon from '../components/InstagramIcon';
 import { reelService } from '../services/reelService';
-import { getAllProducts, fetchAllProducts } from '../services/productService';
 import './AdminReelsPage.css';
 
-export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
-  // Available products list
-  const [productsList, setProductsList] = useState(() => getAllProducts());
-  const [productSearch, setProductSearch] = useState('');
-
-  // Form Fields (Requested by user)
+export default function AdminReelsPage({ onNavigateHome }) {
+  // Form Fields
   const [title, setTitle] = useState('');
-  const [selectedProductId, setSelectedProductId] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const [caption, setCaption] = useState('');
+  const [instagramUrl, setInstagramUrl] = useState('');
 
   // Video Upload State
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [videoFileName, setVideoFileName] = useState('');
   const fileInputRef = useRef(null);
 
@@ -42,33 +32,14 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Existing Reels state for live preview & management
+  // Existing Reels state
   const [existingReels, setExistingReels] = useState([]);
   const [isLoadingReels, setIsLoadingReels] = useState(true);
   const [deletingReelId, setDeletingReelId] = useState(null);
 
-  // Fetch live products and existing reels on mount
+  // Fetch reels on mount
   useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const liveProducts = await fetchAllProducts();
-        if (isMounted && Array.isArray(liveProducts) && liveProducts.length > 0) {
-          setProductsList(liveProducts);
-          if (!selectedProductId) {
-            setSelectedProductId(liveProducts[0]._id || liveProducts[0].id);
-          }
-        }
-      } catch (err) {
-        console.warn('[AdminReelsPage] Failed to fetch live products:', err);
-      }
-    })();
-
     loadReels();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const loadReels = async () => {
@@ -83,27 +54,11 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
     }
   };
 
-  // Selected Product object
-  const selectedProduct = productsList.find(
-    (p) => String(p._id || p.id) === String(selectedProductId)
-  );
-
-  // Filter products by search query
-  const filteredProducts = productsList.filter((p) => {
-    if (!productSearch.trim()) return true;
-    const q = productSearch.toLowerCase();
-    return (
-      (p.name || '').toLowerCase().includes(q) ||
-      (p.category || '').toLowerCase().includes(q)
-    );
-  });
-
   // Handle Cloudinary Video Upload
   const handleVideoFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Verify it is a video file
     if (!file.type.startsWith('video/')) {
       setErrorMessage('Please select a valid video file (MP4, WebM, MOV).');
       return;
@@ -118,9 +73,6 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
       const asset = await reelService.uploadVideo(file);
       if (asset && asset.url) {
         setVideoUrl(asset.url);
-        if (asset.thumbnailUrl) {
-          setThumbnailUrl(asset.thumbnailUrl);
-        }
         setSuccessMessage('Video uploaded successfully to Cloudinary!');
       } else {
         throw new Error('Upload returned invalid response.');
@@ -141,39 +93,30 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (!title.trim()) {
-      setErrorMessage('Reel title is required.');
-      return;
-    }
+    const cleanTitle = title.trim();
+    const cleanVideoUrl = videoUrl.trim();
 
-    if (!videoUrl.trim()) {
-      setErrorMessage('Please upload a video to Cloudinary or provide a video URL.');
-      return;
-    }
-
-    if (!selectedProductId) {
-      setErrorMessage('Please select a product to assign to this reel.');
+    if (!cleanVideoUrl) {
+      setErrorMessage('Please upload a video or provide a direct video URL.');
       return;
     }
 
     try {
       setIsSubmitting(true);
-      const newReel = await reelService.createReel({
-        title: title.trim(),
-        videoUrl: videoUrl.trim(),
-        thumbnailUrl: thumbnailUrl.trim() || selectedProduct?.image || '',
-        product: selectedProductId,
-        caption: caption.trim(),
+      await reelService.createReel({
+        title: cleanTitle,
+        videoUrl: cleanVideoUrl,
+        instagramUrl: instagramUrl.trim(),
         order: existingReels.length + 1,
         isActive: true
       });
 
-      setSuccessMessage(`Reel "${title}" created and published to the homepage!`);
+      const label = cleanTitle ? `"${cleanTitle}" ` : '';
+      setSuccessMessage(`Reel ${label}published to homepage successfully!`);
       // Reset form
       setTitle('');
       setVideoUrl('');
-      setThumbnailUrl('');
-      setCaption('');
+      setInstagramUrl('');
       setVideoFileName('');
 
       // Reload reels list
@@ -222,9 +165,9 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
               <Sparkles size={13} />
               STOREFRONT SHORT VIDEOS • ADMIN STUDIO
             </span>
-            <h1 className="admin-reels-title">Shoppable Reels Manager</h1>
+            <h1 className="admin-reels-title">Reels &amp; Short Videos Manager</h1>
             <p className="admin-reels-subtitle">
-              Upload vertical videos to Cloudinary and attach them to products to showcase real craftsmanship on your homepage.
+              Upload edge-to-edge vertical videos to Cloudinary and link your Instagram reel. Customers will enjoy true full-screen video with a direct button to visit your Instagram post.
             </p>
           </div>
         </div>
@@ -252,75 +195,73 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
         </div>
       )}
 
-      {/* ── Main Two-Column Layout ── */}
+      {/* ── Main Studio Grid ── */}
       <div className="admin-reels-grid">
-        {/* Left Column: Reel Upload Form */}
-        <div className="admin-reels-card">
-          <div className="admin-reels-card-header">
-            <div className="admin-reels-card-icon">
-              <Plus size={20} />
+        {/* Left Form: Add New Reel */}
+        <div className="admin-reels-panel form-panel">
+          <div className="admin-reels-panel-header">
+            <div className="admin-reels-panel-title-wrap">
+              <PlusCircle size={18} className="panel-icon" />
+              <h2>Publish New Video Reel</h2>
             </div>
-            <div>
-              <h2 className="admin-reels-card-title">Upload New Shoppable Reel</h2>
-              <p className="admin-reels-card-desc">
-                Fill in the details, upload the video to Cloudinary, and select the product.
-              </p>
-            </div>
+            <p className="admin-reels-panel-sub">
+              Upload pure 9:16 vertical video. No product association required.
+            </p>
           </div>
 
           <form onSubmit={handleSubmitReel} className="admin-reels-form">
-            {/* ── 1. Reel Title (Requirement 1) ── */}
+            {/* 1. Title (Optional) */}
             <div className="admin-reels-field">
-              <label htmlFor="reel-title" className="admin-reels-label">
-                1. Reel Title <em>*</em>
+              <label className="admin-reels-label" htmlFor="reel-title">
+                Reel Title <span className="admin-reels-optional">(Optional)</span>
               </label>
               <input
                 id="reel-title"
                 type="text"
                 className="admin-reels-input"
-                placeholder="e.g., Divine Sanctum • Ambient LED Light Frame"
+                placeholder="e.g. Pure Brass Ganesha Wall Hanging Unboxing"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={120}
-                required
               />
               <span className="admin-reels-hint">
-                This headline will be shown as <code>reel-card-title</code> on the homepage card and in the story player.
+                Optional caption displayed beneath the card on the homepage carousel.
               </span>
             </div>
 
-            {/* ── 2. Cloudinary Video Upload (Requirement 2) ── */}
+            {/* 2. Video Upload (Cloudinary Dropzone) */}
             <div className="admin-reels-field">
               <label className="admin-reels-label">
-                2. Video Upload (Cloudinary) <em>*</em>
+                Reel Video (MP4 / WebM / MOV) <em>*</em>
               </label>
 
-              {/* Drag & Drop Upload Zone */}
               <div
-                className={`admin-reels-dropzone ${isUploadingVideo ? 'uploading' : ''} ${videoUrl ? 'has-video' : ''}`}
-                onClick={() => !isUploadingVideo && fileInputRef.current?.click()}
+                className={`admin-reels-dropzone ${videoUrl ? 'has-video' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    fileInputRef.current?.click();
+                  }
+                }}
               >
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="video/mp4,video/webm,video/quicktime,video/*"
-                  onChange={handleVideoFileChange}
+                  accept="video/mp4,video/webm,video/quicktime"
                   style={{ display: 'none' }}
-                  disabled={isUploadingVideo}
+                  onChange={handleVideoFileChange}
                 />
 
                 {isUploadingVideo ? (
                   <div className="admin-reels-upload-state">
-                    <div className="admin-reels-spinner" />
-                    <span className="admin-reels-upload-prompt">
-                      Uploading to Cloudinary...
-                    </span>
-                    <span className="admin-reels-upload-subtext">
-                      Optimizing vertical video for 60fps streaming ({videoFileName})
-                    </span>
+                    <Loader2 size={32} className="spin-anim" style={{ color: '#D2B98C' }} />
+                    <span className="admin-reels-upload-prompt">Uploading video to Cloudinary...</span>
+                    <span className="admin-reels-upload-subtext">Please wait while the media is being processed.</span>
                   </div>
                 ) : videoUrl ? (
-                  <div className="admin-reels-video-preview-wrap" onClick={(e) => e.stopPropagation()}>
+                  <div className="admin-reels-video-preview-wrap">
                     <video
                       src={videoUrl}
                       controls
@@ -329,27 +270,28 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
                     />
                     <div className="admin-reels-video-preview-meta">
                       <span className="admin-reels-preview-status">
-                        <CheckCircle size={14} /> Ready on Cloudinary
+                        <CheckCircle size={14} color="#16a34a" /> {videoFileName ? `${videoFileName} ready` : 'Video ready'}
                       </span>
                       <button
                         type="button"
                         className="admin-reels-replace-btn"
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
                       >
-                        Replace Video
+                        Change Video File
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="admin-reels-upload-prompt-wrap">
                     <div className="admin-reels-upload-icon-circle">
-                      <Upload size={24} />
+                      <Upload size={22} />
                     </div>
-                    <span className="admin-reels-upload-prompt">
-                      Click or drop video to upload to Cloudinary
-                    </span>
+                    <span className="admin-reels-upload-prompt">Click to upload reel video</span>
                     <span className="admin-reels-upload-subtext">
-                      Supports MP4, WebM, MOV vertical 9:16 videos up to 100MB
+                      Supports vertical 9:16 MP4 or WebM (up to 100MB)
                     </span>
                   </div>
                 )}
@@ -357,218 +299,200 @@ export default function AdminReelsPage({ onNavigateHome, onSelectProduct }) {
 
               {/* Direct Video URL Fallback */}
               <div className="admin-reels-url-fallback">
-                <span className="admin-reels-url-fallback-label">Or paste direct Video URL:</span>
+                <span className="admin-reels-url-fallback-label">Or paste a direct Video URL:</span>
                 <input
                   type="url"
                   className="admin-reels-input-small"
-                  placeholder="https://res.cloudinary.com/... or /videos/reel-1.mp4"
+                  placeholder="https://res.cloudinary.com/.../video.mp4"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* ── 3. Product Selector (Requirement 3) ── */}
+            {/* 3. Instagram Reel Link (For Visit Original Reel CTA) */}
             <div className="admin-reels-field">
-              <label htmlFor="reel-product" className="admin-reels-label">
-                3. Assign Shoppable Product <em>*</em>
+              <label className="admin-reels-label" htmlFor="reel-insta-url">
+                Instagram Reel Link <span className="admin-reels-optional">(Recommended for "Visit Original Reel" Button)</span>
               </label>
-
-              {/* Product Search Box */}
-              <div className="admin-reels-search-box">
-                <Search size={15} />
+              <div className="admin-reels-input-with-icon">
+                <InstagramIcon size={18} className="input-icon" />
                 <input
-                  type="text"
-                  placeholder="Filter available products..."
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  className="admin-reels-search-input"
+                  id="reel-insta-url"
+                  type="url"
+                  className="admin-reels-input with-icon"
+                  placeholder="https://www.instagram.com/reel/C8qXYZ123/"
+                  value={instagramUrl}
+                  onChange={(e) => setInstagramUrl(e.target.value)}
                 />
               </div>
-
-              {/* Product Select Dropdown */}
-              <select
-                id="reel-product"
-                className="admin-reels-select"
-                value={selectedProductId}
-                onChange={(e) => setSelectedProductId(e.target.value)}
-                required
-              >
-                <option value="" disabled>-- Select a product to link --</option>
-                {filteredProducts.map((p) => {
-                  const pid = p._id || p.id;
-                  const price = Number(p.price || p.basePrice || 0);
-                  return (
-                    <option key={pid} value={pid}>
-                      {p.name} — ₹{price.toLocaleString()} ({p.category || 'General'})
-                    </option>
-                  );
-                })}
-              </select>
-
-              {/* Live Shoppable Product Preview Card */}
-              {selectedProduct && (
-                <div className="admin-reels-product-preview-card">
-                  <img
-                    src={selectedProduct.image || thumbnailUrl || 'https://via.placeholder.com/60'}
-                    alt={selectedProduct.name}
-                    className="admin-reels-product-thumb"
-                  />
-                  <div className="admin-reels-product-info">
-                    <span className="admin-reels-product-cat">
-                      {selectedProduct.category || 'Store Product'}
-                    </span>
-                    <h4 className="admin-reels-product-name">{selectedProduct.name}</h4>
-                    <span className="admin-reels-product-price">
-                      ₹{Number(selectedProduct.price || selectedProduct.basePrice || 0).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="admin-reels-product-badge">
-                    <ShoppingBag size={13} />
-                    <span>Attached</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Optional Caption Field */}
-            <div className="admin-reels-field">
-              <label htmlFor="reel-caption" className="admin-reels-label">
-                Caption / Description (Optional)
-              </label>
-              <textarea
-                id="reel-caption"
-                className="admin-reels-textarea"
-                rows={2}
-                placeholder="Brief craft story or artisan detail..."
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                maxLength={500}
-              />
+              <span className="admin-reels-hint">
+                When visitors watch the video in full screen, this link will power the <strong>"Visit Original Reel"</strong> button to open your Instagram post.
+              </span>
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              className="admin-reels-submit-btn"
-              disabled={isSubmitting || isUploadingVideo}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="admin-reels-btn-spinner" />
-                  <span>Publishing to Homepage...</span>
-                </>
-              ) : (
-                <>
-                  <Film size={18} />
-                  <span>Publish Reel to Homepage</span>
-                </>
-              )}
-            </button>
+            <div className="admin-reels-actions">
+              <button
+                type="submit"
+                className="admin-reels-submit-btn"
+                disabled={isSubmitting || isUploadingVideo || !videoUrl}
+              >
+                <Film size={17} />
+                <span>{isSubmitting ? 'Publishing Reel...' : 'Publish Reel to Homepage'}</span>
+              </button>
+            </div>
           </form>
         </div>
 
-        {/* Right Column: Live Reels Showcase & Management */}
-        <div className="admin-reels-card">
-          <div className="admin-reels-card-header">
-            <div className="admin-reels-card-icon" style={{ background: '#FFFCF5', color: '#39332E' }}>
-              <Film size={20} />
+        {/* Right Panel: Live Card Preview & Details */}
+        <div className="admin-reels-panel preview-panel">
+          <div className="admin-reels-panel-header">
+            <div className="admin-reels-panel-title-wrap">
+              <Film size={18} className="panel-icon" />
+              <h2>Shelf Card Preview</h2>
             </div>
-            <div>
-              <h2 className="admin-reels-card-title">Live Storefront Reels ({existingReels.length})</h2>
-              <p className="admin-reels-card-desc">
-                These short videos are currently displayed in the "Art in Motion" shelf on the homepage.
-              </p>
-            </div>
+            <p className="admin-reels-panel-sub">
+              How this reel will appear in the homepage carousel.
+            </p>
           </div>
 
-          {isLoadingReels ? (
-            <div className="admin-reels-loading">
-              <div className="admin-reels-spinner" />
-              <span>Loading current reels...</span>
-            </div>
-          ) : existingReels.length === 0 ? (
-            <div className="admin-reels-empty">
-              <Film size={36} />
-              <h3>No Reels Uploaded Yet</h3>
-              <p>Upload your first reel using the form on the left to activate the homepage showcase.</p>
-            </div>
-          ) : (
-            <div className="admin-reels-list">
-              {existingReels.map((reel, idx) => {
-                const rid = reel._id || reel.id;
-                const prod = reel.product;
-                const isDeleting = deletingReelId === rid;
-
-                return (
-                  <div key={rid || idx} className="admin-reels-item">
-                    {/* Thumbnail / Autoplaying Video Preview */}
-                    <div className="admin-reels-item-media">
-                      {reel.videoUrl ? (
-                        <video
-                          src={reel.videoUrl}
-                          poster={reel.thumbnailUrl || undefined}
-                          className="admin-reels-item-thumb"
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                        />
-                      ) : reel.thumbnailUrl ? (
-                        <img
-                          src={reel.thumbnailUrl}
-                          alt={reel.title}
-                          className="admin-reels-item-thumb"
-                        />
-                      ) : (
-                        <div className="admin-reels-item-placeholder">
-                          <Film size={20} />
-                        </div>
-                      )}
-                      <span className="admin-reels-item-order">#{idx + 1}</span>
+          <div className="admin-reels-preview-card-wrap">
+            <div className="admin-preview-reel-card">
+              <div className="admin-preview-media-box">
+                {videoUrl ? (
+                  <video
+                    src={videoUrl}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    className="admin-preview-img"
+                  />
+                ) : (
+                  <div className="admin-preview-placeholder">
+                    <div className="admin-preview-ig-glow">
+                      <Film size={36} strokeWidth={1.5} />
                     </div>
+                    <span>Video Preview</span>
+                  </div>
+                )}
 
-                    {/* Metadata */}
-                    <div className="admin-reels-item-details">
-                      <h4 className="admin-reels-item-title">{reel.title}</h4>
-                      {prod ? (
-                        <div className="admin-reels-item-product">
-                          <ShoppingBag size={12} />
-                          <span>{prod.name} (₹{Number(prod.price || prod.basePrice || 0).toLocaleString()})</span>
-                        </div>
-                      ) : (
-                        <div className="admin-reels-item-product unlinked">
-                          <span>⚠️ Product unlinked</span>
-                        </div>
-                      )}
+                {/* Reel Badge */}
+                <div className="admin-preview-ig-pill">
+                  <Film size={12} />
+                  <span>Reel</span>
+                </div>
 
-                      <div className="admin-reels-item-stats">
-                        <span className="admin-reels-item-stat">
-                          <Eye size={12} /> {reel.viewsCount ? (reel.viewsCount).toLocaleString() : 0} views
-                        </span>
-                        <span className="admin-reels-active-tag">● Live on Home</span>
+                {/* Center Play Icon */}
+                <div className="admin-preview-play-icon">
+                  <Play size={20} fill="currentColor" />
+                </div>
+              </div>
+
+              <div className="admin-preview-meta">
+                <h4 className="admin-preview-title">
+                  {title.trim() || <span style={{ opacity: 0.5, fontStyle: 'italic' }}>No title (video only)</span>}
+                </h4>
+                {instagramUrl && (
+                  <div className="admin-preview-url-tag">
+                    <InstagramIcon size={12} />
+                    <span>Instagram Link Attached</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bottom Section: Active Published Reels ── */}
+      <div className="admin-reels-table-section">
+        <div className="admin-reels-table-header">
+          <div>
+            <h2>Published Reels on Storefront ({existingReels.length})</h2>
+            <p>Manage, inspect, or delete live reels from your homepage carousel.</p>
+          </div>
+        </div>
+
+        {isLoadingReels ? (
+          <div className="admin-reels-loading">
+            <div className="admin-reels-spinner" />
+            <span>Loading active reels...</span>
+          </div>
+        ) : existingReels.length === 0 ? (
+          <div className="admin-reels-empty">
+            <Film size={42} strokeWidth={1.3} className="empty-icon" />
+            <h3>No reels published yet</h3>
+            <p>Upload your first reel video above to showcase craftsmanship on your storefront.</p>
+          </div>
+        ) : (
+          <div className="admin-reels-grid-list">
+            {existingReels.map((reel) => {
+              const reelLink = reel.instagramUrl || '';
+              return (
+                <div key={reel._id || reel.id} className="admin-reel-item-card">
+                  <div className="admin-reel-item-thumb">
+                    {reel.videoUrl ? (
+                      <video
+                        src={reel.videoUrl}
+                        muted
+                        playsInline
+                        className="admin-reel-thumb-video"
+                      />
+                    ) : (
+                      <div className="admin-reel-item-fallback">
+                        <Film size={26} />
                       </div>
+                    )}
+                    <span className="admin-reel-item-badge">
+                      <Film size={11} /> Reel
+                    </span>
+                  </div>
+
+                  <div className="admin-reel-item-content">
+                    <h3 className="admin-reel-item-title">{reel.title || 'Untitled Reel'}</h3>
+
+                    <div className="admin-reel-item-links">
+                      {reelLink ? (
+                        <a
+                          href={reelLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="admin-reel-link-btn"
+                        >
+                          <InstagramIcon size={12} />
+                          <span>View on Instagram</span>
+                          <ExternalLink size={12} />
+                        </a>
+                      ) : (
+                        <span className="admin-reel-link-btn" style={{ opacity: 0.6 }}>
+                          Direct Video
+                        </span>
+                      )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="admin-reels-item-actions">
+                    <div className="admin-reel-item-footer">
+                      <span className="admin-reel-views">
+                        {reel.viewsCount || 0} views
+                      </span>
                       <button
                         type="button"
-                        className="admin-reels-delete-btn"
-                        onClick={() => handleDeleteReel(rid)}
-                        disabled={isDeleting}
+                        className="admin-reel-delete-btn"
+                        onClick={() => handleDeleteReel(reel._id || reel.id)}
+                        disabled={deletingReelId === (reel._id || reel.id)}
                         title="Delete Reel"
-                        aria-label={`Delete ${reel.title}`}
                       >
-                        {isDeleting ? <div className="admin-reels-btn-spinner sm" /> : <Trash2 size={16} />}
+                        <Trash2 size={15} />
+                        <span>Delete</span>
                       </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

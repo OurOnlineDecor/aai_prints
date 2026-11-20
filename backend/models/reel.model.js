@@ -4,7 +4,7 @@ const reelSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, 'Reel title is required'],
+      default: '',
       trim: true,
       maxlength: [120, 'Title cannot exceed 120 characters']
     },
@@ -12,6 +12,11 @@ const reelSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Video URL is required'],
       trim: true
+    },
+    instagramUrl: {
+      type: String,
+      trim: true,
+      default: ''
     },
     thumbnailUrl: {
       type: String,
@@ -21,7 +26,7 @@ const reelSchema = new mongoose.Schema(
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
-      required: [true, 'Attached product is required']
+      default: null
     },
     caption: {
       type: String,
@@ -60,6 +65,5 @@ const reelSchema = new mongoose.Schema(
 );
 
 reelSchema.index({ isActive: 1, order: 1 });
-reelSchema.index({ product: 1 });
 
 module.exports = mongoose.model('Reel', reelSchema);
