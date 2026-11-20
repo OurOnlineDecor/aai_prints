@@ -381,17 +381,6 @@ export default function AdminReelsPage({ onNavigateHome }) {
                     <span>Video Preview</span>
                   </div>
                 )}
-
-                {/* Reel Badge */}
-                <div className="admin-preview-ig-pill">
-                  <Film size={12} />
-                  <span>Reel</span>
-                </div>
-
-                {/* Center Play Icon */}
-                <div className="admin-preview-play-icon">
-                  <Play size={20} fill="currentColor" />
-                </div>
               </div>
 
               <div className="admin-preview-meta">
