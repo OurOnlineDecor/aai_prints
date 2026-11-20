@@ -10,6 +10,7 @@ const errorHandler = require('./middlewares/error.middleware');
 const { globalLimiter } = require('./middlewares/rateLimit.middleware');
 const mongoSanitizer = require('./middlewares/mongoSanitize.middleware');
 const ApiError = require('./utils/apiError.util');
+const { getRazorpayInstance, verifyPaymentSignature } = require('./utils/razorpay.util');
 
 const app = express();
 
@@ -112,6 +113,53 @@ app.use(cookieParser());
 // Root ping endpoint
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'healthy', message: 'Aai Prints Backend API is active', version: 'v1' });
+});
+
+// Standalone Razorpay Standard Checkout Endpoints (API Specification & Test Harness Compatibility)
+app.post('/api/create-order', async (req, res) => {
+  try {
+    const { amount, currency = 'INR', receipt } = req.body;
+    if (!amount || Number(amount) < 100) {
+      return res.status(400).json({ success: false, message: 'Amount must be at least 100 paise (₹1)' });
+    }
+    const rzp = getRazorpayInstance();
+    if (!rzp) {
+      return res.status(500).json({ success: false, message: 'Razorpay keys not configured' });
+    }
+    const order = await rzp.orders.create({
+      amount: Math.round(Number(amount)),
+      currency: currency || 'INR',
+      receipt: String(receipt || `rcpt_${Date.now()}`).slice(0, 40),
+    });
+    return res.status(200).json({
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+    });
+  } catch (err) {
+    const status = err?.statusCode || 500;
+    return res.status(status).json({ success: false, message: err?.error?.description || err.message });
+  }
+});
+
+app.post('/api/verify-payment', (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Missing required payment verification fields' });
+    }
+    const isValid = verifyPaymentSignature({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    });
+    if (!isValid) {
+      return res.status(400).json({ success: false, message: 'Payment signature verification failed' });
+    }
+    return res.status(200).json({ success: true, message: 'Payment signature verified successfully' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // Apply baseline rate limiting to all /api/v1 routes

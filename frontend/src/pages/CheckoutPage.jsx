@@ -170,20 +170,31 @@ export default function CheckoutPage({
   // Discount calculation
   const discount = useMemo(() => {
     if (!appliedCoupon) return 0;
-    if (appliedCoupon.type === 'flat') {
-      return Math.min(subtotal, appliedCoupon.amount);
+    // Always check minOrderValue against PRE-DISCOUNT subtotal
+    if (appliedCoupon.minOrderValue && subtotal < appliedCoupon.minOrderValue) {
+      return 0;
     }
     if (appliedCoupon.type === 'percentage') {
-      const calc = (subtotal * appliedCoupon.percent) / 100;
+      const pct = appliedCoupon.percent || appliedCoupon.amount || 0;
+      const calc = (subtotal * pct) / 100;
       return appliedCoupon.maxDiscount ? Math.min(calc, appliedCoupon.maxDiscount) : calc;
     }
-    return 0;
+    const flatAmount = appliedCoupon.discount || appliedCoupon.amount || 0;
+    return Math.min(subtotal, flatAmount);
   }, [appliedCoupon, subtotal]);
 
-  // Shipping fee calculation
+  // If subtotal drops below coupon minOrderValue (e.g. user reduced cart items), clear coupon
+  useEffect(() => {
+    if (appliedCoupon && appliedCoupon.minOrderValue && subtotal < appliedCoupon.minOrderValue) {
+      setCouponError(`Order subtotal must be at least ₹${appliedCoupon.minOrderValue} to use code ${appliedCoupon.code}`);
+      setAppliedCoupon(null);
+    }
+  }, [subtotal, appliedCoupon]);
+
+  // Shipping fee calculation (Free on orders above ₹499, otherwise ₹49 standard)
   const shippingFee = useMemo(() => {
     if (shippingMethod === 'express') return 99;
-    return subtotal >= 500 ? 0 : 49;
+    return subtotal >= 499 ? 0 : 49;
   }, [shippingMethod, subtotal]);
 
   // Final total
@@ -244,7 +255,7 @@ export default function CheckoutPage({
     return Object.keys(errs).length === 0;
   };
 
-  // Coupon Application
+  // Coupon Application via backend API
   const handleApplyCoupon = async (e) => {
     if (e) e.preventDefault();
     const code = couponInput.trim().toUpperCase();
@@ -254,58 +265,32 @@ export default function CheckoutPage({
     setCouponError('');
 
     try {
-      // 1. Check local pre-configured promo coupons
-      if (code === 'AAI100') {
-        if (subtotal < 499) {
-          setCouponError('Coupon AAI100 requires a minimum order of ₹499');
-          setIsApplyingCoupon(false);
-          return;
-        }
-        setAppliedCoupon({ code: 'AAI100', type: 'flat', amount: 100 });
+      // Validate via backend API against pre-discount subtotal
+      const res = await api.post('/coupons/validate', {
+        code,
+        subtotal,
+        originalSubtotal: subtotal,
+      });
+
+      const couponData = res.data;
+      if (couponData && (couponData.discount > 0 || couponData.discountAmount > 0)) {
+        setAppliedCoupon({
+          code: couponData.code,
+          type: couponData.discountType,
+          amount: couponData.discountAmount,
+          percent: couponData.discountType === 'percentage' ? couponData.discountAmount : null,
+          discount: couponData.discount,
+          minOrderValue: couponData.minOrderValue || 0,
+        });
         setCouponInput('');
         setIsApplyingCoupon(false);
         return;
       }
 
-      if (code === 'WELCOME10') {
-        setAppliedCoupon({ code: 'WELCOME10', type: 'percentage', percent: 10, maxDiscount: 300 });
-        setCouponInput('');
-        setIsApplyingCoupon(false);
-        return;
-      }
-
-      if (code === 'FESTIVE15') {
-        if (subtotal < 999) {
-          setCouponError('Coupon FESTIVE15 requires a minimum order of ₹999');
-          setIsApplyingCoupon(false);
-          return;
-        }
-        setAppliedCoupon({ code: 'FESTIVE15', type: 'percentage', percent: 15, maxDiscount: 500 });
-        setCouponInput('');
-        setIsApplyingCoupon(false);
-        return;
-      }
-
-      // 2. Try validating via backend API if available
-      try {
-        const previewRes = await api.post('/orders/checkout-preview', { couponCode: code });
-        if (previewRes?.data?.pricing?.discount > 0) {
-          setAppliedCoupon({
-            code,
-            type: 'flat',
-            amount: previewRes.data.pricing.discount,
-          });
-          setCouponInput('');
-          setIsApplyingCoupon(false);
-          return;
-        }
-      } catch (backendErr) {
-        // Fallback message
-      }
-
-      setCouponError('Invalid or expired coupon code. Try AAI100 or WELCOME10.');
-    } catch {
-      setCouponError('Could not apply coupon. Please try again.');
+      setCouponError('Invalid or expired coupon code.');
+    } catch (err) {
+      const errMsg = err?.response?.data?.message || err?.message || 'Invalid or expired coupon code.';
+      setCouponError(errMsg);
     } finally {
       setIsApplyingCoupon(false);
     }
@@ -1151,7 +1136,7 @@ export default function CheckoutPage({
                           <strong>Standard Safe Delivery (3–5 Business Days)</strong>
                         </span>
                         <span className="checkout-radio-price">
-                          {subtotal >= 500 ? (
+                          {subtotal >= 499 ? (
                             <strong className="text-free">FREE</strong>
                           ) : (
                             '₹49'
@@ -1397,7 +1382,7 @@ export default function CheckoutPage({
                           setCouponInput(e.target.value);
                           if (couponError) setCouponError('');
                         }}
-                        placeholder="Discount code (try AAI100)"
+                        placeholder="Discount code"
                       />
                     </div>
                     <button
@@ -1442,9 +1427,9 @@ export default function CheckoutPage({
                   </span>
                 </div>
 
-                {subtotal < 500 && shippingMethod === 'standard' && (
+                {subtotal < 499 && shippingMethod === 'standard' && (
                   <p className="checkout-free-shipping-hint">
-                    Add ₹{(500 - subtotal).toLocaleString('en-IN')} more to unlock{' '}
+                    Add ₹{(499 - subtotal).toLocaleString('en-IN')} more to unlock{' '}
                     <strong>FREE Standard Shipping</strong>!
                   </p>
                 )}

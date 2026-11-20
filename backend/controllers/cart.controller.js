@@ -51,8 +51,8 @@ const formatCartResponse = (cart) => {
       };
     });
 
-  // Free shipping policy (Free on orders above ₹500, otherwise ₹49 standard)
-  const FREE_SHIPPING_THRESHOLD = 500;
+  // Free shipping policy (Free on orders above ₹499, otherwise ₹49 standard)
+  const FREE_SHIPPING_THRESHOLD = 499;
   const STANDARD_SHIPPING_FEE = 49;
   const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : STANDARD_SHIPPING_FEE;
   const amountToFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);

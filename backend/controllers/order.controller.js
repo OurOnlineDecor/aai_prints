@@ -187,7 +187,7 @@ const getCheckoutPreview = async (req, res, next) => {
       }
     }
 
-    const FREE_SHIPPING_THRESHOLD = 500;
+    const FREE_SHIPPING_THRESHOLD = 499;
     const STANDARD_SHIPPING_FEE = 49;
     const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
     const total = Math.max(0, subtotal - discount + shippingFee);
@@ -223,8 +223,19 @@ const createOrder = async (req, res, next) => {
 
     let cartItems = [];
 
-    // If authenticated, read from database Cart
-    if (req.user) {
+    // Prioritize the actual checkout items passed from the client if provided
+    if (Array.isArray(guestItems) && guestItems.length > 0) {
+      for (const git of guestItems) {
+        const prod = await Product.findOne({ _id: git.id || git.product || git._id, isActive: true, isDeleted: false });
+        if (prod) {
+          cartItems.push({
+            product: prod,
+            variantId: git.variantId || null,
+            quantity: git.quantity || 1
+          });
+        }
+      }
+    } else if (req.user) {
       const cart = await Cart.findOne({ user: req.user._id }).populate({
         path: 'items.product',
         select: 'name slug basePrice originalPrice images stock variants isActive isDeleted'
@@ -240,21 +251,6 @@ const createOrder = async (req, res, next) => {
           await cart.save();
         }
         cartItems = cart.items;
-      }
-    }
-
-    // If guest user or cart was empty, use items passed in body
-    if (cartItems.length === 0 && Array.isArray(guestItems) && guestItems.length > 0) {
-      // Validate guest items against live MongoDB inventory
-      for (const git of guestItems) {
-        const prod = await Product.findOne({ _id: git.id || git.product || git._id, isActive: true, isDeleted: false });
-        if (prod) {
-          cartItems.push({
-            product: prod,
-            variantId: git.variantId || null,
-            quantity: git.quantity || 1
-          });
-        }
       }
     }
 
@@ -337,7 +333,7 @@ const createOrder = async (req, res, next) => {
       appliedCoupon = couponDoc.code;
     }
 
-    const FREE_SHIPPING_THRESHOLD = 500;
+    const FREE_SHIPPING_THRESHOLD = 499;
     const STANDARD_SHIPPING_FEE = 49;
     const EXPRESS_SHIPPING_FEE = 99;
 

@@ -18,12 +18,11 @@ export default function Newsletter() {
         <div className="newsletter-icon" aria-hidden="true">✨</div>
         <h2 className="newsletter-title">Elevate Your Living Spaces</h2>
         <p className="newsletter-desc">
-          Subscribe for exclusive offers, new collection launches, and home styling inspirations.
-          Get 10% off your first order!
+          Subscribe for exclusive updates, new collection launches, and home styling inspirations.
         </p>
         {submitted ? (
           <div className="newsletter-success" role="alert">
-            🎉 Thank you! Check your inbox for your 10% off coupon.
+            🎉 Thank you for subscribing! Check your inbox for updates.
           </div>
         ) : (
           <form className="newsletter-form" onSubmit={handleSubmit} noValidate>

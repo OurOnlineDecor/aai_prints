@@ -14,7 +14,7 @@ function parsePrice(price) {
   return parseFloat(cleaned) || 0;
 }
 
-const FREE_SHIPPING_THRESHOLD = 500;
+const FREE_SHIPPING_THRESHOLD = 499;
 
 export default function CartDrawer({ onSelectProduct, onNavigateShop, onNavigateCart, onNavigateCheckout }) {
   const navigate = useNavigate();

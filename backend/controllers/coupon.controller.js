@@ -7,13 +7,14 @@ const ApiResponse = require('../utils/apiResponse.util');
 // @access  Public
 const validateCoupon = async (req, res, next) => {
   try {
-    const { code, subtotal } = req.body;
+    const { code, subtotal, originalSubtotal, orderAmount } = req.body;
 
     if (!code) {
       return next(new ApiError(400, 'Coupon code is required'));
     }
 
-    const orderSubtotal = Number(subtotal) || 0;
+    // Always validate minOrderValue against pre-discount items subtotal
+    const orderSubtotal = Number(originalSubtotal ?? subtotal ?? orderAmount ?? 0);
     const coupon = await Coupon.findOne({ code: code.trim().toUpperCase() });
 
     if (!coupon) {
@@ -35,7 +36,8 @@ const validateCoupon = async (req, res, next) => {
         discountType: coupon.discountType,
         discountAmount: coupon.discountAmount,
         discount,
-        finalSubtotal: orderSubtotal - discount
+        minOrderValue: coupon.minOrderValue || 0,
+        finalSubtotal: Math.max(0, orderSubtotal - discount)
       },
       'Coupon applied successfully'
     );

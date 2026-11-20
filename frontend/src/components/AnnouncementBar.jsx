@@ -6,27 +6,17 @@ import './AnnouncementBar.css';
 
 const announcements = [
   {
-    prefix: 'AAI PRINTS',
-    text: 'Made with Love. Cherished Forever. • A Sub Brand of Our Online Decor®',
+    prefix: 'OURONLINEDECOR',
+    text: 'Made with Love. Cherished Forever. • Premium Home Decor & Wall Art',
   },
   {
     prefix: 'FREE SHIPPING',
-    text: 'Free Express Shipping Across India on Orders Above ₹500',
+    text: 'Free Express Shipping Across India on Orders Above ₹499',
     highlight: 'FREE SHIPPING',
   },
   {
     prefix: 'PERSONALISED GIFTS',
-    text: ' Artworks Creating Emotional Connections • Custom Framing Available',
-  },
-  {
-    prefix: 'SPECIAL OFFER',
-    text: 'Flat 5% Additional OFF on Orders Above ₹3,000 • Use Code',
-    code: 'DIVINE5',
-  },
-  {
-    prefix: 'WELCOME OFFER',
-    text: 'Instant ₹100 OFF on Your First Order • Use Code',
-    code: 'AAI100',
+    text: 'Artworks Creating Emotional Connections • Custom Framing Available',
   },
 ];
 
@@ -93,18 +83,6 @@ export default function AnnouncementBar() {
         >
           <ChevronRight size={14} strokeWidth={2.4} />
         </button>
-
-        <a
-          href="/b2b"
-          className="ann-b2b-link"
-          title="Factory-Direct Wholesale & Bulk Supply"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/b2b');
-          }}
-        >
-          📦 Wholesale / Bulk Orders →
-        </a>
       </div>
     </aside>
   );
