@@ -78,68 +78,68 @@ export const getActiveNavLabel = (currentPage, selectedCategory) => {
 };
 
 export const navLinks = [
-  { label: 'HOME', href: '#/', page: 'home', category: 'All', hasDropdown: false },
-  { label: 'SHOP', href: '#/shop', page: 'shop', category: 'All', hasDropdown: false },
-  { label: 'CUSTOMIZATION', href: '#/shop?category=Personalized', page: 'shop', category: 'Personalized', hasDropdown: false },
+  { label: 'HOME', href: '/', page: 'home', category: 'All', hasDropdown: false },
+  { label: 'SHOP', href: '/shop', page: 'shop', category: 'All', hasDropdown: false },
+  { label: 'CUSTOMIZATION', href: '/shop?category=Personalized', page: 'shop', category: 'Personalized', hasDropdown: false },
   {
     label: 'DEVOTIONAL',
-    href: '#/shop?category=Devotional',
+    href: '/shop?category=Devotional',
     page: 'shop',
     category: 'Devotional',
     hasDropdown: true,
     children: [
-      { label: 'Wall Hangings', href: '#/shop?category=Wall%20Hangings', category: 'Wall Hangings' },
-      { label: 'Backlit LED Frames', href: '#/shop?category=Backlit%20LED%20Frames', category: 'Backlit LED Frames' },
-      { label: 'Idols & Tabletop', href: '#/shop?category=Idols%20%26%20Tabletop', category: 'Idols & Tabletop' },
-      { label: 'Yantra & Chakra', href: '#/shop?category=Yantra%20%26%20Chakra', category: 'Yantra & Chakra' },
+      { label: 'Wall Hangings', href: '/shop?category=Wall%20Hangings', category: 'Wall Hangings' },
+      { label: 'Backlit LED Frames', href: '/shop?category=Backlit%20LED%20Frames', category: 'Backlit LED Frames' },
+      { label: 'Idols & Tabletop', href: '/shop?category=Idols%20%26%20Tabletop', category: 'Idols & Tabletop' },
+      { label: 'Yantra & Chakra', href: '/shop?category=Yantra%20%26%20Chakra', category: 'Yantra & Chakra' },
     ]
   },
   {
     label: 'CAR DECOR',
-    href: '#/shop?category=Car%20Decor',
+    href: '/shop?category=Car%20Decor',
     page: 'shop',
     category: 'Car Decor',
     hasDropdown: true,
     children: [
-      { label: 'Dashboard Idols', href: '#/shop?category=Dashboard%20Idols', category: 'Dashboard Idols' },
-      { label: 'Car Hangings', href: '#/shop?category=Car%20Hangings', category: 'Car Hangings' },
-      { label: 'Combo Sets', href: '#/shop?category=Combo%20Sets', category: 'Combo Sets' },
+      { label: 'Dashboard Idols', href: '/shop?category=Dashboard%20Idols', category: 'Dashboard Idols' },
+      { label: 'Car Hangings', href: '/shop?category=Car%20Hangings', category: 'Car Hangings' },
+      { label: 'Combo Sets', href: '/shop?category=Combo%20Sets', category: 'Combo Sets' },
     ]
   },
   {
     label: 'WALL DECOR',
-    href: '#/shop?category=Wall%20Decor',
+    href: '/shop?category=Wall%20Decor',
     page: 'shop',
     category: 'Wall Decor',
     hasDropdown: true,
     children: [
-      { label: 'Metal Wall Art', href: '#/shop?category=Metal%20Wall%20Art', category: 'Metal Wall Art' },
-      { label: 'Wall Clocks', href: '#/shop?category=Wall%20Clocks', category: 'Wall Clocks' },
-      { label: 'Framed Art', href: '#/shop?category=Framed%20Art', category: 'Framed Art' },
+      { label: 'Metal Wall Art', href: '/shop?category=Metal%20Wall%20Art', category: 'Metal Wall Art' },
+      { label: 'Wall Clocks', href: '/shop?category=Wall%20Clocks', category: 'Wall Clocks' },
+      { label: 'Framed Art', href: '/shop?category=Framed%20Art', category: 'Framed Art' },
     ]
   },
   {
     label: 'FESTIVE',
-    href: '#/shop?category=Festive',
+    href: '/shop?category=Festive',
     page: 'shop',
     category: 'Festive',
     hasDropdown: true,
     children: [
-      { label: 'Ganesh Chaturthi', href: '#/shop?category=Ganesh%20Chaturthi', category: 'Ganesh Chaturthi' },
-      { label: 'Jhanki Sets', href: '#/shop?category=Jhanki%20Sets', category: 'Jhanki Sets' },
-      { label: 'Diwali', href: '#/shop?category=Diwali', category: 'Diwali' },
+      { label: 'Ganesh Chaturthi', href: '/shop?category=Ganesh%20Chaturthi', category: 'Ganesh Chaturthi' },
+      { label: 'Jhanki Sets', href: '/shop?category=Jhanki%20Sets', category: 'Jhanki Sets' },
+      { label: 'Diwali', href: '/shop?category=Diwali', category: 'Diwali' },
     ]
   },
   {
     label: 'GIFTS',
-    href: '#/shop?category=Gifts',
+    href: '/shop?category=Gifts',
     page: 'shop',
     category: 'Gifts',
     hasDropdown: true,
     children: [
-      { label: 'Desk Standees', href: '#/shop?category=Desk%20Standees', category: 'Desk Standees' },
-      { label: 'Gift Combos', href: '#/shop?category=Gift%20Combos', category: 'Gift Combos' },
-      { label: 'Return Gifts', href: '#/shop?category=Return%20Gifts', category: 'Return Gifts' },
+      { label: 'Desk Standees', href: '/shop?category=Desk%20Standees', category: 'Desk Standees' },
+      { label: 'Gift Combos', href: '/shop?category=Gift%20Combos', category: 'Gift Combos' },
+      { label: 'Return Gifts', href: '/shop?category=Return%20Gifts', category: 'Return Gifts' },
     ]
   },
 ];

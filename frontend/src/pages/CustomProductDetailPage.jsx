@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
   Share2,
@@ -11,31 +12,73 @@ import {
   ExternalLink,
   ZoomIn,
 } from 'lucide-react';
-import { buildWhatsAppOrderUrl } from '../services/customProductService';
+import { buildWhatsAppOrderUrl, fetchCustomProductBySlug } from '../services/customProductService';
 import './CustomProductDetailPage.css';
 
 export default function CustomProductDetailPage({
-  product,
+  product: propProduct,
   onNavigateHome,
   onNavigateShop,
 }) {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+
+  const [product, setProduct] = useState(propProduct || null);
+  const [isLoading, setIsLoading] = useState(!propProduct && Boolean(slug));
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [customerNotes, setCustomerNotes] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
+    if (propProduct) {
+      setProduct(propProduct);
+      setIsLoading(false);
+      return;
+    }
+
+    if (slug) {
+      let isMounted = true;
+      setIsLoading(true);
+      fetchCustomProductBySlug(slug).then((item) => {
+        if (isMounted) {
+          if (item) setProduct(item);
+          setIsLoading(false);
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [propProduct, slug]);
+
+  const handleBackToShop = () => {
+    if (onNavigateShop) {
+      onNavigateShop();
+    } else {
+      navigate('/shop?category=Personalized');
+    }
+  };
+
+  useEffect(() => {
     setActiveImageIndex(0);
     setCustomerNotes('');
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }, [product]);
+
+  if (isLoading) {
+    return (
+      <div className="custom-pdp-not-found" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <p>Loading customized product details...</p>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
       <div className="custom-pdp-not-found">
         <h2>Customizable Product Not Found</h2>
         <p>The product you are looking for is currently unavailable.</p>
-        <button type="button" className="custom-back-btn" onClick={onNavigateShop}>
+        <button type="button" className="custom-back-btn" onClick={handleBackToShop}>
           Return to Catalog
         </button>
       </div>

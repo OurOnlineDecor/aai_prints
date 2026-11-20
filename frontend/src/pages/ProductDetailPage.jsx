@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -18,7 +19,12 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
-import { normalizeProduct } from '../services/productService';
+import {
+  normalizeProduct,
+  fetchProductBySlug,
+  getProductBySlugOrId,
+  getRelatedProducts
+} from '../services/productService';
 import './ProductDetailPage.css';
 
 function StarRating({ rating, count }) {
@@ -53,13 +59,57 @@ export default function ProductDetailPage({
   onNavigateShop,
   onSelectProduct,
 }) {
+  const { slug } = useParams();
+  const navigate = useNavigate();
   const { isInWishlist, toggleWishlist, addToCart } = useWishlist();
 
-  const [product, setProduct] = useState(initialProduct);
+  // Load product: prefer initialProduct prop, fallback to URL slug fetch
+  const initialResolved = initialProduct || getProductBySlugOrId(slug);
+  const [product, setProduct] = useState(() => initialResolved);
+  const [isLoading, setIsLoading] = useState(() => !initialResolved && Boolean(slug));
 
   useEffect(() => {
-    setProduct(initialProduct);
-  }, [initialProduct]);
+    if (initialProduct) {
+      setProduct(initialProduct);
+      setIsLoading(false);
+      return;
+    }
+
+    if (slug) {
+      let isMounted = true;
+      if (!initialResolved) {
+        setIsLoading(true);
+      }
+      fetchProductBySlug(slug)
+        .then((live) => {
+          if (isMounted) {
+            if (live) setProduct(live);
+            setIsLoading(false);
+          }
+        })
+        .catch(() => {
+          if (isMounted) setIsLoading(false);
+        });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [initialProduct, slug]);
+
+  const handleNavigateHome = () => (onNavigateHome ? onNavigateHome() : navigate('/'));
+  const handleNavigateShop = (cat) =>
+    onNavigateShop
+      ? onNavigateShop(cat)
+      : navigate(cat && cat !== 'All' ? `/shop?category=${encodeURIComponent(cat)}` : '/shop');
+  const handleSelectProduct = (prod) => {
+    if (!prod) return;
+    const targetSlug = prod.slug || String(prod.id || prod._id);
+    if (onSelectProduct) {
+      onSelectProduct(prod);
+    } else {
+      navigate(`/product/${targetSlug}`);
+    }
+  };
 
   // Selected quantity
   const [quantity, setQuantity] = useState(1);
@@ -131,13 +181,16 @@ export default function ProductDetailPage({
   // Related products (same category or others, excluding current product)
   const relatedProducts = useMemo(() => {
     if (!product) return [];
-    const sameCategory = allProducts.filter(
-      (p) => p.id !== product.id && p.category === product.category
-    );
-    const others = allProducts.filter(
-      (p) => p.id !== product.id && p.category !== product.category
-    );
-    return [...sameCategory, ...others].slice(0, 4);
+    if (allProducts && allProducts.length > 0) {
+      const sameCategory = allProducts.filter(
+        (p) => p.id !== product.id && p.category === product.category
+      );
+      const others = allProducts.filter(
+        (p) => p.id !== product.id && p.category !== product.category
+      );
+      return [...sameCategory, ...others].slice(0, 4);
+    }
+    return getRelatedProducts(product, 4);
   }, [product, allProducts]);
 
   // Calculate discount percentage if valid originalPrice exists
@@ -152,23 +205,24 @@ export default function ProductDetailPage({
     return null;
   }, [product?.price, product?.originalPrice]);
 
-  if (!product) {
-    if (allProducts.length === 0) {
-      return (
-        <div className="pdp-loading" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: 'var(--bg-primary, #FFFCF5)' }}>
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontFamily: 'Cinzel, serif', fontSize: '11px', letterSpacing: '2px', color: 'var(--gold, #D2B98C)', textTransform: 'uppercase' }}>AAI PRINTS</span>
-            <h2 style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: '28px', color: 'var(--espresso, #39332E)', margin: '8px 0' }}>Loading Art Piece...</h2>
-          </div>
+  if (isLoading && !product) {
+    return (
+      <div className="pdp-loading" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: 'var(--bg-primary, #FFFCF5)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <span style={{ fontFamily: 'Cinzel, serif', fontSize: '11px', letterSpacing: '2px', color: 'var(--gold, #D2B98C)', textTransform: 'uppercase' }}>AAI PRINTS</span>
+          <h2 style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: '28px', color: 'var(--espresso, #39332E)', margin: '8px 0' }}>Loading Art Piece...</h2>
         </div>
-      );
-    }
+      </div>
+    );
+  }
+
+  if (!product) {
     return (
       <div className="pdp-not-found" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: 'var(--bg-primary, #FFFCF5)' }}>
         <div className="pdp-container" style={{ textAlign: 'center' }}>
           <h2 style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: '32px', color: 'var(--espresso, #39332E)', marginBottom: '8px' }}>Product Not Found</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>We couldn't find the product you're looking for.</p>
-          <button type="button" className="btn-view-more" onClick={() => onNavigateShop && onNavigateShop('All')}>
+          <button type="button" className="btn-view-more" onClick={() => handleNavigateShop('All')}>
             Back to Shop
           </button>
         </div>
@@ -195,7 +249,7 @@ export default function ProductDetailPage({
   // Add to Cart: shows "GO TO CART →" for 10 seconds; clicking again redirects to full cart
   const handleAddToCart = () => {
     if (addedToast) {
-      window.location.hash = '#/cart';
+      navigate('/cart');
       return;
     }
 

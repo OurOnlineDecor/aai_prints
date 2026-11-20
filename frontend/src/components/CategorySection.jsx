@@ -7,7 +7,7 @@ const categories = [
     title: 'Wall Hangings',
     count: '120+ Designs',
     image: '/new-images/cat-wall-hangings.jpg',
-    href: '#/shop?category=Wall%20Hangings',
+    href: '/shop?category=Wall%20Hangings',
     tag: 'Bestseller',
   },
   {
@@ -15,7 +15,7 @@ const categories = [
     title: 'Backlit LED Frames',
     count: '80+ Frame Designs',
     image: '/new-images/cat-backlit-led-frames.jpg',
-    href: '#/shop?category=Backlit%20LED%20Frames',
+    href: '/shop?category=Backlit%20LED%20Frames',
     tag: 'Illuminated',
   },
   {
@@ -23,7 +23,7 @@ const categories = [
     title: 'Dashboard Idols',
     count: '60+ Idols',
     image: '/new-images/cat-dashboard-idols.jpg',
-    href: '#/shop?category=Dashboard%20Idols',
+    href: '/shop?category=Dashboard%20Idols',
     tag: 'Car Decor',
   },
   {
@@ -31,7 +31,7 @@ const categories = [
     title: 'Car Hangings',
     count: '40+ Graceful Pieces',
     image: '/new-images/cat-car-hangings.jpg',
-    href: '#/shop?category=Car%20Hangings',
+    href: '/shop?category=Car%20Hangings',
     tag: 'Protection',
   },
   {
@@ -39,7 +39,7 @@ const categories = [
     title: 'Framed Wall Art',
     count: '95+ Masterpieces',
     image: '/new-images/cat-framed-wall-art.jpg',
-    href: '#/shop?category=Framed%20Wall%20Art',
+    href: '/shop?category=Framed%20Wall%20Art',
     tag: '',
   },
   {
@@ -47,7 +47,7 @@ const categories = [
     title: 'Metal Wall Art',
     count: '50+ Modern Craft',
     image: '/new-images/cat-metal-wall-art.jpg',
-    href: '#/shop?category=Metal%20Wall%20Art',
+    href: '/shop?category=Metal%20Wall%20Art',
     tag: 'Artisan',
   },
 ];

@@ -13,11 +13,10 @@ main {
 /* ── Universal Page Transition Wrapper ── */
 .universal-page-wrapper {
   width: 100%;
-  min-height: 60vh;
-  will-change: opacity, transform, filter;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 140px);
 }
 
 /* Below-the-fold rendering optimization for silky smooth 60–120fps scrolling */

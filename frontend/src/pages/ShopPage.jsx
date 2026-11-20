@@ -1,9 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Heart, X, SlidersHorizontal, Filter, Check, ShoppingBag, Package } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
+import { fetchCatalogProducts, getAllProducts } from '../services/productService';
+import { fetchCustomProducts } from '../services/customProductService';
 import './ShopPage.css';
 
 function StarRating({ rating, count }) {
@@ -28,19 +31,24 @@ function StarRating({ rating, count }) {
 }
 
 export default function ShopPage({
-  products = [],
-  customProducts = [],
-  selectedCategory = 'All',
+  products: propProducts = [],
+  customProducts: propCustomProducts = [],
+  selectedCategory: propCategory = 'All',
   onSelectCategory,
   onNavigateHome,
-  onSelectProduct,
-  onSelectCustomProduct,
+  onSelectProduct: propOnSelectProduct,
+  onSelectCustomProduct: propOnSelectCustomProduct,
 }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { isInWishlist, toggleWishlist, addToCart } = useWishlist();
   const { user } = useAuth();
 
+  const urlCategory = searchParams.get('category');
+  const initialCategory = urlCategory || propCategory || 'All';
+
   // Filter & Sort States
-  const [activeCategory, setActiveCategory] = useState(selectedCategory || 'All');
+  const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [activeSubcategory, setActiveSubcategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('featured');
@@ -49,13 +57,84 @@ export default function ShopPage({
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [addedIds, setAddedIds] = useState({});
 
-  // Sync activeCategory when selectedCategory prop changes
+  // Self-managed catalog products when not passed from parent
+  const [loadedProducts, setLoadedProducts] = useState(() =>
+    propProducts.length > 0 ? propProducts : getAllProducts()
+  );
+  const [loadedCustomProducts, setLoadedCustomProducts] = useState(propCustomProducts);
+  const [isLoading, setIsLoading] = useState(() =>
+    propProducts.length === 0 && getAllProducts().length === 0
+  );
+
+  // Sync category when URL search parameter changes
   useEffect(() => {
-    if (selectedCategory) {
-      setActiveCategory(selectedCategory);
+    if (urlCategory) {
+      setActiveCategory(urlCategory);
       setActiveSubcategory('');
+    } else if (propCategory) {
+      setActiveCategory(propCategory);
     }
-  }, [selectedCategory]);
+  }, [urlCategory, propCategory]);
+
+  // Fetch products on demand if not provided via props
+  useEffect(() => {
+    if (propProducts.length === 0) {
+      let isMounted = true;
+      fetchCatalogProducts({
+        category: activeCategory,
+        sort: sortBy,
+        search: searchQuery,
+        minPrice,
+        maxPrice
+      }).then((res) => {
+        if (isMounted) {
+          if (res?.products) {
+            setLoadedProducts(res.products);
+          }
+          setIsLoading(false);
+        }
+      }).catch(() => {
+        if (isMounted) setIsLoading(false);
+      });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [propProducts.length, activeCategory, sortBy, searchQuery, minPrice, maxPrice]);
+
+  // Fetch custom products on demand if Personalized category is accessed
+  useEffect(() => {
+    if (propCustomProducts.length === 0 && (activeCategory === 'Personalized' || activeCategory === 'All')) {
+      let isMounted = true;
+      fetchCustomProducts().then((items) => {
+        if (isMounted && Array.isArray(items)) {
+          setLoadedCustomProducts(items);
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [propCustomProducts.length, activeCategory]);
+
+  const products = propProducts.length > 0 ? propProducts : loadedProducts;
+  const customProducts = propCustomProducts.length > 0 ? propCustomProducts : loadedCustomProducts;
+
+  const onSelectProduct = (prod) => {
+    if (propOnSelectProduct) {
+      propOnSelectProduct(prod);
+    } else {
+      navigate(`/product/${prod.slug || prod.id || prod._id}`);
+    }
+  };
+
+  const onSelectCustomProduct = (prod) => {
+    if (propOnSelectCustomProduct) {
+      propOnSelectCustomProduct(prod);
+    } else {
+      navigate(`/custom/${prod.slug || prod.id || prod._id}`);
+    }
+  };
 
   // Normalize customProducts into standard product shape for shop catalog display
   const normalizedCustomProducts = useMemo(() => {
@@ -365,7 +444,11 @@ export default function ShopPage({
     setMinPrice('');
     setMaxPrice('');
     setSortBy('featured');
-    if (onSelectCategory) onSelectCategory('All');
+    if (onSelectCategory) {
+      onSelectCategory('All');
+    } else {
+      setSearchParams({});
+    }
   };
 
   const hasActiveFilters =
@@ -379,7 +462,15 @@ export default function ShopPage({
   const changeCategory = (cat) => {
     setActiveCategory(cat);
     setActiveSubcategory('');
-    if (onSelectCategory) onSelectCategory(cat);
+    if (onSelectCategory) {
+      onSelectCategory(cat);
+    } else {
+      if (cat && cat !== 'All') {
+        setSearchParams({ category: cat });
+      } else {
+        setSearchParams({});
+      }
+    }
     setMobileFilterOpen(false);
   };
 
@@ -606,11 +697,11 @@ export default function ShopPage({
                   const count = cat === 'All'
                     ? allCombinedProducts.length
                     : allCombinedProducts.filter((p) => {
-                        if (cat.toLowerCase() === 'personalized') {
-                          return p.isCustomProduct || (p.category || '').toLowerCase() === 'personalized';
-                        }
-                        return p.category === cat;
-                      }).length;
+                      if (cat.toLowerCase() === 'personalized') {
+                        return p.isCustomProduct || (p.category || '').toLowerCase() === 'personalized';
+                      }
+                      return p.category === cat;
+                    }).length;
                   const isCatActive = activeCategory === cat;
                   const subcats = subcategoryMap[cat] || [];
 
@@ -745,7 +836,21 @@ export default function ShopPage({
 
           {/* Products Grid Content Area */}
           <main className="shop-products-area">
-            {filteredProducts.length === 0 ? (
+            {isLoading && filteredProducts.length === 0 ? (
+              /* Luxury Loading Skeleton Grid (Instant Layout Reservation & Zero Shift) */
+              <div className="shop-grid">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <div key={idx} className="shop-card-skeleton" aria-hidden="true">
+                    <div className="shop-skeleton-img" />
+                    <div className="shop-skeleton-body">
+                      <div className="shop-skeleton-line" style={{ width: '35%' }} />
+                      <div className="shop-skeleton-line" style={{ width: '85%' }} />
+                      <div className="shop-skeleton-line" style={{ width: '45%', marginTop: 'auto' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
               products.length === 0 ? (
                 /* Entire Store Has 0 Products (Clean Empty Catalogue State) */
                 <div className="shop-no-results">
@@ -754,7 +859,7 @@ export default function ShopPage({
                   </div>
                   <h3 className="no-results-title">Collection In Preparation</h3>
                   <p className="no-results-desc">
-                    Our collection of  devotional artworks, illuminated frames, and decor pieces is currently being updated.
+                    Our collection of devotional artworks, illuminated frames, and decor pieces is currently being updated.
                     New creations will appear here shortly.
                   </p>
                   {user?.role === 'admin' ? (
@@ -763,7 +868,7 @@ export default function ShopPage({
                         type="button"
                         className="no-results-btn no-results-btn--primary"
                         onClick={() => {
-                          window.location.hash = '#/admin/add-product';
+                          navigate('/admin/add-product');
                         }}
                       >
                         + Publish First Product (Admin)
@@ -846,16 +951,11 @@ export default function ShopPage({
                   }
 
                   return (
-                    <motion.article
+                    <article
                       key={p.id}
                       id={`product-${p.id}`}
                       className="shop-card"
                       aria-label={p.name}
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
-                      whileHover={{ y: -6 }}
                     >
                       {/* Product Tag */}
                       {p.tag && (
@@ -951,7 +1051,7 @@ export default function ShopPage({
                               e.preventDefault();
                               if (p.isCustomProduct) {
                                 if (onSelectCustomProduct) onSelectCustomProduct(p);
-                                else window.location.hash = `#/custom/${p.slug || p.id}`;
+                                else navigate(`/custom/${p.slug || p.id}`);
                               } else {
                                 onSelectProduct && onSelectProduct(p);
                               }
@@ -986,7 +1086,7 @@ export default function ShopPage({
                               if (onSelectCustomProduct) {
                                 onSelectCustomProduct(p);
                               } else {
-                                window.location.hash = `#/custom/${p.slug || p.id}`;
+                                navigate(`/custom/${p.slug || p.id}`);
                               }
                             }}
                             aria-label={`Customize ${p.name} on WhatsApp`}
@@ -1009,7 +1109,7 @@ export default function ShopPage({
                           </motion.button>
                         )}
                       </div>
-                    </motion.article>
+                    </article>
                   );
                 })}
               </div>

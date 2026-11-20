@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Film,
   Upload,
@@ -17,6 +18,9 @@ import { reelService } from '../services/reelService';
 import './AdminReelsPage.css';
 
 export default function AdminReelsPage({ onNavigateHome }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
+
   // Form Fields
   const [title, setTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
@@ -155,7 +159,7 @@ export default function AdminReelsPage({ onNavigateHome }) {
           <button
             type="button"
             className="admin-reels-back-btn"
-            onClick={onNavigateHome}
+            onClick={handleHome}
           >
             <ArrowLeft size={16} />
             <span>Return to Store</span>

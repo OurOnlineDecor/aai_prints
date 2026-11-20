@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,6 +41,23 @@ const INDIAN_STATES = [
 ];
 
 export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
+  const navigate = useNavigate();
+  const handleNav = (target) => {
+    if (onNavigate) {
+      onNavigate(target);
+    } else {
+      if (target === 'shop') navigate('/shop');
+      else if (target === 'cart') navigate('/cart');
+      else if (target === 'wishlist') navigate('/wishlist');
+      else if (target === 'b2b') navigate('/b2b');
+      else if (target === 'admin-add-product') navigate('/admin/add-product');
+      else if (target === 'admin-b2b') navigate('/admin/b2b');
+      else if (target === 'admin-reels') navigate('/admin/reels');
+      else if (typeof target === 'string' && target.startsWith('/')) navigate(target);
+      else navigate('/' + target);
+    }
+  };
+
   const {
     user,
     isAuthenticated,
@@ -735,7 +753,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       style={{ marginTop: '8px' }}
                       onClick={() => {
                         onClose();
-                        if (onNavigate) onNavigate('shop');
+                        handleNav('shop');
                       }}
                     >
                       <ShoppingBag size={14} />
@@ -779,7 +797,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       className="account-admin-card"
                       onClick={() => {
                         onClose();
-                        if (onNavigate) onNavigate('admin-add-product');
+                        handleNav('admin-add-product');
                       }}
                       role="button"
                       tabIndex={0}
@@ -787,7 +805,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           onClose();
-                          if (onNavigate) onNavigate('admin-add-product');
+                          handleNav('admin-add-product');
                         }
                       }}
                     >
@@ -808,7 +826,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       style={{ borderColor: 'rgba(197, 155, 39, 0.45)' }}
                       onClick={() => {
                         onClose();
-                        if (onNavigate) onNavigate('admin-b2b');
+                        handleNav('admin-b2b');
                       }}
                       role="button"
                       tabIndex={0}
@@ -816,7 +834,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           onClose();
-                          if (onNavigate) onNavigate('admin-b2b');
+                          handleNav('admin-b2b');
                         }
                       }}
                     >
@@ -837,7 +855,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       style={{ borderColor: 'rgba(197, 139, 89, 0.45)' }}
                       onClick={() => {
                         onClose();
-                        if (onNavigate) onNavigate('admin-reels');
+                        handleNav('admin-reels');
                       }}
                       role="button"
                       tabIndex={0}
@@ -845,7 +863,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           onClose();
-                          if (onNavigate) onNavigate('admin-reels');
+                          handleNav('admin-reels');
                         }
                       }}
                     >
@@ -871,7 +889,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                     className="account-nav-item"
                     onClick={() => {
                       onClose();
-                      if (onNavigate) onNavigate('b2b');
+                      handleNav('b2b');
                     }}
                     role="button"
                     tabIndex={0}
@@ -879,7 +897,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         onClose();
-                        if (onNavigate) onNavigate('b2b');
+                        handleNav('b2b');
                       }
                     }}
                   >
@@ -919,8 +937,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                     className="account-nav-item"
                     onClick={() => {
                       onClose();
-                      if (onNavigate) onNavigate('wishlist');
-                      else if (setIsWishlistOpen) setIsWishlistOpen(true);
+                      handleNav('wishlist');
                     }}
                     role="button"
                     tabIndex={0}
@@ -928,8 +945,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         onClose();
-                        if (onNavigate) onNavigate('wishlist');
-                        else if (setIsWishlistOpen) setIsWishlistOpen(true);
+                        handleNav('wishlist');
                       }
                     }}
                   >
@@ -951,7 +967,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                     className="account-nav-item"
                     onClick={() => {
                       onClose();
-                      if (onNavigate) onNavigate('cart');
+                      handleNav('cart');
                     }}
                     role="button"
                     tabIndex={0}
@@ -959,7 +975,7 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         onClose();
-                        if (onNavigate) onNavigate('cart');
+                        handleNav('cart');
                       }
                     }}
                   >

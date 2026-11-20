@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Trash2, Plus, Minus, Lock, ShieldCheck, CreditCard } from 'lucide-react';
@@ -19,6 +20,16 @@ export default function CartPage({
   onNavigateCheckout,
   onSelectProduct,
 }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
+  const handleShop = onNavigateShop || (() => navigate('/shop'));
+  const handleCheckout = onNavigateCheckout || (() => navigate('/checkout'));
+  const handleProductSelect = onSelectProduct || ((item) => {
+    if (!item) return;
+    const slug = item.slug || String(item.id || item._id);
+    navigate(`/product/${slug}`);
+  });
+
   const {
     cart,
     cartCount,
@@ -78,9 +89,7 @@ export default function CartPage({
   };
 
   const handleGoToProduct = (item) => {
-    if (onSelectProduct) {
-      onSelectProduct(item);
-    }
+    handleProductSelect(item);
   };
 
   return (
@@ -88,11 +97,11 @@ export default function CartPage({
       {/* ── 1. Breadcrumbs ── */}
       <nav className="cart-breadcrumb" aria-label="Breadcrumb">
         <div className="cart-container">
-          <button type="button" className="breadcrumb-link" onClick={onNavigateHome}>
+          <button type="button" className="breadcrumb-link" onClick={handleHome}>
             Home
           </button>
           <span className="breadcrumb-separator">/</span>
-          <button type="button" className="breadcrumb-link" onClick={onNavigateShop}>
+          <button type="button" className="breadcrumb-link" onClick={handleShop}>
             Shop
           </button>
           <span className="breadcrumb-separator">/</span>
@@ -136,7 +145,7 @@ export default function CartPage({
             <button
               type="button"
               className="cart-empty-cta-btn"
-              onClick={onNavigateShop}
+              onClick={handleShop}
             >
               Continue Shopping
             </button>
@@ -304,7 +313,7 @@ export default function CartPage({
                 <button
                   type="button"
                   className="cart-continue-link"
-                  onClick={onNavigateShop}
+                  onClick={handleShop}
                 >
                   ← Continue Shopping
                 </button>
@@ -360,13 +369,7 @@ export default function CartPage({
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   className="cart-checkout-cta"
-                  onClick={() => {
-                    if (onNavigateCheckout) {
-                      onNavigateCheckout();
-                    } else {
-                      window.location.hash = '#/checkout';
-                    }
-                  }}
+                  onClick={handleCheckout}
                   aria-label={`Proceed to checkout with total amount ₹${finalTotal.toLocaleString('en-IN')}`}
                   style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >

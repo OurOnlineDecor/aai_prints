@@ -16,21 +16,21 @@ const slides = [
     image: '/new-images/hero-devotional.jpg',
     category: 'Wall Hangings',
     title: 'Devotional Collection',
-    ctaHref: '#/shop?category=Wall%20Hangings',
+    ctaHref: '/shop?category=Wall%20Hangings',
   },
   {
     id: 2,
     image: '/new-images/hero-car-decor.jpg',
     category: 'Dashboard Idols',
     title: 'Car Decor Collection',
-    ctaHref: '#/shop?category=Dashboard%20Idols',
+    ctaHref: '/shop?category=Dashboard%20Idols',
   },
   {
     id: 3,
     image: '/new-images/hero-wall-decor.jpg',
     category: 'Metal Wall Art',
     title: 'Wall Decor Collection',
-    ctaHref: '#/shop?category=Metal%20Wall%20Art',
+    ctaHref: '/shop?category=Metal%20Wall%20Art',
   },
 ];
 

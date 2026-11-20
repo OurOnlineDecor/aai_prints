@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -19,12 +20,15 @@ import './Navbar.css';
 
 export default function Navbar({
   products = [],
-  currentPage = 'home',
-  selectedCategory = 'All',
+  currentPage,
+  selectedCategory,
   onNavigate,
   onSelectProduct,
   onOpenAccount,
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { wishlistCount, cartCount, setIsWishlistOpen, setIsCartOpen } = useWishlist();
   const { isAuthenticated, user } = useAuth();
 
@@ -85,13 +89,13 @@ export default function Navbar({
     setLiveSearchResults([]);
   };
 
-  // Filter products: prefer live backend results, fallback to client-side matching
+  // Filter products: prefer live backend results, fallback to client-side matching if provided
   const filteredProducts = searchQuery.trim()
     ? (liveSearchResults.length > 0
-        ? liveSearchResults
-        : products.filter((p) =>
-            p.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-          ))
+      ? liveSearchResults
+      : products.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      ))
     : [];
 
   // Navigate to matching product on click or enter
@@ -101,22 +105,8 @@ export default function Navbar({
       onSelectProduct(product);
       return;
     }
-    const el = document.getElementById(`product-${product.id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('prod-card-highlight');
-      setTimeout(() => el.classList.remove('prod-card-highlight'), 2200);
-    } else if (onNavigate) {
-      onNavigate('shop', 'All');
-      setTimeout(() => {
-        const item = document.getElementById(`product-${product.id}`);
-        if (item) {
-          item.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          item.classList.add('prod-card-highlight');
-          setTimeout(() => item.classList.remove('prod-card-highlight'), 2200);
-        }
-      }, 150);
-    }
+    const targetSlug = product.slug || product.id;
+    navigate(`/product/${targetSlug}`);
   };
 
   // Handle Enter key on search input
@@ -130,15 +120,24 @@ export default function Navbar({
   };
 
   const handleNavClick = (e, link) => {
-    if (link.page && onNavigate) {
-      e.preventDefault();
+    e.preventDefault();
+    setMenuOpen(false);
+    if (onNavigate) {
       onNavigate(link.page, link.category || 'All');
-      setMenuOpen(false);
+    } else {
+      const cleanPath = link.href.replace(/^#/, '');
+      navigate(cleanPath || '/');
     }
   };
 
   // Strictly compute at most ONE active top-level navigation label
-  const activeNavLabel = getActiveNavLabel(currentPage, selectedCategory);
+  const resolvedPage = currentPage || (
+    location.pathname === '/' ? 'home' :
+      location.pathname.startsWith('/shop') ? 'shop' :
+        location.pathname.startsWith('/custom') ? 'custom-product' : ''
+  );
+  const resolvedCategory = selectedCategory || searchParams.get('category') || 'All';
+  const activeNavLabel = getActiveNavLabel(resolvedPage, resolvedCategory);
 
   return (
     <header className="navbar" role="navigation" aria-label="Main navigation">
@@ -146,13 +145,15 @@ export default function Navbar({
 
         {/* aai Prints Brand Logo */}
         <a
-          href="#/"
+          href="/"
           className="navbar-logo"
           aria-label="aai Prints Home"
           onClick={(e) => {
+            e.preventDefault();
             if (onNavigate) {
-              e.preventDefault();
               onNavigate('home');
+            } else {
+              navigate('/');
             }
           }}
         >

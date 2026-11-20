@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
   Building2,
@@ -310,6 +311,11 @@ export default function B2BPortalPage({
   onNavigateCart,
   isAdmin: propIsAdmin,
 }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
+  const handleAdminB2B = onNavigateAdminB2B || (() => navigate('/admin/b2b'));
+  const handleCart = onNavigateCart || (() => navigate('/cart'));
+
   const { user, isAuthenticated } = useAuth();
   const isAdmin = propIsAdmin || (isAuthenticated && user?.role === 'admin');
   const { addToCart, setIsCartOpen } = useWishlist();
@@ -396,11 +402,7 @@ export default function B2BPortalPage({
       moq: product.moq,
     };
     addToCart(itemToAdd, quantity);
-    if (onNavigateCart) {
-      onNavigateCart();
-    } else {
-      window.location.hash = '#/cart';
-    }
+    handleCart();
   };
 
   // Submit Contact Us message
@@ -442,7 +444,7 @@ export default function B2BPortalPage({
                 <button
                   type="button"
                   className="wholesale-admin-btn"
-                  onClick={onNavigateAdminB2B}
+                  onClick={handleAdminB2B}
                 >
                   <Building2 size={15} /> Manage Wholesale Catalog
                 </button>

@@ -60,7 +60,7 @@ export default function StyleCollection({ onSelectCategory }) {
           <div className="style-scroll-inner">
             {collections.map((col, idx) => {
               const targetCategory = col.category || col.label;
-              const href = `#/shop?category=${encodeURIComponent(targetCategory)}`;
+              const href = `/shop?category=${encodeURIComponent(targetCategory)}`;
 
               return (
                 <motion.a

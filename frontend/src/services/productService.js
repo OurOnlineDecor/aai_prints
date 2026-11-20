@@ -75,6 +75,29 @@ export function normalizeProduct(p) {
 let liveProductsCache = localProducts.map(normalizeProduct);
 
 /**
+ * Merge an array of normalized products into liveProductsCache
+ * without duplicates, ensuring instant cache hits on future views.
+ */
+export function mergeIntoCache(items) {
+  if (!Array.isArray(items)) return;
+  items.forEach((p) => {
+    if (!p) return;
+    const pId = String(p.id || p._id || '');
+    const pSlug = (p.slug || '').toLowerCase().trim();
+    const idx = liveProductsCache.findIndex((existing) => {
+      const eId = String(existing.id || existing._id || '');
+      const eSlug = (existing.slug || '').toLowerCase().trim();
+      return (pId && eId === pId) || (pSlug && eSlug === pSlug);
+    });
+    if (idx > -1) {
+      liveProductsCache[idx] = { ...liveProductsCache[idx], ...p };
+    } else {
+      liveProductsCache.push(p);
+    }
+  });
+}
+
+/**
  * Safely extracts a numeric price from a price string (e.g. '1,299' -> 1299).
  */
 export function parseNumericPrice(price) {
@@ -89,6 +112,82 @@ export function parseNumericPrice(price) {
  */
 export function getAllProducts() {
   return liveProductsCache;
+}
+
+/**
+ * Fetch only trending products for the homepage (avoids downloading entire catalogue)
+ */
+export async function fetchTrendingProducts(limit = 8) {
+  try {
+    const res = await api.get(`/products?trending=true&limit=${limit}`);
+    if (res?.data?.products && Array.isArray(res.data.products) && res.data.products.length > 0) {
+      const normalized = res.data.products.map(normalizeProduct);
+      mergeIntoCache(normalized);
+      return normalized;
+    }
+  } catch (err) {
+    console.warn('[ProductService] Failed to fetch trending products:', err.message);
+  }
+  // Instant fallback to local data
+  return liveProductsCache.filter((p) => p.isTrending || p.trending).slice(0, limit);
+}
+
+/**
+ * Fetch only new arrival products for homepage or new-arrivals section
+ */
+export async function fetchNewArrivals(limit = 8) {
+  try {
+    const res = await api.get(`/products?sort=newest&limit=${limit}`);
+    if (res?.data?.products && Array.isArray(res.data.products) && res.data.products.length > 0) {
+      const normalized = res.data.products.map(normalizeProduct);
+      mergeIntoCache(normalized);
+      return normalized;
+    }
+  } catch (err) {
+    console.warn('[ProductService] Failed to fetch new arrivals:', err.message);
+  }
+  return [...liveProductsCache]
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, limit);
+}
+
+/**
+ * Fetch paginated & filtered products for the Shop Page on demand
+ */
+export async function fetchCatalogProducts(params = {}) {
+  const query = new URLSearchParams();
+  if (params.category && params.category !== 'All') query.append('category', params.category);
+  if (params.search) query.append('search', params.search);
+  if (params.sort) query.append('sort', params.sort);
+  if (params.minPrice) query.append('minPrice', params.minPrice);
+  if (params.maxPrice) query.append('maxPrice', params.maxPrice);
+  if (params.page) query.append('page', params.page);
+  if (params.limit) query.append('limit', params.limit || 24);
+
+  try {
+    const res = await api.get(`/products?${query.toString()}`);
+    if (res?.data?.products && Array.isArray(res.data.products)) {
+      const normalized = res.data.products.map(normalizeProduct);
+      mergeIntoCache(normalized);
+      return {
+        products: normalized,
+        total: res.data.total || res.data.products.length,
+        pages: res.data.pages || 1,
+        page: res.data.page || 1
+      };
+    }
+  } catch (err) {
+    console.warn('[ProductService] Catalog fetch failed, using local filter:', err.message);
+  }
+
+  // Graceful local fallback
+  const local = getProductsByCategory(params.category);
+  return {
+    products: local,
+    total: local.length,
+    pages: 1,
+    page: 1
+  };
 }
 
 /**
@@ -144,19 +243,13 @@ export async function fetchProductBySlug(slug) {
     const res = await api.get(`/products/${encodeURIComponent(slug)}`);
     if (res?.data?.product) {
       const normalized = normalizeProduct(res.data.product);
-      // Update in cache if found
-      const idx = liveProductsCache.findIndex((p) => p.slug === normalized.slug);
-      if (idx > -1) {
-        liveProductsCache[idx] = normalized;
-      } else {
-        liveProductsCache.push(normalized);
-      }
+      mergeIntoCache([normalized]);
       return normalized;
     }
   } catch (err) {
     console.warn(`[ProductService] Failed to fetch product ${slug} from API:`, err.message);
   }
-  return getProductBySlug(slug);
+  return getProductBySlugOrId(slug);
 }
 
 /**

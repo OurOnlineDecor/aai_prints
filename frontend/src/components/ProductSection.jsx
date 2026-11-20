@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Star, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import './ProductSection.css';
@@ -30,11 +31,13 @@ function StarRating({ rating = 5.0, count }) {
 export default function ProductSection({
   title,
   subtitle,
-  products,
+  products = [],
+  isLoading = false,
   sectionId,
   onSelectProduct,
   onViewMore,
 }) {
+  const navigate = useNavigate();
   const { isInWishlist, toggleWishlist, addToCart } = useWishlist();
   const [addedIds, setAddedIds] = useState({});
   const timersRef = useRef({});
@@ -42,7 +45,7 @@ export default function ProductSection({
   const handleAddToCart = (product) => {
     const prodId = product.id || product._id;
     if (addedIds[prodId]) {
-      window.location.hash = '#/cart';
+      navigate('/cart');
       return;
     }
 
@@ -57,7 +60,7 @@ export default function ProductSection({
     }, 10000);
   };
 
-  if (!products || products.length === 0) {
+  if (!isLoading && (!products || products.length === 0)) {
     return null;
   }
 
@@ -70,16 +73,29 @@ export default function ProductSection({
         </div>
 
         <div className="prod-grid">
-          {products.map((p) => {
+          {isLoading && products.length === 0
+            ? Array.from({ length: 8 }).map((_, idx) => (
+                <div key={idx} className="prod-card-skeleton" aria-hidden="true">
+                  <div className="prod-skeleton-img" />
+                  <div className="prod-skeleton-body">
+                    <div className="prod-skeleton-line" style={{ width: '35%' }} />
+                    <div className="prod-skeleton-line" style={{ width: '85%' }} />
+                    <div className="prod-skeleton-line" style={{ width: '45%', marginTop: 'auto' }} />
+                  </div>
+                </div>
+              ))
+            : products.map((p) => {
             const prodId = p.id || p._id;
             const isFav = isInWishlist(prodId);
             const isAdded = Boolean(addedIds[prodId]);
-            const productHref = `#/product/${p.slug || prodId}`;
+            const productHref = `/product/${p.slug || prodId}`;
 
             const handleProductClick = (e) => {
+              e.preventDefault();
               if (onSelectProduct) {
-                e.preventDefault();
                 onSelectProduct(p);
+              } else {
+                navigate(productHref);
               }
             };
 
@@ -217,7 +233,7 @@ export default function ProductSection({
           <button
             type="button"
             className="btn-view-more"
-            onClick={onViewMore || (() => { window.location.hash = '#/shop'; })}
+            onClick={onViewMore || (() => { navigate('/shop'); })}
             aria-label={`View more ${title}`}
           >
             <span>VIEW MORE</span>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import './RouteProgressBar.css';
 
 /**
@@ -6,6 +7,8 @@ import './RouteProgressBar.css';
  * Provides instant visceral feedback on page switches like top luxury brand platforms.
  */
 export default function RouteProgressBar({ targetKey }) {
+  const location = useLocation();
+  const effectiveKey = targetKey || (location.pathname + location.search);
   const [progress, setProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const timerRef = useRef(null);
@@ -41,7 +44,7 @@ export default function RouteProgressBar({ targetKey }) {
       if (timerRef.current) clearTimeout(timerRef.current);
       if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
     };
-  }, [targetKey]);
+  }, [effectiveKey]);
 
   if (!isVisible && progress === 0) return null;
 

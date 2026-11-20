@@ -440,3 +440,43 @@
     display: none;
   }
 }
+
+/* ── Luxury Skeleton Card for Zero Layout Shift ── */
+.prod-card-skeleton {
+  min-height: 420px;
+  background: var(--white, #FFFFFF);
+  border: 1px solid rgba(210, 185, 140, 0.25);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.prod-skeleton-img {
+  width: 100%;
+  aspect-ratio: 4 / 4.6;
+  background: linear-gradient(90deg, #F5F1E8 0%, #EFE8DA 50%, #F5F1E8 100%);
+  background-size: 200% 100%;
+  animation: prodSkeletonShimmer 1.5s infinite;
+}
+
+.prod-skeleton-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.prod-skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #F5F1E8 0%, #EFE8DA 50%, #F5F1E8 100%);
+  background-size: 200% 100%;
+  animation: prodSkeletonShimmer 1.5s infinite;
+}
+
+@keyframes prodSkeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

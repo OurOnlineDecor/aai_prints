@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import './CategoryScrollbar.css';
 
 /* 
@@ -6,25 +7,29 @@ import './CategoryScrollbar.css';
   Images point to public/new-images/*.jpg for easy replacement.
 */
 const categories = [
-  { label: 'Wall Hangings', img: '/new-images/cat-wall-hangings.jpg', href: '#/shop?category=Wall%20Hangings' },
-  { label: 'Backlit LED Frames', img: '/new-images/cat-backlit-led-frames.jpg', href: '#/shop?category=Backlit%20LED%20Frames' },
-  { label: 'Dashboard Idols', img: '/new-images/cat-dashboard-idols.jpg', href: '#/shop?category=Dashboard%20Idols' },
-  { label: 'Car Hangings', img: '/new-images/cat-car-hangings.jpg', href: '#/shop?category=Car%20Hangings' },
-  { label: 'Framed Wall Art', img: '/new-images/cat-framed-wall-art.jpg', href: '#/shop?category=Framed%20Wall%20Art' },
-  { label: 'Metal Wall Art', img: '/new-images/cat-metal-wall-art.jpg', href: '#/shop?category=Metal%20Wall%20Art' },
-  { label: 'Wall Clocks', img: '/new-images/cat-wall-clocks.jpg', href: '#/shop?category=Wall%20Clocks' },
-  { label: 'Desk Standees', img: '/new-images/cat-desk-standees.jpg', href: '#/shop?category=Desk%20Standees' },
-  { label: 'Gift Combos', img: '/new-images/cat-gift-combos.jpg', href: '#/shop?category=Gifts' },
+  { label: 'Wall Hangings', img: '/new-images/cat-wall-hangings.jpg', href: '/shop?category=Wall%20Hangings' },
+  { label: 'Backlit LED Frames', img: '/new-images/cat-backlit-led-frames.jpg', href: '/shop?category=Backlit%20LED%20Frames' },
+  { label: 'Dashboard Idols', img: '/new-images/cat-dashboard-idols.jpg', href: '/shop?category=Dashboard%20Idols' },
+  { label: 'Car Hangings', img: '/new-images/cat-car-hangings.jpg', href: '/shop?category=Car%20Hangings' },
+  { label: 'Framed Wall Art', img: '/new-images/cat-framed-wall-art.jpg', href: '/shop?category=Framed%20Wall%20Art' },
+  { label: 'Metal Wall Art', img: '/new-images/cat-metal-wall-art.jpg', href: '/shop?category=Metal%20Wall%20Art' },
+  { label: 'Wall Clocks', img: '/new-images/cat-wall-clocks.jpg', href: '/shop?category=Wall%20Clocks' },
+  { label: 'Desk Standees', img: '/new-images/cat-desk-standees.jpg', href: '/shop?category=Desk%20Standees' },
+  { label: 'Gift Combos', img: '/new-images/cat-gift-combos.jpg', href: '/shop?category=Gifts' },
 ];
 
 // Repeat categories to create two identical groups for seamless 100% infinite looping
 const marqueeGroup = [...categories, ...categories];
 
 export default function CategoryScrollbar({ onSelectCategory }) {
+  const navigate = useNavigate();
+
   const handleItemClick = (e, category) => {
+    e.preventDefault();
     if (onSelectCategory) {
-      e.preventDefault();
       onSelectCategory(category.label);
+    } else {
+      navigate(category.href);
     }
   };
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { MessageCircle, Globe, Mail, Share2, Sparkles, X } from 'lucide-react';
 import './Footer.css';
@@ -31,15 +32,16 @@ const policyContents = {
 };
 
 export default function Footer({ onNavigate }) {
+  const navigate = useNavigate();
   const [activePolicy, setActivePolicy] = useState(null);
 
   const quickLinks = [
-    { label: 'Home', href: '#/', page: 'home' },
-    { label: 'Shop All Products', href: '#/shop', page: 'shop', category: 'All' },
-    { label: 'Wholesale & Bulk Orders', href: '#/b2b', page: 'b2b' },
-    { label: 'My Wishlist', href: '#/wishlist', page: 'wishlist' },
-    { label: 'Shopping Cart', href: '#/cart', page: 'cart' },
-    { label: 'Customer Reviews', href: '#reviews', page: 'home' },
+    { label: 'Home', href: '/', page: 'home' },
+    { label: 'Shop All Products', href: '/shop', page: 'shop', category: 'All' },
+    { label: 'Wholesale & Bulk Orders', href: '/b2b', page: 'b2b' },
+    { label: 'My Wishlist', href: '/wishlist', page: 'wishlist' },
+    { label: 'Shopping Cart', href: '/cart', page: 'cart' },
+    { label: 'Customer Reviews', href: '/#reviews', page: 'home', category: 'reviews' },
   ];
 
   const shopCategories = [
@@ -91,13 +93,15 @@ export default function Footer({ onNavigate }) {
                 <MessageCircle size={17} />
               </a>
               <a
-                href="#/"
+                href="/"
                 className="social-link"
                 aria-label="Aai Prints Official Store"
                 onClick={(e) => {
+                  e.preventDefault();
                   if (onNavigate) {
-                    e.preventDefault();
                     onNavigate('home');
+                  } else {
+                    navigate('/');
                   }
                 }}
                 title="Aai Prints Official Store"
@@ -147,9 +151,11 @@ export default function Footer({ onNavigate }) {
                   <a
                     href={l.href}
                     onClick={(e) => {
+                      e.preventDefault();
                       if (onNavigate && l.page) {
-                        e.preventDefault();
                         onNavigate(l.page, l.category || 'All');
+                      } else {
+                        navigate(l.href);
                       }
                     }}
                   >
@@ -167,11 +173,13 @@ export default function Footer({ onNavigate }) {
               {shopCategories.map((c) => (
                 <li key={c.label}>
                   <a
-                    href={`#/shop?category=${encodeURIComponent(c.category)}`}
+                    href={`/shop?category=${encodeURIComponent(c.category)}`}
                     onClick={(e) => {
+                      e.preventDefault();
                       if (onNavigate) {
-                        e.preventDefault();
                         onNavigate('shop', c.category);
+                      } else {
+                        navigate(`/shop?category=${encodeURIComponent(c.category)}`);
                       }
                     }}
                   >

@@ -73,7 +73,7 @@ export function buildWhatsAppOrderUrl(product, customerNotes = '') {
   const cleanPhone = phone.replace(/[^0-9]/g, '');
 
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://aaiprints.com';
-  const productUrl = `${siteOrigin}/#/custom/${product?.slug || ''}`;
+  const productUrl = `${siteOrigin}/custom/${product?.slug || ''}`;
 
   let message = `Namaste Aai Prints Team, 🙏\n`;
   message += `I would like to place an order for the following customized product:\n\n`;

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -5,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
  * Restricts rendering exclusively to authenticated users with role === 'admin'.
  */
 export default function AdminGuard({ children, onNavigateHome }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -65,7 +68,7 @@ export default function AdminGuard({ children, onNavigateHome }) {
           .
         </p>
         <button
-          onClick={onNavigateHome}
+          onClick={handleHome}
           style={{
             padding: '12px 28px',
             backgroundColor: '#0d9488',

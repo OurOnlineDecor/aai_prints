@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   PackagePlus,
   Layers,
@@ -53,6 +54,11 @@ export default function AdminAddProductPage({
   onProductUpdated,
   onProductDeleted,
 }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
+  const handleShop = onNavigateShop || (() => navigate('/shop'));
+  const handleB2B = onNavigateB2B || (() => navigate('/admin/b2b'));
+
   // Navigation & Tabs State ('products' = retail hub, 'custom' = customization hub)
   const [activeTab, setActiveTab] = useState('products');
   const [retailSubTab, setRetailSubTab] = useState('list'); // 'list' | 'add'
@@ -813,7 +819,7 @@ export default function AdminAddProductPage({
           <div className="admin-product-breadcrumbs">
             <button
               type="button"
-              onClick={onNavigateHome}
+              onClick={handleHome}
               className="admin-product-crumb-btn"
             >
               <ArrowLeft size={14} /> Main Store
@@ -827,7 +833,7 @@ export default function AdminAddProductPage({
               <span className="admin-product-tag">RETAIL CATALOG MANAGEMENT</span>
               <h1 className="admin-product-title">Retail Products Manager</h1>
               <p className="admin-product-sub">
-                Manage all customer-facing products in the storefront catalog (`#/shop`). Add new creations, update pricing, upload photos, or remove items.
+                Manage all customer-facing products in the storefront catalog (`/shop`). Add new creations, update pricing, upload photos, or remove items.
               </p>
             </div>
 
@@ -835,7 +841,7 @@ export default function AdminAddProductPage({
               <button
                 type="button"
                 className="admin-product-btn-b2b"
-                onClick={onNavigateB2B || (() => (window.location.hash = '#/admin/b2b'))}
+                onClick={handleB2B}
                 title="Go to Wholesale Store Manager"
               >
                 <Building2 size={14} /> Wholesale Manager →
@@ -843,7 +849,7 @@ export default function AdminAddProductPage({
               <button
                 type="button"
                 className="admin-product-btn-secondary"
-                onClick={onNavigateShop || (() => (window.location.hash = '#/shop'))}
+                onClick={handleShop}
                 title="View Live Storefront"
               >
                 <ExternalLink size={14} /> View Storefront
@@ -1790,7 +1796,7 @@ export default function AdminAddProductPage({
                               <td>
                                 <div className="table-actions-cell">
                                   <a
-                                    href={`/#/custom/${p.slug}`}
+                                    href={`/custom/${p.slug}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="admin-action-btn edit"

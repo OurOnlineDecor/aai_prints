@@ -70,7 +70,6 @@ function ReelCardMedia({ reel, isModalOpen }) {
         className="reel-card-video-preview"
         autoPlay
         muted
-        defaultMuted
         loop
         playsInline
         preload="auto"
@@ -297,8 +296,8 @@ export default function ReelsSection() {
     scrollTrackRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };
 
-  // Don't render section if no reels exist and not loading
-  if (!loading && reels.length === 0) {
+  // Don't render section if no reels exist
+  if (reels.length === 0) {
     return null;
   }
 

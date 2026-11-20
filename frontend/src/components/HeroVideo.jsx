@@ -51,7 +51,6 @@ export default function HeroVideo() {
           autoPlay
           loop
           muted
-          defaultMuted
           playsInline
           preload="auto"
           tabIndex="-1"
@@ -74,7 +73,6 @@ export default function HeroVideo() {
           autoPlay
           loop
           muted
-          defaultMuted
           playsInline
           preload="auto"
           poster="/new-images/dummy_hero_21x9_source.png"

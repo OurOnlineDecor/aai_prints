@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Lock,
@@ -93,6 +94,16 @@ export default function CheckoutPage({
   onNavigateCart,
   onSelectProduct,
 }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
+  const handleShop = onNavigateShop || (() => navigate('/shop'));
+  const handleCart = onNavigateCart || (() => navigate('/cart'));
+  const handleProductSelect = onSelectProduct || ((item) => {
+    if (!item) return;
+    const slug = item.slug || String(item.id || item._id);
+    navigate(`/product/${slug}`);
+  });
+
   const { cart, cartCount, clearCart } = useWishlist();
   const { user, isAuthenticated, addAddress } = useAuth();
 
@@ -753,7 +764,7 @@ export default function CheckoutPage({
               <button
                 type="button"
                 className="success-btn-primary"
-                onClick={onNavigateShop}
+                onClick={handleShop}
               >
                 <span>Continue Shopping</span>
                 <ChevronRight size={16} />
@@ -782,11 +793,11 @@ export default function CheckoutPage({
       <div className="checkout-page">
         <nav className="checkout-breadcrumb" aria-label="Breadcrumb">
           <div className="checkout-container">
-            <button type="button" className="breadcrumb-link" onClick={onNavigateHome}>
+            <button type="button" className="breadcrumb-link" onClick={handleHome}>
               Home
             </button>
             <span className="breadcrumb-separator">/</span>
-            <button type="button" className="breadcrumb-link" onClick={onNavigateCart}>
+            <button type="button" className="breadcrumb-link" onClick={handleCart}>
               Cart
             </button>
             <span className="breadcrumb-separator">/</span>
@@ -806,7 +817,7 @@ export default function CheckoutPage({
             <button
               type="button"
               className="checkout-empty-btn"
-              onClick={onNavigateShop}
+              onClick={handleShop}
             >
               <span>Explore Collections</span>
               <ChevronRight size={16} />
@@ -825,11 +836,11 @@ export default function CheckoutPage({
       {/* ── Breadcrumb ── */}
       <nav className="checkout-breadcrumb" aria-label="Breadcrumb">
         <div className="checkout-container">
-          <button type="button" className="breadcrumb-link" onClick={onNavigateHome}>
+          <button type="button" className="breadcrumb-link" onClick={handleHome}>
             Home
           </button>
           <span className="breadcrumb-separator">/</span>
-          <button type="button" className="breadcrumb-link" onClick={onNavigateCart}>
+          <button type="button" className="breadcrumb-link" onClick={handleCart}>
             Cart
           </button>
           <span className="breadcrumb-separator">/</span>
@@ -844,7 +855,7 @@ export default function CheckoutPage({
             <button
               type="button"
               className="checkout-back-link"
-              onClick={onNavigateCart}
+              onClick={handleCart}
               title="Return to Cart"
             >
               <ArrowLeft size={16} />

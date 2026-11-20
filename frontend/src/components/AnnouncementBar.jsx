@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './AnnouncementBar.css';
@@ -30,6 +31,7 @@ const announcements = [
 ];
 
 export default function AnnouncementBar() {
+  const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -92,7 +94,15 @@ export default function AnnouncementBar() {
           <ChevronRight size={14} strokeWidth={2.4} />
         </button>
 
-        <a href="#/b2b" className="ann-b2b-link" title="Factory-Direct Wholesale & Bulk Supply">
+        <a
+          href="/b2b"
+          className="ann-b2b-link"
+          title="Factory-Direct Wholesale & Bulk Supply"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate('/b2b');
+          }}
+        >
           📦 Wholesale / Bulk Orders →
         </a>
       </div>

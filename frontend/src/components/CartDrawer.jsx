@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X, Minus, Plus, Trash2, Lock, ShieldCheck } from 'lucide-react';
@@ -16,6 +17,7 @@ function parsePrice(price) {
 const FREE_SHIPPING_THRESHOLD = 500;
 
 export default function CartDrawer({ onSelectProduct, onNavigateShop, onNavigateCart, onNavigateCheckout }) {
+  const navigate = useNavigate();
   const {
     cart,
     cartCount,
@@ -56,12 +58,7 @@ export default function CartDrawer({ onSelectProduct, onNavigateShop, onNavigate
       onSelectProduct(item);
       return;
     }
-    const el = document.getElementById(`product-${item.id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('prod-card-highlight');
-      setTimeout(() => el.classList.remove('prod-card-highlight'), 2200);
-    }
+    navigate(`/product/${item.slug || item.id}`);
   };
 
   // Calculate actual subtotal & total
@@ -162,7 +159,7 @@ export default function CartDrawer({ onSelectProduct, onNavigateShop, onNavigate
                       if (onNavigateShop) {
                         onNavigateShop();
                       } else {
-                        window.location.hash = '#/shop';
+                        navigate('/shop');
                       }
                     }}
                   >
@@ -291,7 +288,7 @@ export default function CartDrawer({ onSelectProduct, onNavigateShop, onNavigate
                     if (onNavigateCart) {
                       onNavigateCart();
                     } else {
-                      window.location.hash = '#/cart';
+                      navigate('/cart');
                     }
                   }}
                 >

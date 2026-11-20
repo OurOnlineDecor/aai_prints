@@ -572,6 +572,46 @@
   gap: 22px;
 }
 
+/* ── Luxury Skeleton Card for Zero Layout Shift ── */
+.shop-card-skeleton {
+  min-height: 440px;
+  background: var(--cream-card, #FFFCF5);
+  border: 1px solid var(--taupe-border, #E4D8C8);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.shop-skeleton-img {
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(90deg, #F5F1E8 0%, #EFE8DA 50%, #F5F1E8 100%);
+  background-size: 200% 100%;
+  animation: shopSkeletonShimmer 1.5s infinite;
+}
+
+.shop-skeleton-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.shop-skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #F5F1E8 0%, #EFE8DA 50%, #F5F1E8 100%);
+  background-size: 200% 100%;
+  animation: shopSkeletonShimmer 1.5s infinite;
+}
+
+@keyframes shopSkeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ── 7. Shop Product Card ── */
 .shop-card {
   position: relative;

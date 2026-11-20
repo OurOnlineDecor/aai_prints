@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
   Building2,
@@ -31,6 +32,10 @@ import {
 import './AdminB2BPage.css';
 
 export default function AdminB2BPage({ onNavigateHome, onNavigateB2BPortal }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
+  const handlePortal = onNavigateB2BPortal || (() => navigate('/b2b'));
+
   const [activeTab, setActiveTab] = useState('products'); // 'add' | 'products'
   const [b2bProducts, setB2bProducts] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
@@ -483,7 +488,7 @@ export default function AdminB2BPage({ onNavigateHome, onNavigateB2BPortal }) {
       <header className="admin-b2b-header">
         <div className="admin-b2b-header-wrap">
           <div className="admin-b2b-breadcrumbs">
-            <button type="button" onClick={onNavigateHome} className="admin-b2b-crumb-btn">
+            <button type="button" onClick={handleHome} className="admin-b2b-crumb-btn">
               <ArrowLeft size={14} /> Main Store
             </button>
             <span className="crumb-sep">/</span>
@@ -495,7 +500,7 @@ export default function AdminB2BPage({ onNavigateHome, onNavigateB2BPortal }) {
               <span className="admin-b2b-tag">WHOLESALE MANAGEMENT</span>
               <h1 className="admin-b2b-title">Wholesale Store Manager</h1>
               <p className="admin-b2b-sub">
-                Manage products for the Wholesale Store (`#/b2b`). Configure variable price entries and minimum order quantities.
+                Manage products for the Wholesale Store (`/b2b`). Configure variable price entries and minimum order quantities.
               </p>
             </div>
 
@@ -503,7 +508,7 @@ export default function AdminB2BPage({ onNavigateHome, onNavigateB2BPortal }) {
               <button
                 type="button"
                 className="admin-b2b-btn-secondary"
-                onClick={onNavigateB2BPortal}
+                onClick={handlePortal}
                 title="View Live Wholesale Store"
               >
                 <ExternalLink size={14} /> View Wholesale Store
@@ -862,7 +867,7 @@ export default function AdminB2BPage({ onNavigateHome, onNavigateB2BPortal }) {
           <div className="admin-b2b-card">
             <div className="admin-b2b-card-header">
               <h2>Active Wholesale Catalog Items ({b2bProducts.length})</h2>
-              <p>Products live in the Wholesale Store (`#/b2b`). Manage variable rates, stock, or remove items.</p>
+              <p>Products live in the Wholesale Store (`/b2b`). Manage variable rates, stock, or remove items.</p>
             </div>
 
             {isLoadingProducts ? (

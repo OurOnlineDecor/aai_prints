@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
@@ -10,6 +11,7 @@ export default function WishlistDrawer({
   onNavigateShop,
   onNavigateWishlist,
 }) {
+  const navigate = useNavigate();
   const {
     wishlist,
     isWishlistOpen,
@@ -50,7 +52,7 @@ export default function WishlistDrawer({
     const prodId = product.id || product._id;
     if (addedIds[prodId]) {
       setIsWishlistOpen(false);
-      window.location.hash = '#/cart';
+      navigate('/cart');
       return;
     }
 
@@ -71,12 +73,7 @@ export default function WishlistDrawer({
       onSelectProduct(item);
       return;
     }
-    const el = document.getElementById(`product-${item.id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('prod-card-highlight');
-      setTimeout(() => el.classList.remove('prod-card-highlight'), 2200);
-    }
+    navigate(`/product/${item.slug || item.id}`);
   };
 
   return createPortal(
@@ -247,7 +244,11 @@ export default function WishlistDrawer({
                   className="wishlist-view-page-btn"
                   onClick={() => {
                     setIsWishlistOpen(false);
-                    if (onNavigateWishlist) onNavigateWishlist();
+                    if (onNavigateWishlist) {
+                      onNavigateWishlist();
+                    } else {
+                      navigate('/wishlist');
+                    }
                   }}
                 >
                   View Full Wishlist Page

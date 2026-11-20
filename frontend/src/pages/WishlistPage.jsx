@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Trash2, X, ShoppingBag, Check, AlertCircle } from 'lucide-react';
@@ -18,6 +19,15 @@ export default function WishlistPage({
   onNavigateShop,
   onSelectProduct,
 }) {
+  const navigate = useNavigate();
+  const handleHome = onNavigateHome || (() => navigate('/'));
+  const handleShop = onNavigateShop || (() => navigate('/shop'));
+  const handleProductSelect = onSelectProduct || ((product) => {
+    if (!product) return;
+    const slug = product.slug || String(product.id || product._id);
+    navigate(`/product/${slug}`);
+  });
+
   const {
     wishlist,
     wishlistCount,
@@ -36,7 +46,7 @@ export default function WishlistPage({
   const handleAddToCart = (product) => {
     const prodId = product.id || product._id;
     if (addedIds[prodId]) {
-      window.location.hash = '#/cart';
+      navigate('/cart');
       return;
     }
 
@@ -52,9 +62,7 @@ export default function WishlistPage({
   };
 
   const handleProductClick = (product) => {
-    if (onSelectProduct) {
-      onSelectProduct(product);
-    }
+    handleProductSelect(product);
   };
 
   const handleConfirmClear = () => {
@@ -70,7 +78,7 @@ export default function WishlistPage({
           <button
             type="button"
             className="breadcrumb-link"
-            onClick={onNavigateHome}
+            onClick={handleHome}
           >
             Home
           </button>
@@ -78,7 +86,7 @@ export default function WishlistPage({
           <button
             type="button"
             className="breadcrumb-link"
-            onClick={onNavigateShop}
+            onClick={handleShop}
           >
             Shop
           </button>
@@ -145,14 +153,14 @@ export default function WishlistPage({
               <button
                 type="button"
                 className="wishlist-empty-btn wishlist-empty-btn--primary"
-                onClick={onNavigateShop}
+                onClick={handleShop}
               >
                 Continue Shopping
               </button>
               <button
                 type="button"
                 className="wishlist-empty-btn wishlist-empty-btn--secondary"
-                onClick={onNavigateHome}
+                onClick={handleHome}
               >
                 Back to Home
               </button>
