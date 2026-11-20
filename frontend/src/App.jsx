@@ -16,6 +16,8 @@ import WishlistDrawer from './components/WishlistDrawer';
 import CartDrawer from './components/CartDrawer';
 import AccountDrawer from './components/AccountDrawer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
+import RouteProgressBar from './components/RouteProgressBar';
+import BackToTop from './components/BackToTop';
 import ShopPage from './pages/ShopPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
@@ -373,6 +375,17 @@ function App() {
     <AuthProvider>
       <WishlistProvider>
         <div className="app">
+          {/* ── Ultra-Luxury Laser Top Progress Bar ── */}
+          <RouteProgressBar
+            targetKey={
+              currentPage === 'product'
+                ? `product-${activeProductSlug}`
+                : currentPage === 'custom-product'
+                ? `custom-${activeCustomProductSlug}`
+                : currentPage
+            }
+          />
+
           {/* ── 1. Announcement bar ── */}
           <AnnouncementBar />
 
@@ -393,13 +406,27 @@ function App() {
             />
           )}
 
-          {/* ── 4. Main Page View (Instant Snappy 60fps) ── */}
-          <div
-            key={currentPage === 'product' ? `product-${activeProductSlug}` : currentPage}
-            className="page-view-fade"
-            style={{ width: '100%' }}
-          >
-            {currentPage === 'custom-product' ? (
+          {/* ── 4. Main Page View (Cinematic Universal Page Transition) ── */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={
+                currentPage === 'product'
+                  ? `product-${activeProductSlug}`
+                  : currentPage === 'custom-product'
+                  ? `custom-${activeCustomProductSlug}`
+                  : currentPage
+              }
+              initial={{ opacity: 0, y: 14, filter: 'blur(3px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -10, filter: 'blur(2px)' }}
+              transition={{
+                duration: 0.28,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="universal-page-wrapper"
+              style={{ width: '100%' }}
+            >
+              {currentPage === 'custom-product' ? (
               <CustomProductDetailPage
                 product={activeCustomProduct}
                 onNavigateHome={() => navigateTo('home')}
@@ -563,7 +590,8 @@ function App() {
                 <PromoBanner onNavigateShop={() => navigateTo('shop', 'All')} />
               </main>
             )}
-          </div>
+            </motion.div>
+          </AnimatePresence>
 
           {/* ── 5. Footer ── */}
           <Footer onNavigate={navigateTo} />
@@ -590,7 +618,8 @@ function App() {
             onNavigate={navigateTo}
           />
 
-          {/* ── 9. Floating WhatsApp Direct Connect ── */}
+          {/* ── 9. Floating WhatsApp Direct Connect & Back-to-Top ── */}
+          <BackToTop />
           <FloatingWhatsApp />
         </div>
       </WishlistProvider>

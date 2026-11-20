@@ -1,0 +1,50 @@
+/* ═════════════════════════════════════════════════════════════════
+   Ultra-Luxury Golden Laser Top Progress Bar
+   ═════════════════════════════════════════════════════════════════ */
+
+.route-progress-bar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  z-index: 100005;
+  pointer-events: none;
+  background: transparent;
+  opacity: 1;
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.route-progress-bar-container.fade-out {
+  opacity: 0;
+}
+
+.route-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #E2CEAA 0%,
+    #D2B98C 45%,
+    #FFDE9E 75%,
+    #B69865 100%
+  );
+  position: relative;
+  transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 10px rgba(210, 185, 140, 0.75), 0 0 4px rgba(255, 222, 158, 0.9);
+}
+
+.route-progress-glow {
+  position: absolute;
+  top: -2px;
+  right: 0;
+  width: 70px;
+  height: 6px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 246, 224, 1) 0%,
+    rgba(210, 185, 140, 0.8) 50%,
+    transparent 100%
+  );
+  filter: blur(1px);
+  pointer-events: none;
+}

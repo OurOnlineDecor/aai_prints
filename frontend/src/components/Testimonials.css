@@ -5,6 +5,8 @@
   padding: 80px 0;
   background: linear-gradient(180deg, transparent 0%, rgba(247, 243, 234, 0.38) 50%, transparent 100%);
   position: relative;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 420px;
 }
 
 .reviews-grid {

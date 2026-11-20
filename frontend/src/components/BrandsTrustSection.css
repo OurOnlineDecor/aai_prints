@@ -11,6 +11,8 @@
   position: relative;
   width: 100%;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 380px;
 }
 
 /* ── Section Header (Centered Column) ── */

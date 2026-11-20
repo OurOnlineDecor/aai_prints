@@ -1,4 +1,27 @@
-/* App-level layout only */
+/* App-level layout */
 *, *::before, *::after { box-sizing: border-box; }
-.app { display: flex; flex-direction: column; min-height: 100vh; }
-main { flex: 1; }
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+main {
+  flex: 1;
+}
+
+/* ── Universal Page Transition Wrapper ── */
+.universal-page-wrapper {
+  width: 100%;
+  min-height: 60vh;
+  will-change: opacity, transform, filter;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Below-the-fold rendering optimization for silky smooth 60–120fps scrolling */
+.perf-defer-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 480px;
+}

@@ -22,6 +22,20 @@
 html {
   font-size: 16px;
   overflow-x: clip;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Warm Champagne Text Selection */
+::selection {
+  background: rgba(210, 185, 140, 0.38);
+  color: #241E1B;
+}
+
+::-moz-selection {
+  background: rgba(210, 185, 140, 0.38);
+  color: #241E1B;
 }
 
 body {
@@ -444,10 +458,15 @@ ol {
   outline-offset: 3px;
 }
 
-/* Custom Scrollbar for smooth horizontal scrolling */
+/* Custom Scrollbar for smooth scrolling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) var(--champagne);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -457,10 +476,27 @@ ol {
 ::-webkit-scrollbar-thumb {
   background: var(--gold);
   border-radius: 999px;
+  border: 1.5px solid var(--champagne);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--burgundy);
+  background: var(--accent-hover, #C5A979);
+}
+
+/* Tactile Active Physics */
+button, .btn-gold, .btn-view-more, .btn-outline-teal {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── Accessibility: Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── Sticky Navbar Responsive Height Variables ── */

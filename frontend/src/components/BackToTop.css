@@ -1,0 +1,64 @@
+/* ═════════════════════════════════════════════════════════════════
+   Minimalist Luxury Back-to-Top Floating Button
+   ═════════════════════════════════════════════════════════════════ */
+
+.back-to-top-btn {
+  position: fixed;
+  bottom: 96px;
+  right: 32px;
+  z-index: 89800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 44px;
+  height: 48px;
+  border-radius: 22px;
+  background: rgba(255, 252, 245, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(210, 185, 140, 0.5);
+  color: #39332E;
+  box-shadow: 0 4px 18px rgba(57, 51, 46, 0.12);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(16px) scale(0.9);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.back-to-top-btn.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.back-to-top-btn:hover {
+  background: #D2B98C;
+  color: #FFFFFF;
+  border-color: #D2B98C;
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(210, 185, 140, 0.42);
+}
+
+.back-to-top-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.back-to-top-text {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .back-to-top-btn {
+    bottom: 88px;
+    right: 20px;
+    width: 40px;
+    height: 44px;
+  }
+}

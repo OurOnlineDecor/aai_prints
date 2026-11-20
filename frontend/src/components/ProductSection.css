@@ -39,6 +39,11 @@
   box-shadow: var(--shadow-hover);
 }
 
+.prod-card:active {
+  transform: translateY(-2px) scale(0.99);
+  transition-duration: 0.12s;
+}
+
 /* Highlight flash when scrolled to from search */
 .prod-card-highlight {
   outline: 2px solid var(--accent, #D2B98C) !important;
