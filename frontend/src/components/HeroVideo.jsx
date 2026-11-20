@@ -54,13 +54,14 @@ export default function HeroVideo() {
           playsInline
           preload="auto"
           tabIndex="-1"
-          poster="/new-images/dummy_hero_21x9_source.png"
+          poster="/new-images/hero_21x9_poster.webp"
           onLoadedData={(e) => {
             e.currentTarget.muted = true;
             e.currentTarget.play().catch(() => {});
           }}
         >
-          <source src="/videos/dummy_hero_21x9_60fps.mp4" type="video/mp4" />
+          <source src="/videos/hero_21x9.webm" type="video/webm" />
+          <source src="/videos/hero_21x9.mp4" type="video/mp4" />
         </video>
         <div className="hero-video-ambient-overlay" />
       </div>
@@ -75,13 +76,14 @@ export default function HeroVideo() {
           muted
           playsInline
           preload="auto"
-          poster="/new-images/dummy_hero_21x9_source.png"
+          poster="/new-images/hero_21x9_poster.webp"
           onLoadedData={(e) => {
             e.currentTarget.muted = true;
             e.currentTarget.play().catch(() => {});
           }}
         >
-          <source src="/videos/dummy_hero_21x9_60fps.mp4" type="video/mp4" />
+          <source src="/videos/hero_21x9.webm" type="video/webm" />
+          <source src="/videos/hero_21x9.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </div>
