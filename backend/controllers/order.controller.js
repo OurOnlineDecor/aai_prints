@@ -335,14 +335,8 @@ const createOrder = async (req, res, next) => {
 
     const FREE_SHIPPING_THRESHOLD = 499;
     const STANDARD_SHIPPING_FEE = 49;
-    const EXPRESS_SHIPPING_FEE = 99;
 
-    let shippingFee = 0;
-    if (shippingMethod === 'express') {
-      shippingFee = EXPRESS_SHIPPING_FEE;
-    } else {
-      shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
-    }
+    const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
 
     const total = Math.max(0, subtotal - discount + shippingFee);
 

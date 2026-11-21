@@ -502,7 +502,7 @@ export default function ProductDetailPage({
               {/* Description */}
               <p className="pdp-short-desc">
                 {product.description ||
-                  'Thoughtfully  by Aai Prints artisans. Perfect for spiritual corners, living rooms, work desks, and car dashboards.'}
+                  'Thoughtfully designed by OurOnlineDecor. Perfect for prayer rooms, living rooms, work desks, and car dashboards.'}
               </p>
 
               {/* Variants Selector (only rendered when real options exist) */}
@@ -627,7 +627,7 @@ export default function ProductDetailPage({
                   <Package size={18} />
                   <div>
                     <strong>Gift-Ready Presentation</strong>
-                    <span>Artisanal presentation suitable for gifting</span>
+                    <span>Premium packaging suitable for gifting</span>
                   </div>
                 </div>
               </div>
@@ -705,7 +705,7 @@ export default function ProductDetailPage({
                       <tbody>
                         <tr>
                           <th>Brand</th>
-                          <td>Aai Prints</td>
+                          <td>OurOnlineDecor</td>
                         </tr>
                         <tr>
                           <th>Product ID</th>

@@ -7,7 +7,7 @@ import './Footer.css';
 const policyContents = {
   'Contact Us': {
     title: 'Customer Care & Support',
-    body: 'Our customer care team is dedicated to helping you with product inquiries, bulk orders, and custom dimensions.\n\n• Email: ouronlinedecor@aaiprints.com\n• Helpline: +91 70149 45523 (Mon-Sat, 10 AM - 7 PM IST)\n• WhatsApp: +91 70149 45523\n• Artisan Studio: Ananta Art International, India',
+    body: 'Our customer care team is dedicated to helping you with product inquiries, bulk orders, and custom dimensions.\n\n• Email: ouronlinedecor@aaiprints.com\n• Helpline: +91 70149 45523 (Mon-Sat, 10 AM - 7 PM IST)\n• WhatsApp: +91 70149 45523\n• Design Studio: OurOnlineDecor, India',
   },
   'FAQs': {
     title: 'Frequently Asked Questions',
@@ -27,7 +27,7 @@ const policyContents = {
   },
   'Terms of Service': {
     title: 'Terms of Service',
-    body: 'Welcome to Aai Prints (Ananta Art International). All catalog prices, specifications, and product descriptions represent authentic  goods. Orders are subject to standard verification and dispatch schedules.',
+    body: 'Welcome to OurOnlineDecor. All catalog prices, specifications, and product descriptions represent authentic products. Orders are subject to standard verification and dispatch schedules.',
   },
 };
 
@@ -50,7 +50,7 @@ export default function Footer({ onNavigate }) {
     { label: 'Car Dashboard Idols', category: 'Dashboard Idols' },
     { label: 'Car Hangings', category: 'Car Hangings' },
     { label: 'Metal Wall Art Craft', category: 'Metal Wall Art' },
-    { label: 'Artisan Wall Clocks', category: 'Wall Clocks' },
+    { label: 'Designer Wall Clocks', category: 'Wall Clocks' },
     { label: 'Desk Standees & Gifts', category: 'Desk Standees' },
   ];
 
@@ -212,7 +212,7 @@ export default function Footer({ onNavigate }) {
         {/* ── Payment Badges & Copyright Bottom Bar ── */}
         <div className="footer-bottom">
           <p className="footer-copy">
-            © {new Date().getFullYear()} <strong>Aai Prints</strong> (A Subsidiary of Our Online Decor). Crafted in India. All Rights Reserved.
+            © {new Date().getFullYear()} <strong>OurOnlineDecor</strong>. Crafted in India. All Rights Reserved.
           </p>
         </div>
       </div>

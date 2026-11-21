@@ -5,8 +5,8 @@ import './TrustBar.css';
 const features = [
   {
     icon: <ShieldCheck size={24} strokeWidth={2} />,
-    title: 'Artisan Quality',
-    desc: ' with precision',
+    title: 'Premium Quality',
+    desc: 'Crafted with precision & high-grade materials',
   },
   {
     icon: <Truck size={24} strokeWidth={2} />,

@@ -140,7 +140,7 @@ export default function CartPage({
             </div>
             <h2 className="cart-empty-title">Your Cart Is Empty</h2>
             <p className="cart-empty-desc">
-              You haven't added any home decor pieces to your cart yet. Explore our  spiritual idols, illuminated frames, and artisan wall art.
+              You haven't added any home decor pieces to your cart yet. Explore our spiritual idols, illuminated frames, and designer wall art.
             </p>
             <button
               type="button"
@@ -385,7 +385,7 @@ export default function CartPage({
                   </div>
                   <div className="cart-trust-item">
                     <ShieldCheck size={15} />
-                    <span>Artisan  Quality Guarantee</span>
+                    <span>Premium Quality Guarantee</span>
                   </div>
                 </div>
               </div>
@@ -443,9 +443,9 @@ export default function CartPage({
             <div className="cart-checkout-notice-icon">
               <CreditCard size={32} style={{ color: 'var(--teal)' }} />
             </div>
-            <h3 id="checkout-notice-title" className="cart-modal-title">Priority Concierge Order</h3>
+            <h3 id="checkout-notice-title" className="cart-modal-title">Customer Support Order</h3>
             <p className="cart-modal-msg">
-              We are currently coordinating custom orders, fast delivery, and payments directly through our dedicated concierge support.
+              We are currently coordinating custom orders, fast delivery, and payments directly through our dedicated customer support team.
               Your cart with <strong>{cartCount} {cartCount === 1 ? 'item' : 'items'}</strong> (Total: <strong>₹{finalTotal.toLocaleString('en-IN')}</strong>) is safely reserved.
             </p>
             <div className="cart-modal-actions">

@@ -37,7 +37,7 @@ const categories = [
   {
     id: 'cat-5',
     title: 'Framed Wall Art',
-    count: '95+ Masterpieces',
+    count: '95+ Curated Pieces',
     image: '/new-images/cat-framed-wall-art.jpg',
     href: '/shop?category=Framed%20Wall%20Art',
     tag: '',
@@ -48,7 +48,7 @@ const categories = [
     count: '50+ Modern Craft',
     image: '/new-images/cat-metal-wall-art.jpg',
     href: '/shop?category=Metal%20Wall%20Art',
-    tag: 'Artisan',
+    tag: 'Premium',
   },
 ];
 
@@ -66,7 +66,7 @@ export default function CategorySection() {
           <span className="sec-eyebrow">FEATURED COLLECTIONS</span>
           <h2 className="sec-title">Shop by Category</h2>
           <p className="sec-subtitle">
-            Explore  devotional artwork, illuminated LED frames, and artisan home decor designed for modern living.
+            Explore devotional artwork, illuminated LED frames, and premium home decor designed for modern living.
           </p>
         </motion.div>
 

@@ -167,7 +167,7 @@ export default function HeroSlider({ onSelectCategory }) {
           <div className="gallery-header-left">
             <h2 className="gallery-title">Gallery</h2>
             <p className="gallery-subtitle">
-              Explore our handcrafted devotional artworks, illuminated LED frames &amp; artisan decor.
+              Explore our handcrafted devotional artworks, illuminated LED frames &amp; premium decor.
             </p>
           </div>
         </div>

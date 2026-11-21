@@ -138,8 +138,8 @@ export default function CheckoutPage({
     }
   }, [user]);
 
-  // Delivery options: 'standard' | 'express'
-  const [shippingMethod, setShippingMethod] = useState('standard');
+  // Delivery option: 'standard'
+  const [shippingMethod] = useState('standard');
 
   // Payment method: 'cod' | 'online'
   const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -193,9 +193,8 @@ export default function CheckoutPage({
 
   // Shipping fee calculation (Free on orders above ₹499, otherwise ₹49 standard)
   const shippingFee = useMemo(() => {
-    if (shippingMethod === 'express') return 99;
     return subtotal >= 499 ? 0 : 49;
-  }, [shippingMethod, subtotal]);
+  }, [subtotal]);
 
   // Final total
   const finalTotal = Math.max(0, subtotal - discount + shippingFee);
@@ -572,15 +571,14 @@ export default function CheckoutPage({
   // Format delivery estimated date (+4 business days)
   const estimatedDeliveryDate = useMemo(() => {
     const now = new Date();
-    const daysToAdd = shippingMethod === 'express' ? 2 : 4;
-    now.setDate(now.getDate() + daysToAdd);
+    now.setDate(now.getDate() + 4);
     return now.toLocaleDateString('en-IN', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
-  }, [shippingMethod]);
+  }, []);
 
   // ════════════════════════════════════════════════════════════════
   // 1. ORDER CONFIRMATION / SUCCESS VIEW
@@ -606,7 +604,7 @@ export default function CheckoutPage({
             <span className="success-eyebrow">ORDER CONFIRMED</span>
             <h1 className="success-title">Thank You for Your Order!</h1>
             <p className="success-subtitle">
-              Your  piece from Ananta Art International is being carefully prepared for secure transit.
+              Your piece from OurOnlineDecor is being carefully prepared for secure transit.
             </p>
 
             {/* Order Reference Box */}
@@ -676,11 +674,7 @@ export default function CheckoutPage({
                 </div>
                 <div className="success-keyval">
                   <span>Delivery Mode:</span>
-                  <strong>
-                    {confirmedOrder.shippingMethod === 'express'
-                      ? 'Express Courier (1–2 Days)'
-                      : 'Standard Safe Delivery'}
-                  </strong>
+                  <strong>Standard Safe Delivery (3–5 Business Days)</strong>
                 </div>
                 <div className="success-keyval">
                   <span>Subtotal:</span>
@@ -1118,22 +1112,19 @@ export default function CheckoutPage({
 
                 <div className="checkout-radio-group">
                   {/* Standard Delivery */}
-                  <label
-                    className={`checkout-radio-card ${shippingMethod === 'standard' ? 'is-selected' : ''
-                      }`}
-                  >
+                  <label className="checkout-radio-card is-selected">
                     <input
                       type="radio"
                       name="shippingMethod"
                       value="standard"
-                      checked={shippingMethod === 'standard'}
-                      onChange={() => setShippingMethod('standard')}
+                      checked={true}
+                      readOnly
                     />
                     <div className="checkout-radio-content">
                       <div className="checkout-radio-top">
                         <span className="checkout-radio-name">
                           <Truck size={16} />
-                          <strong>Standard Safe Delivery (3–5 Business Days)</strong>
+                          <strong>Standard Safe Delivery (5-7 Business Days)</strong>
                         </span>
                         <span className="checkout-radio-price">
                           {subtotal >= 499 ? (
@@ -1143,37 +1134,6 @@ export default function CheckoutPage({
                           )}
                         </span>
                       </div>
-                      <p className="checkout-radio-desc">
-                        Full transit insurance included. Dispatches within 24 hours.
-                      </p>
-                    </div>
-                  </label>
-
-                  {/* Express Courier */}
-                  <label
-                    className={`checkout-radio-card ${shippingMethod === 'express' ? 'is-selected' : ''
-                      }`}
-                  >
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      value="express"
-                      checked={shippingMethod === 'express'}
-                      onChange={() => setShippingMethod('express')}
-                    />
-                    <div className="checkout-radio-content">
-                      <div className="checkout-radio-top">
-                        <span className="checkout-radio-name">
-                          <Sparkles size={16} />
-                          <strong>Express Priority Courier (1–2 Business Days)</strong>
-                        </span>
-                        <span className="checkout-radio-price">
-                          <strong>₹99</strong>
-                        </span>
-                      </div>
-                      <p className="checkout-radio-desc">
-                        Air-priority dispatch via BlueDart / Delhivery Express.
-                      </p>
                     </div>
                   </label>
                 </div>
@@ -1210,7 +1170,6 @@ export default function CheckoutPage({
                           <ShoppingBag size={16} />
                           <strong>Cash on Delivery (Pay at Doorstep)</strong>
                         </span>
-                        <span className="checkout-badge-pill">POPULAR</span>
                       </div>
                       <p className="checkout-radio-desc">
                         Pay in cash or scan UPI QR code directly with delivery agent upon arrival.
@@ -1235,9 +1194,6 @@ export default function CheckoutPage({
                         <span className="checkout-radio-name">
                           <CreditCard size={16} />
                           <strong>Instant Online Payment (UPI / Cards / NetBanking)</strong>
-                        </span>
-                        <span className="checkout-badge-pill checkout-badge-pill--green">
-                          INSTANT
                         </span>
                       </div>
                       <p className="checkout-radio-desc">
@@ -1427,7 +1383,7 @@ export default function CheckoutPage({
                   </span>
                 </div>
 
-                {subtotal < 499 && shippingMethod === 'standard' && (
+                {subtotal < 499 && (
                   <p className="checkout-free-shipping-hint">
                     Add ₹{(499 - subtotal).toLocaleString('en-IN')} more to unlock{' '}
                     <strong>FREE Standard Shipping</strong>!

@@ -83,7 +83,7 @@ const seedCategories = async () => {
       {
         name: 'Wall Hangings',
         slug: 'wall-hangings',
-        description: 'Artisanal spiritual wall hangings and divine tapestries',
+        description: 'Premium spiritual wall hangings and divine tapestries',
         image: '/new-images/cat-wall-hangings.jpg',
         parentCategory: parentMap['devotional'],
         order: 1,

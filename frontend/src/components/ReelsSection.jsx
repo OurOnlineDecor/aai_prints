@@ -309,11 +309,11 @@ export default function ReelsSection() {
           <div className="reels-header-left">
             <span className="reels-eyebrow">
               <Sparkles size={14} className="reels-eyebrow-icon" />
-              HANDCRAFTED STORIES • WATCH ON REELS
+              PRODUCT SHOWCASE • WATCH ON REELS
             </span>
-            <h2 className="reels-title">Artisan Reels &amp; Highlights</h2>
+            <h2 className="reels-title">Product Showcase &amp; Highlights</h2>
             <p className="reels-subtitle">
-              Glimpses of sacred craftsmanship, divine luminescence, and intricate details direct from our workshop.
+              Glimpses of premium craftsmanship, warm illumination, and intricate details direct from our workshop.
             </p>
           </div>
 

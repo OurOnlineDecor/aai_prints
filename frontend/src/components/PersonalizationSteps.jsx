@@ -19,7 +19,7 @@ const STEPS = [
     step: '03',
     icon: Truck,
     title: 'We Craft & Deliver',
-    description: 'Our master artisans handcraft your piece with precision and deliver it safely to your doorstep.',
+    description: 'Our expert craftsmen produce your piece with precision and deliver it safely to your doorstep.',
   },
 ];
 

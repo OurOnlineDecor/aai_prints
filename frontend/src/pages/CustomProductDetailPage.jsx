@@ -340,13 +340,13 @@ export default function CustomProductDetailPage({
                 </svg>
                 <div className="btn-content">
                   <span className="btn-main-text">Order via WhatsApp</span>
-                  <span className="btn-sub-text">Directly connect with our custom craft studio</span>
+                  <span className="btn-sub-text">Directly connect with our custom design team</span>
                 </div>
                 <ExternalLink size={18} className="btn-ext-icon" />
               </a>
 
               <p className="custom-order-disclaimer">
-                Clicking opens WhatsApp with your pre-filled inquiry. Our artisans will review your photos & details, provide a preview, and guide you through payment.
+                Clicking opens WhatsApp with your pre-filled inquiry. Our design team will review your photos & details, provide a preview, and guide you through payment.
               </p>
             </div>
           </div>

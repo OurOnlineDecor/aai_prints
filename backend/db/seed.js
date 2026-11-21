@@ -44,9 +44,9 @@ const seedData = async () => {
       phone: '+91 9876543210',
       addresses: [
         {
-          fullName: 'Aai Prints HQ',
+          fullName: 'OurOnlineDecor HQ',
           phone: '+91 9876543210',
-          street: '123 Artisans Avenue, Craft District',
+          street: '123 Commercial Avenue, Business District',
           city: 'Jaipur',
           state: 'Rajasthan',
           postalCode: '302001',
@@ -128,7 +128,7 @@ const seedData = async () => {
       {
         name: 'Wall Hangings',
         slug: 'wall-hangings',
-        description: ' wall hangings collection with authentic artisanal finishes',
+        description: ' wall hangings collection with authentic, premium finishes',
         parentCategory: catDevotional._id,
         order: 3
       },

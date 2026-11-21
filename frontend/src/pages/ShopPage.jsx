@@ -534,8 +534,8 @@ export default function ShopPage({
             <h1 className="shop-title">{displayTitle}</h1>
             <p className="shop-subtitle">
               {activeCategory === 'All'
-                ? 'Explore authentic devotional idols,  wall hangings, and designer decor for your home and car.'
-                : ` ${displayTitle.toLowerCase()} collection with authentic artisanal finishes.`}
+                ? 'Explore authentic devotional idols, elegant wall hangings, and designer decor for your home and car.'
+                : ` ${displayTitle.toLowerCase()} collection with authentic, premium finishes.`}
             </p>
           </div>
           <div className="shop-header-count">
