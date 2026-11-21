@@ -153,18 +153,16 @@
   }
 }
 
-/* ── Mobile & Tablet Responsiveness (Native Touch Scroll Rail) ── */
+/* ── Mobile & Tablet Responsiveness (Continuous Auto-Glide & Interactive Touch-Scroll Rail) ── */
 @media (max-width: 768px) {
   .catbar-wrap {
     padding: 16px 0 20px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
     scrollbar-width: none;
     -ms-overflow-style: none;
     touch-action: pan-x;
-    scroll-snap-type: x proximity;
   }
 
   .catbar-wrap::-webkit-scrollbar {
@@ -178,12 +176,12 @@
     pointer-events: none;
   }
 
-  /* Hide continuous infinite animation on mobile */
+  /* Hide desktop pure-CSS transform marquee on mobile */
   .desktop-only-catbar {
     display: none !important;
   }
 
-  /* Display clean touch-scrollable category shelf */
+  /* Display mobile continuous auto-gliding & touch-swipeable shelf */
   .catbar-mobile-shelf {
     display: flex !important;
     gap: 14px;
@@ -196,7 +194,6 @@
     flex: 0 0 105px;
     gap: 8px;
     padding: 4px;
-    scroll-snap-align: start;
   }
 
   .catbar-circle {
