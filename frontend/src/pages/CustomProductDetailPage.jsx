@@ -30,6 +30,43 @@ export default function CustomProductDetailPage({
   const [isCopied, setIsCopied] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
 
+  // Touch swipe support for custom gallery on mobile
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [isSwiping, setIsSwiping] = useState(false);
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+    setIsSwiping(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (touchStartX === null || touchStartY === null) return;
+    const diffX = touchStartX - e.touches[0].clientX;
+    const diffY = touchStartY - e.touches[0].clientY;
+    if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
+      setIsSwiping(true);
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchStartX - touchEndX;
+    const minSwipe = 35;
+    if (images.length > 1 && Math.abs(diffX) >= minSwipe) {
+      if (diffX > 0) {
+        setActiveImageIndex((prev) => (prev + 1) % images.length);
+      } else {
+        setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
+      }
+    }
+    setTouchStartX(null);
+    setTouchStartY(null);
+    setTimeout(() => setIsSwiping(false), 60);
+  };
+
   useEffect(() => {
     if (propProduct) {
       setProduct(propProduct);
@@ -128,19 +165,30 @@ export default function CustomProductDetailPage({
               LEFT COLUMN: Product Photo(s)
           ══════════════════════════════════════════════ */}
           <div className="custom-pdp-gallery">
-            <div className="custom-main-image-wrap">
+            <div
+              className="custom-main-image-wrap"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <img
                 src={images[activeImageIndex]}
                 alt={product.name}
                 className={`custom-main-image ${isZoomed ? 'zoomed' : ''}`}
-                onClick={() => setIsZoomed(!isZoomed)}
+                onClick={() => {
+                  if (isSwiping) return;
+                  setIsZoomed(!isZoomed);
+                }}
               />
 
               <button
                 type="button"
                 className="custom-image-zoom-btn"
                 title="Zoom photo"
-                onClick={() => setIsZoomed(!isZoomed)}
+                onClick={() => {
+                  if (isSwiping) return;
+                  setIsZoomed(!isZoomed);
+                }}
               >
                 <ZoomIn size={16} />
               </button>

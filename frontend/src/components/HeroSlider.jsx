@@ -95,6 +95,70 @@ export default function HeroSlider({ onSelectCategory }) {
   const s = slides[active];
   const fsSlide = slides[fullscreenIndex];
 
+  // Touch swipe gesture handlers for main slider on mobile
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [isSwiping, setIsSwiping] = useState(false);
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+    setIsSwiping(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (touchStartX === null || touchStartY === null) return;
+    const diffX = touchStartX - e.touches[0].clientX;
+    const diffY = touchStartY - e.touches[0].clientY;
+    if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
+      setIsSwiping(true);
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchStartX - touchEndX;
+    const minSwipeDistance = 35;
+
+    if (Math.abs(diffX) >= minSwipeDistance) {
+      if (diffX > 0) {
+        next();
+      } else {
+        prev();
+      }
+    }
+    setTouchStartX(null);
+    setTouchStartY(null);
+    setTimeout(() => setIsSwiping(false), 60);
+  };
+
+  // Fullscreen touch swipe gesture handlers for lightbox on mobile
+  const [fsTouchStartX, setFsTouchStartX] = useState(null);
+  const [fsTouchStartY, setFsTouchStartY] = useState(null);
+
+  const handleFsTouchStart = (e) => {
+    setFsTouchStartX(e.touches[0].clientX);
+    setFsTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleFsTouchEnd = (e) => {
+    if (fsTouchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = fsTouchStartX - touchEndX;
+    const minSwipeDistance = 35;
+
+    if (Math.abs(diffX) >= minSwipeDistance) {
+      if (diffX > 0) {
+        nextFullscreen();
+      } else {
+        prevFullscreen();
+      }
+    }
+    setFsTouchStartX(null);
+    setFsTouchStartY(null);
+  };
+
   return (
     <section className="gallery-section" id="gallery" aria-label="Curated Visual Gallery">
       <div className="gallery-container">
@@ -113,11 +177,13 @@ export default function HeroSlider({ onSelectCategory }) {
           <div
             className="hero-slider"
             onClick={() => {
-              // Not links: opens current image in immersive fullscreen lightbox
+              if (isSwiping) return;
               openFullscreen(active);
-              // onSelectCategory(s.category); // preserved for test assertion, disabled for user navigation
             }}
-            title="Click to view in fullscreen"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            title="Click to view in fullscreen, swipe left or right on mobile"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -229,10 +295,12 @@ export default function HeroSlider({ onSelectCategory }) {
               <ChevronLeft size={30} />
             </button>
 
-            {/* Image Stage */}
+            {/* Image Stage with Mobile Swipe Support */}
             <div
               className="gallery-lightbox-content"
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={handleFsTouchStart}
+              onTouchEnd={handleFsTouchEnd}
             >
               <img
                 src={fsSlide.image}

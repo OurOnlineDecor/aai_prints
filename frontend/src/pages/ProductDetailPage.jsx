@@ -132,6 +132,43 @@ export default function ProductDetailPage({
   // Zoom modal state
   const [isZoomOpen, setIsZoomOpen] = useState(false);
 
+  // Touch swipe support for gallery on mobile
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [isSwiping, setIsSwiping] = useState(false);
+
+  const handleGalleryTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+    setIsSwiping(false);
+  };
+
+  const handleGalleryTouchMove = (e) => {
+    if (touchStartX === null || touchStartY === null) return;
+    const diffX = touchStartX - e.touches[0].clientX;
+    const diffY = touchStartY - e.touches[0].clientY;
+    if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
+      setIsSwiping(true);
+    }
+  };
+
+  const handleGalleryTouchEnd = (e) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchStartX - touchEndX;
+    const minSwipe = 35;
+    if (Math.abs(diffX) >= minSwipe) {
+      if (diffX > 0) {
+        handleNextImage();
+      } else {
+        handlePrevImage();
+      }
+    }
+    setTouchStartX(null);
+    setTouchStartY(null);
+    setTimeout(() => setIsSwiping(false), 60);
+  };
+
   // Lock body scroll and listen for Escape key when zoom modal is open
   useEffect(() => {
     if (isZoomOpen) {
@@ -378,10 +415,14 @@ export default function ProductDetailPage({
 
                 <div
                   className="pdp-main-image-container"
+                  onTouchStart={handleGalleryTouchStart}
+                  onTouchMove={handleGalleryTouchMove}
+                  onTouchEnd={handleGalleryTouchEnd}
                   onClick={() => {
+                    if (isSwiping) return;
                     if (currentImageSrc) setIsZoomOpen(true);
                   }}
-                  title={currentImageSrc ? "Click to view full image" : ""}
+                  title={currentImageSrc ? "Click to view full image (swipe to browse photos)" : ""}
                   role={currentImageSrc ? "button" : undefined}
                   tabIndex={currentImageSrc ? 0 : undefined}
                   onKeyDown={(e) => {
@@ -845,7 +886,12 @@ export default function ProductDetailPage({
       {/* ── 5. Zoom Modal (Portaled to document.body to guarantee 100vw/100vh viewport coverage) ── */}
       {isZoomOpen && currentImageSrc && createPortal(
         <div className="pdp-zoom-overlay" onClick={() => setIsZoomOpen(false)}>
-          <div className="pdp-zoom-content" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="pdp-zoom-content"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleGalleryTouchStart}
+            onTouchEnd={handleGalleryTouchEnd}
+          >
             <button
               type="button"
               className="pdp-zoom-close"

@@ -40,7 +40,12 @@
   background: linear-gradient(to left, #D4BC92 0%, rgba(212, 188, 146, 0) 100%);
 }
 
-/* ── Continuous Endless Loop Track ── */
+/* ── Mobile Shelf (hidden by default on PC/desktop) ── */
+.catbar-mobile-shelf {
+  display: none;
+}
+
+/* ── Continuous Endless Loop Track (Desktop) ── */
 .catbar-track {
   display: flex;
   width: max-content;
@@ -148,44 +153,63 @@
   }
 }
 
-/* ── Mobile & Tablet Responsiveness ── */
+/* ── Mobile & Tablet Responsiveness (Native Touch Scroll Rail) ── */
 @media (max-width: 768px) {
   .catbar-wrap {
     padding: 16px 0 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    touch-action: pan-x;
+    scroll-snap-type: x proximity;
+  }
+
+  .catbar-wrap::-webkit-scrollbar {
+    display: none;
   }
 
   .catbar-wrap::before,
   .catbar-wrap::after {
-    width: 32px;
+    width: 20px;
+    opacity: 0.45;
+    pointer-events: none;
   }
 
-  .catbar-marquee-group {
-    gap: 12px;
-    padding-right: 12px;
+  /* Hide continuous infinite animation on mobile */
+  .desktop-only-catbar {
+    display: none !important;
+  }
+
+  /* Display clean touch-scrollable category shelf */
+  .catbar-mobile-shelf {
+    display: flex !important;
+    gap: 14px;
+    padding: 0 16px;
+    width: max-content;
   }
 
   .catbar-item {
-    width: 115px;
-    flex: 0 0 115px;
+    width: 105px;
+    flex: 0 0 105px;
     gap: 8px;
-    padding: 4px 6px;
+    padding: 4px;
+    scroll-snap-align: start;
   }
 
   .catbar-circle {
-    width: 96px;
-    height: 96px;
+    width: 90px;
+    height: 90px;
     padding: 2.5px;
     box-shadow: 0 0 0 2.5px #FFFFFF, 0 4px 14px rgba(57, 51, 46, 0.1), 0 0 10px rgba(210, 185, 140, 0.35);
   }
 
   .catbar-label {
     font-size: 11px;
-    max-width: 105px;
+    max-width: 100px;
     letter-spacing: 0.2px;
-  }
-
-  .catbar-track {
-    animation-duration: 28s;
   }
 }
 

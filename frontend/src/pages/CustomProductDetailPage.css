@@ -88,6 +88,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .custom-main-image {
@@ -132,7 +135,16 @@
   display: flex;
   gap: 12px;
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding-bottom: 4px;
+  scroll-snap-type: x proximity;
+}
+
+.custom-thumbnails-row::-webkit-scrollbar {
+  display: none;
 }
 
 .custom-thumb-btn {
@@ -147,6 +159,7 @@
   opacity: 0.7;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  scroll-snap-align: start;
 }
 
 .custom-thumb-btn.active {

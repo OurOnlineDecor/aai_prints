@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -78,6 +79,33 @@ export default function Navbar({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen, menuOpen]);
+
+  // Lock background body scroll when mobile menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [menuOpen]);
+
+  // Auto-close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname, location.search]);
+
+  // Auto-close mobile menu on desktop viewport resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 960) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleMobileSubmenu = (label) => {
     setMobileSubmenu((prev) => (prev === label ? null : label));
@@ -240,9 +268,11 @@ export default function Navbar({
             className={`navbar-wholesale-btn desktop-only-flex ${currentPage === 'b2b' ? 'active' : ''}`}
             title="Bulk Orders"
             onClick={(e) => {
+              e.preventDefault();
               if (onNavigate) {
-                e.preventDefault();
                 onNavigate('b2b');
+              } else {
+                navigate('/b2b');
               }
             }}
           >
@@ -258,9 +288,12 @@ export default function Navbar({
             title="Bulk"
             aria-label="Bulk"
             onClick={(e) => {
+              e.preventDefault();
+              setMenuOpen(false);
               if (onNavigate) {
-                e.preventDefault();
                 onNavigate('b2b');
+              } else {
+                navigate('/b2b');
               }
             }}
           >
@@ -272,7 +305,10 @@ export default function Navbar({
             className={`icon-btn search-trigger-btn ${searchOpen ? 'icon-btn--active' : ''}`}
             aria-label={searchOpen ? 'Close search' : 'Open search'}
             title="Search"
-            onClick={() => setSearchOpen((prev) => !prev)}
+            onClick={() => {
+              setSearchOpen((prev) => !prev);
+              setMenuOpen(false);
+            }}
             aria-expanded={searchOpen}
           >
             <Search size={19} strokeWidth={2} />
@@ -340,7 +376,10 @@ export default function Navbar({
           {/* 7. Hamburger Menu Trigger – mobile only */}
           <button
             className={`hamburger${menuOpen ? ' open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => {
+              setMenuOpen(!menuOpen);
+              setSearchOpen(false);
+            }}
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
           >
@@ -459,123 +498,146 @@ export default function Navbar({
         )}
       </AnimatePresence>
 
-      {/* ── Mobile Dropdown Menu ── */}
+      {/* ── Mobile Dropdown Menu with Fixed Backdrop ── */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.nav
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.16 }}
-            className="mobile-menu"
-            aria-label="Mobile navigation"
-          >
-            {navLinks.map((link) => {
-              const isGroupActive = link.label === activeNavLabel;
+          <>
+            {createPortal(
+              <motion.div
+                key="navbar-mobile-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="mobile-menu-backdrop"
+                onClick={() => setMenuOpen(false)}
+                aria-hidden="true"
+              />,
+              document.body
+            )}
+            <motion.nav
+              key="navbar-mobile-nav"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="mobile-menu"
+              aria-label="Mobile navigation"
+            >
+              {navLinks.map((link) => {
+                const isGroupActive = link.label === activeNavLabel;
 
-              return (
-                <div key={link.label} className="mobile-nav-group">
-                  <div className="mobile-nav-row">
-                    <a
-                      href={link.href}
-                      className={`mobile-nav-link ${isGroupActive ? 'mobile-nav-link--active' : ''}`}
-                      onClick={(e) => {
-                        if (!link.hasDropdown) {
-                          handleNavClick(e, link);
-                        } else {
-                          e.preventDefault();
-                          toggleMobileSubmenu(link.label);
-                        }
-                      }}
-                    >
-                      {link.label}
-                    </a>
-                    {link.hasDropdown && (
-                      <button
-                        type="button"
-                        className="mobile-sub-toggle"
-                        onClick={() => toggleMobileSubmenu(link.label)}
-                        aria-label={`Toggle ${link.label} submenu`}
-                      >
-                        <ChevronRight
-                          size={16}
-                          strokeWidth={2}
-                          className={`sub-chevron ${mobileSubmenu === link.label ? 'open' : ''}`}
-                        />
-                      </button>
-                    )}
-                  </div>
-                  {link.hasDropdown && mobileSubmenu === link.label && (
-                    <div className="mobile-sub-list">
-                      {link.children.map((child) => {
-                        const isChildActive =
-                          Boolean(selectedCategory) &&
-                          String(selectedCategory).toLowerCase().trim() === (child.category || '').toLowerCase().trim();
-
-                        return (
-                          <a
-                            key={child.label}
-                            href={child.href}
-                            className={`mobile-sub-link ${isChildActive ? 'mobile-sub-link--active' : ''}`}
-                            onClick={(e) => {
-                              if (onNavigate) {
-                                e.preventDefault();
-                                if (child.page === 'custom-product') {
-                                  onNavigate('custom-product', child.slug);
-                                } else {
-                                  onNavigate(child.page || 'shop', child.category || 'All');
-                                }
-                                setMenuOpen(false);
-                              }
-                            }}
-                          >
-                            {child.label}
-                          </a>
-                        );
-                      })}
+                return (
+                  <div key={link.label} className="mobile-nav-group">
+                    <div className="mobile-nav-row">
                       <a
                         href={link.href}
-                        className="mobile-sub-link mobile-sub-link--view-all"
+                        className={`mobile-nav-link ${isGroupActive ? 'mobile-nav-link--active' : ''}`}
                         onClick={(e) => {
-                          if (onNavigate) {
+                          if (!link.hasDropdown) {
+                            handleNavClick(e, link);
+                          } else {
                             e.preventDefault();
-                            onNavigate(link.page || 'shop', link.category || 'All');
-                            setMenuOpen(false);
+                            toggleMobileSubmenu(link.label);
                           }
                         }}
                       >
-                        View All {link.label} →
+                        {link.label}
                       </a>
+                      {link.hasDropdown && (
+                        <button
+                          type="button"
+                          className="mobile-sub-toggle"
+                          onClick={() => toggleMobileSubmenu(link.label)}
+                          aria-label={`Toggle ${link.label} submenu`}
+                        >
+                          <ChevronRight
+                            size={16}
+                            strokeWidth={2}
+                            className={`sub-chevron ${mobileSubmenu === link.label ? 'open' : ''}`}
+                          />
+                        </button>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                    {link.hasDropdown && mobileSubmenu === link.label && (
+                      <div className="mobile-sub-list">
+                        {link.children.map((child) => {
+                          const isChildActive =
+                            Boolean(selectedCategory) &&
+                            String(selectedCategory).toLowerCase().trim() === (child.category || '').toLowerCase().trim();
 
-            {/* Quick Switch to Bulk Orders for Mobile */}
-            <div className="mobile-wholesale-wrap">
-              <a
-                href="#/b2b"
-                className={`mobile-wholesale-card ${currentPage === 'b2b' ? 'active' : ''}`}
-                onClick={(e) => {
-                  if (onNavigate) {
-                    e.preventDefault();
-                    onNavigate('b2b');
-                    setMenuOpen(false);
-                  }
-                }}
-              >
-                <div className="mobile-wholesale-card-content">
-                  <div className="mobile-wholesale-badge-top">
-                    <Building2 size={13} strokeWidth={2.4} />
-                    <span>BULK DIVISION</span>
+                          return (
+                            <a
+                              key={child.label}
+                              href={child.href}
+                              className={`mobile-sub-link ${isChildActive ? 'mobile-sub-link--active' : ''}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setMenuOpen(false);
+                                if (onNavigate) {
+                                  if (child.page === 'custom-product') {
+                                    onNavigate('custom-product', child.slug);
+                                  } else {
+                                    onNavigate(child.page || 'shop', child.category || 'All');
+                                  }
+                                } else {
+                                  const cleanPath = child.href.replace(/^#/, '');
+                                  navigate(cleanPath || '/');
+                                }
+                              }}
+                            >
+                              {child.label}
+                            </a>
+                          );
+                        })}
+                        <a
+                          href={link.href}
+                          className="mobile-sub-link mobile-sub-link--view-all"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setMenuOpen(false);
+                            if (onNavigate) {
+                              onNavigate(link.page || 'shop', link.category || 'All');
+                            } else {
+                              const cleanPath = link.href.replace(/^#/, '');
+                              navigate(cleanPath || '/');
+                            }
+                          }}
+                        >
+                          View All {link.label} →
+                        </a>
+                      </div>
+                    )}
                   </div>
-                  <strong>Bulk Orders Portal</strong>
-                  <p>Factory-direct tiered volume rates &amp; custom branding</p>
-                </div>
-                <span className="mobile-wholesale-arrow">→</span>
-              </a>
-            </div>
+                );
+              })}
+
+              {/* Quick Switch to Bulk Orders for Mobile */}
+              <div className="mobile-wholesale-wrap">
+                <a
+                  href="#/b2b"
+                  className={`mobile-wholesale-card ${currentPage === 'b2b' ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMenuOpen(false);
+                    if (onNavigate) {
+                      onNavigate('b2b');
+                    } else {
+                      navigate('/b2b');
+                    }
+                  }}
+                >
+                  <div className="mobile-wholesale-card-content">
+                    <div className="mobile-wholesale-badge-top">
+                      <Building2 size={13} strokeWidth={2.4} />
+                      <span>BULK DIVISION</span>
+                    </div>
+                    <strong>Bulk Orders Portal</strong>
+                    <p>Factory-direct tiered volume rates &amp; custom branding</p>
+                  </div>
+                  <span className="mobile-wholesale-arrow">→</span>
+                </a>
+              </div>
 
             {/* Quick Access Actions for Mobile Menu (Account, Wishlist, Cart) */}
             <div className="mobile-menu-footer">
@@ -618,8 +680,9 @@ export default function Navbar({
               </button>
             </div>
           </motion.nav>
-        )}
-      </AnimatePresence>
+        </>
+      )}
+    </AnimatePresence>
     </header>
   );
 }

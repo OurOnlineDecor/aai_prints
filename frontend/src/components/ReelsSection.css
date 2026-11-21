@@ -108,9 +108,11 @@
 /* ── Carousel Shelf ── */
 .reels-track-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE */
+  scroll-snap-type: x proximity;
   padding: 8px 4px 18px;
   margin: 0 -4px;
 }
@@ -133,6 +135,7 @@
   flex-direction: column;
   cursor: pointer;
   outline: none;
+  scroll-snap-align: start;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

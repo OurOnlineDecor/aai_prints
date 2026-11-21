@@ -34,8 +34,38 @@ export default function CategoryScrollbar({ onSelectCategory }) {
   };
 
   return (
-    <div className="catbar-wrap" aria-label="Browse categories marquee">
-      <div className="catbar-track">
+    <div className="catbar-wrap" aria-label="Browse categories">
+      {/* ── Mobile Scrollable Rail (Mobile only: Touch swipe enabled, no auto-marquee) ── */}
+      <div className="catbar-mobile-shelf">
+        {categories.map((category, index) => (
+          <a
+            key={`mobile-${category.label}-${index}`}
+            href={category.href}
+            className="catbar-item"
+            title={category.label}
+            onClick={(e) => handleItemClick(e, category)}
+          >
+            <motion.div
+              whileHover={{ scale: 1.07 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+              className="catbar-circle"
+            >
+              <img
+                src={category.img}
+                alt={category.label}
+                className="catbar-img"
+                loading="lazy"
+                draggable="false"
+              />
+            </motion.div>
+            <span className="catbar-label">{category.label}</span>
+          </a>
+        ))}
+      </div>
+
+      {/* ── Desktop Infinite Loop Track (PC only: Continuous hands-free marquee) ── */}
+      <div className="catbar-track desktop-only-catbar">
         {/* Primary Marquee Group */}
         <div className="catbar-marquee-group">
           {marqueeGroup.map((category, index) => (

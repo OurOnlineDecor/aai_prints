@@ -80,6 +80,9 @@
   border-radius: 12px;
   box-shadow: 0 16px 45px -8px rgba(57, 51, 46, 0.22), 0 0 1px rgba(210, 185, 140, 0.4);
   cursor: zoom-in;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Background image cross-fade and Ken Burns micro-zoom */
@@ -324,6 +327,9 @@
   align-items: center;
   justify-content: center;
   animation: galleryZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 @keyframes galleryZoomIn {
@@ -408,12 +414,41 @@
   }
 
   .hero-arrow {
-    display: none;
+    display: flex;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    background: rgba(246, 240, 231, 0.88);
+    opacity: 0.85;
+  }
+
+  .hero-prev {
+    left: 10px;
+  }
+
+  .hero-next {
+    right: 10px;
+  }
+
+  .hero-dots {
+    bottom: 12px;
+    padding: 5px 12px;
+    gap: 6px;
+  }
+
+  .hero-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .hero-dot.active {
+    width: 18px;
   }
 
   .gallery-fullscreen-badge {
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
     padding: 4px 10px;
     font-size: 10px;
   }
@@ -426,7 +461,20 @@
   }
 
   .gallery-lightbox-nav {
-    display: none;
+    display: flex;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    background: rgba(30, 24, 24, 0.75);
+  }
+
+  .gallery-lightbox-nav.prev {
+    left: 10px;
+  }
+
+  .gallery-lightbox-nav.next {
+    right: 10px;
   }
 
   .gallery-lightbox-img {

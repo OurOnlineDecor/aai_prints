@@ -138,6 +138,9 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-card);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .pdp-main-image-container {
@@ -932,13 +935,23 @@
     flex-direction: row;
     width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     padding-bottom: 6px;
+    scroll-snap-type: x proximity;
+  }
+
+  .pdp-thumbnails::-webkit-scrollbar {
+    display: none;
   }
 
   .pdp-thumb-btn {
     width: 64px;
     height: 64px;
     flex-shrink: 0;
+    scroll-snap-align: start;
   }
 
   .pdp-title {
