@@ -2,6 +2,7 @@ const Order = require('../models/order.model');
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
 const Coupon = require('../models/coupon.model');
+const User = require('../models/user.model');
 const ApiError = require('../utils/apiError.util');
 const ApiResponse = require('../utils/apiResponse.util');
 const {
@@ -11,6 +12,7 @@ const {
   verifyWebhookSignature
 } = require('../utils/razorpay.util');
 const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require('../utils/brevo.util');
+const { syncOrderToGoogleSheet } = require('../services/googleSheets.service');
 
 // Atomic stock decrement with auto-rollback on insufficient inventory
 const decrementStockAtomically = async (orderItems) => {
@@ -355,11 +357,35 @@ const createOrder = async (req, res, next) => {
     }
 
     // 4. Create internal Order in MongoDB
+    let orderUserId = req.user ? req.user._id : null;
+    if (!orderUserId && (shippingAddress.email || shippingAddress.phone)) {
+      try {
+        const userConditions = [];
+        if (shippingAddress.email) {
+          userConditions.push({ email: shippingAddress.email.trim().toLowerCase() });
+        }
+        if (shippingAddress.phone) {
+          const cleanPhone = shippingAddress.phone.replace(/\D/g, '').slice(-10);
+          if (cleanPhone.length >= 7) {
+            userConditions.push({ phone: { $regex: new RegExp(cleanPhone + '$') } });
+          }
+        }
+        if (userConditions.length > 0) {
+          const matchedUser = await User.findOne({ $or: userConditions }).select('_id');
+          if (matchedUser) {
+            orderUserId = matchedUser._id;
+          }
+        }
+      } catch (linkErr) {
+        console.warn('[Order Controller] Could not match guest to existing user:', linkErr.message);
+      }
+    }
+
     const orderNumber = `AAI-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const order = await Order.create({
       orderNumber,
-      user: req.user ? req.user._id : null,
+      user: orderUserId,
       items: orderItems,
       shippingAddress: {
         fullName: shippingAddress.fullName,
@@ -444,6 +470,11 @@ const createOrder = async (req, res, next) => {
       sendOrderConfirmationEmail(order).catch((mailErr) => {
         console.warn('[Order Controller] Brevo order email error:', mailErr.message);
       });
+
+      // 8. Auto-log order to Google Sheet (if webhook configured)
+      syncOrderToGoogleSheet(order).catch((sheetErr) => {
+        console.warn('[Order Controller] Google Sheet sync warning:', sheetErr.message);
+      });
     }
 
     return ApiResponse.send(
@@ -465,17 +496,51 @@ const createOrder = async (req, res, next) => {
 // @access  Private
 const getMyOrders = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
     const pageNum = parseInt(page, 10) || 1;
-    const limitNum = parseInt(limit, 10) || 10;
+    const limitNum = parseInt(limit, 10) || 20;
     const skip = (pageNum - 1) * limitNum;
 
+    // Build intelligent query: Match by User ID OR Email OR Phone
+    const userConditions = [{ user: req.user._id }];
+
+    if (req.user.email) {
+      userConditions.push({
+        'shippingAddress.email': { $regex: new RegExp(`^${req.user.email.trim()}$`, 'i') }
+      });
+    }
+
+    if (req.user.phone) {
+      const cleanPhone = req.user.phone.replace(/\D/g, '').slice(-10);
+      if (cleanPhone.length >= 7) {
+        userConditions.push({
+          'shippingAddress.phone': { $regex: new RegExp(cleanPhone + '$') }
+        });
+      }
+    }
+
+    const orderQuery = { $or: userConditions };
+
+    // Auto-link any matching unlinked guest orders to this user in background
+    if (userConditions.length > 1) {
+      Order.updateMany(
+        {
+          $or: userConditions.slice(1),
+          user: null
+        },
+        { $set: { user: req.user._id } }
+      ).catch((linkErr) => {
+        console.warn('[Order Controller] Background order link warning:', linkErr.message);
+      });
+    }
+
     const [orders, totalCount] = await Promise.all([
-      Order.find({ user: req.user._id })
+      Order.find(orderQuery)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limitNum),
-      Order.countDocuments({ user: req.user._id })
+        .limit(limitNum)
+        .lean(),
+      Order.countDocuments(orderQuery)
     ]);
 
     return ApiResponse.send(res, 200, { orders }, 'Orders retrieved', {
@@ -498,15 +563,23 @@ const getOrderById = async (req, res, next) => {
       return next(new ApiError(404, 'Order not found'));
     }
 
-    // Guard: only owner or admin can view
-    if (!order.user) {
-      if (req.user.role !== 'admin') {
-        return next(
-          new ApiError(403, 'Access denied. Administrator privileges required to inspect guest orders.')
-        );
-      }
-    } else if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Guard: owner or admin can view
+    const userPhoneClean = req.user.phone ? req.user.phone.replace(/\D/g, '').slice(-10) : '';
+    const orderPhoneClean = order.shippingAddress?.phone ? order.shippingAddress.phone.replace(/\D/g, '').slice(-10) : '';
+
+    const isOwner =
+      (order.user && order.user._id.toString() === req.user._id.toString()) ||
+      (order.shippingAddress?.email && req.user.email && order.shippingAddress.email.trim().toLowerCase() === req.user.email.trim().toLowerCase()) ||
+      (userPhoneClean && orderPhoneClean && userPhoneClean === orderPhoneClean);
+
+    if (!isOwner && req.user.role !== 'admin') {
       return next(new ApiError(403, 'Access denied to this order'));
+    }
+
+    // Auto-link order if owner was viewing unlinked guest order
+    if (!order.user && isOwner) {
+      order.user = req.user._id;
+      await order.save().catch(() => null);
     }
 
     return ApiResponse.send(res, 200, { order });
@@ -727,6 +800,11 @@ const verifyPayment = async (req, res, next) => {
       console.warn('[Order Verify] Brevo email error:', mailErr.message);
     });
 
+    // Auto-log verified paid order to Google Sheet
+    syncOrderToGoogleSheet(order).catch((sheetErr) => {
+      console.warn('[Order Verify] Google Sheet sync warning:', sheetErr.message);
+    });
+
     return ApiResponse.send(res, 200, { order }, 'Payment verified and order confirmed successfully');
   } catch (error) {
     next(error);
@@ -789,6 +867,45 @@ const handleRazorpayWebhook = async (req, res, next) => {
   }
 };
 
+// @desc    Track guest order by Order Number and Phone or Email
+// @route   POST /api/v1/orders/track
+// @access  Public
+const trackGuestOrder = async (req, res, next) => {
+  try {
+    const { orderNumber, contact } = req.body;
+    if (!orderNumber || !contact) {
+      return next(new ApiError(400, 'Order number and phone/email are required'));
+    }
+
+    const cleanOrderNum = orderNumber.trim();
+    const cleanContact = contact.trim().toLowerCase();
+    const cleanPhone = cleanContact.replace(/\D/g, '').slice(-10);
+
+    const order = await Order.findOne({
+      $or: [
+        { orderNumber: { $regex: new RegExp(`^${cleanOrderNum}$`, 'i') } },
+        ...(cleanOrderNum.length === 24 ? [{ _id: cleanOrderNum }] : [])
+      ]
+    });
+
+    if (!order) {
+      return next(new ApiError(404, 'No order found with the provided details.'));
+    }
+
+    // Verify contact matches email or phone
+    const emailMatch = order.shippingAddress?.email && order.shippingAddress.email.toLowerCase() === cleanContact;
+    const phoneMatch = cleanPhone.length >= 7 && order.shippingAddress?.phone && order.shippingAddress.phone.replace(/\D/g, '').slice(-10) === cleanPhone;
+
+    if (!emailMatch && !phoneMatch) {
+      return next(new ApiError(403, 'The contact information provided does not match this order.'));
+    }
+
+    return ApiResponse.send(res, 200, { order }, 'Order retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getCheckoutPreview,
   createOrder,
@@ -798,4 +915,5 @@ module.exports = {
   getOrderById,
   getAllOrders,
   updateOrderStatus,
+  trackGuestOrder,
 };

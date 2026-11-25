@@ -10,6 +10,7 @@ import CustomProductDetailPage from './pages/CustomProductDetailPage';
 import CartPage from './pages/CartPage';
 import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
+import OrdersPage from './pages/OrdersPage';
 import B2BPortalPage from './pages/B2BPortalPage';
 import AdminAddProductPage from './pages/AdminAddProductPage';
 import AdminB2BPage from './pages/AdminB2BPage';
@@ -37,6 +38,8 @@ export default function App() {
               <Route path="cart" element={<CartPage />} />
               <Route path="wishlist" element={<WishlistPage />} />
               <Route path="checkout" element={<CheckoutPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="my-orders" element={<OrdersPage />} />
 
               {/* Wholesale / B2B */}
               <Route path="b2b" element={<B2BPortalPage />} />

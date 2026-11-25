@@ -29,8 +29,10 @@ import {
   MapPin,
   Clock,
   Send,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { exportOrdersToExcel } from '../utils/excelExport';
 import { fetchAllProducts } from '../services/productService';
 import {
   fetchCustomProducts,
@@ -2204,6 +2206,29 @@ export default function AdminAddProductPage({
                 >
                   <RefreshCw size={13} className={isLoadingOrders ? 'spin-anim' : ''} />
                   <span>Refresh</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-product-crumb-btn"
+                  onClick={() => exportOrdersToExcel(filteredOrders.length > 0 ? filteredOrders : orders)}
+                  style={{
+                    background: '#166534',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '8px 14px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(22, 101, 52, 0.25)',
+                  }}
+                  title="Download orders as an Excel spreadsheet (.xlsx)"
+                >
+                  <FileSpreadsheet size={13} />
+                  <span>Export to Excel</span>
                 </button>
               </div>
             </div>

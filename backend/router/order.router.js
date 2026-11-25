@@ -10,7 +10,8 @@ const {
   getMyOrders,
   getOrderById,
   getAllOrders,
-  updateOrderStatus
+  updateOrderStatus,
+  trackGuestOrder
 } = require('../controllers/order.controller');
 const { protect, protectOptional, authorize } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
@@ -20,6 +21,7 @@ const { orderCreationLimiter } = require('../middlewares/rateLimit.middleware');
 router.post('/razorpay-webhook', handleRazorpayWebhook);
 
 // ── Public / Guest-Friendly Checkout & Payment Verification ──
+router.post('/track', trackGuestOrder);
 router.post('/checkout-preview', protectOptional, getCheckoutPreview);
 router.post(
   '/',

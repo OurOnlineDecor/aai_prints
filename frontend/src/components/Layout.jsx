@@ -44,6 +44,9 @@ function HashRedirector() {
       } else if (hash === '#checkout') {
         window.history.replaceState(null, '', '/checkout');
         navigate('/checkout', { replace: true });
+      } else if (hash === '#orders' || hash === '#my-orders') {
+        window.history.replaceState(null, '', '/orders');
+        navigate('/orders', { replace: true });
       } else if (hash === '#reviews' || hash === '#/reviews') {
         setTimeout(() => {
           const el = document.getElementById('reviews');
@@ -93,6 +96,12 @@ function ScrollToTop() {
 export default function Layout() {
   const location = useLocation();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenAccount = () => setIsAccountOpen(true);
+    window.addEventListener('auth:open-drawer', handleOpenAccount);
+    return () => window.removeEventListener('auth:open-drawer', handleOpenAccount);
+  }, []);
 
   return (
     <div className="app">

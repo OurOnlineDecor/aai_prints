@@ -25,6 +25,7 @@ import {
   Check,
   RefreshCw,
   MessageSquare,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -643,15 +644,29 @@ export default function AccountDrawer({ isOpen, onClose, onNavigate }) {
               <div className="account-orders-view" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="account-sub-nav-bar">
                   <span className="account-sub-title">Order History ({myOrders.length})</span>
-                  <button
-                    type="button"
-                    className="address-action-btn"
-                    onClick={loadOrders}
-                    title="Refresh orders list"
-                  >
-                    <RefreshCw size={12} className={isLoadingOrders ? 'spin-anim' : ''} />
-                    <span>Refresh</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      className="address-action-btn"
+                      onClick={() => {
+                        onClose();
+                        navigate('/orders');
+                      }}
+                      title="Open full orders page"
+                    >
+                      <ExternalLink size={12} />
+                      <span>Full Page</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="address-action-btn"
+                      onClick={loadOrders}
+                      title="Refresh orders list"
+                    >
+                      <RefreshCw size={12} className={isLoadingOrders ? 'spin-anim' : ''} />
+                      <span>Refresh</span>
+                    </button>
+                  </div>
                 </div>
 
                 {isLoadingOrders ? (

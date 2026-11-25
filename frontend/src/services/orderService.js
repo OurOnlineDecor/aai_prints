@@ -55,3 +55,11 @@ export async function fetchOrderById(orderId) {
   const res = await api.get(`/orders/${orderId}`);
   return res?.data?.order;
 }
+
+/**
+ * Public: Track order using Order Number + Phone or Email
+ */
+export async function trackOrderGuest({ orderNumber, contact }) {
+  const res = await api.post('/orders/track', { orderNumber, contact });
+  return res?.data?.order;
+}

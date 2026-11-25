@@ -38,6 +38,7 @@ export default function Footer({ onNavigate }) {
   const quickLinks = [
     { label: 'Home', href: '/', page: 'home' },
     { label: 'Shop All Products', href: '/shop', page: 'shop', category: 'All' },
+    { label: 'My Orders & Tracking', href: '/orders', page: 'orders' },
     { label: 'Wholesale & Bulk Orders', href: '/b2b', page: 'b2b' },
     { label: 'My Wishlist', href: '/wishlist', page: 'wishlist' },
     { label: 'Shopping Cart', href: '/cart', page: 'cart' },
