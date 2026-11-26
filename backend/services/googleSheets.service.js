@@ -59,6 +59,14 @@ function formatOrderForGoogleSheet(order) {
 
   const isCOD = (order.paymentMethod || '').toLowerCase() === 'cod';
 
+  // 12% GST included in MRP: Tax = Subtotal * (12 / 112)
+  const subtotalVal = Number(pricing.subtotal || pricing.total || 0);
+  const calculatedTax = Number(
+    pricing.tax != null && pricing.tax > 0
+      ? pricing.tax
+      : ((subtotalVal * 12) / 112).toFixed(2)
+  );
+
   // Ensure phone has single-quote prefix so Google Sheets & Excel never parse '+' as formula
   const rawPhone = String(addr.phone || (order.user && order.user.phone) || '').trim();
   const safePhone = rawPhone ? (rawPhone.startsWith('+') ? `'${rawPhone}` : rawPhone) : '—';
@@ -78,7 +86,7 @@ function formatOrderForGoogleSheet(order) {
     discount: Number(pricing.discount || 0),
     couponCode: pricing.couponCode || '—',
     shippingFee: pricing.shippingFee === 0 || pricing.shippingFee === '0' ? 'FREE' : Number(pricing.shippingFee),
-    tax: Number(pricing.tax || 0),
+    tax: calculatedTax,
     totalAmount: Number(pricing.total || 0),
     fulfillmentStatus: (order.status || 'confirmed').toUpperCase(),
   };

@@ -66,6 +66,14 @@ export function exportOrdersToExcel(orders = [], filenamePrefix = 'OurOnlineDeco
 
     const isCOD = (ord.paymentMethod || '').toLowerCase() === 'cod';
 
+    // 12% GST included in MRP: Tax = Subtotal * (12 / 112)
+    const subtotalVal = Number(pricing.subtotal || pricing.total || 0);
+    const calculatedTax = Number(
+      pricing.tax != null && pricing.tax > 0
+        ? pricing.tax
+        : ((subtotalVal * 12) / 112).toFixed(2)
+    );
+
     const rawPhone = String(addr.phone || ord.user?.phone || '').trim();
     const safePhone = rawPhone ? (rawPhone.startsWith('+') ? `'${rawPhone}` : rawPhone) : '—';
 
@@ -87,7 +95,7 @@ export function exportOrdersToExcel(orders = [], filenamePrefix = 'OurOnlineDeco
       'Discount (₹)': Number(pricing.discount || 0),
       'Coupon Code': pricing.couponCode || '—',
       'Shipping Fee (₹)': pricing.shippingFee === 0 || pricing.shippingFee === '0' ? 0 : Number(pricing.shippingFee || 0),
-      'Tax (₹)': Number(pricing.tax || 0),
+      'Tax (12% GST Incl.) (₹)': calculatedTax,
       'Total Amount (₹)': Number(pricing.total || 0),
       'Fulfillment Status': (ord.status || 'confirmed').toUpperCase(),
       'Admin Update Note': ord.adminMessage || '—',
