@@ -60,16 +60,20 @@ export function exportOrdersToExcel(orders = [], filenamePrefix = 'OurOnlineDeco
       discount: ord.discount || 0,
       couponCode: null,
       shippingFee: ord.shippingFee || 0,
+      tax: ord.tax || 0,
       total: ord.total || ord.totalAmount || 0,
     };
 
     const isCOD = (ord.paymentMethod || '').toLowerCase() === 'cod';
 
+    const rawPhone = String(addr.phone || ord.user?.phone || '').trim();
+    const safePhone = rawPhone ? (rawPhone.startsWith('+') ? `'${rawPhone}` : rawPhone) : '—';
+
     return {
       'Order ID': String(orderNum),
       'Order Date (IST)': dateStr,
       'Customer Name': addr.fullName || ord.user?.name || 'Guest Customer',
-      'Phone Number': String(addr.phone || ord.user?.phone || '—'),
+      'Phone Number': safePhone,
       'Email Address': addr.email || ord.user?.email || '—',
       'Full Shipping Address': fullAddress || 'Address on file',
       'City': addr.city || '—',
@@ -83,6 +87,7 @@ export function exportOrdersToExcel(orders = [], filenamePrefix = 'OurOnlineDeco
       'Discount (₹)': Number(pricing.discount || 0),
       'Coupon Code': pricing.couponCode || '—',
       'Shipping Fee (₹)': pricing.shippingFee === 0 || pricing.shippingFee === '0' ? 0 : Number(pricing.shippingFee || 0),
+      'Tax (₹)': Number(pricing.tax || 0),
       'Total Amount (₹)': Number(pricing.total || 0),
       'Fulfillment Status': (ord.status || 'confirmed').toUpperCase(),
       'Admin Update Note': ord.adminMessage || '—',

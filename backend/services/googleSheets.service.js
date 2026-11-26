@@ -53,16 +53,21 @@ function formatOrderForGoogleSheet(order) {
     discount: order.discount || 0,
     couponCode: null,
     shippingFee: order.shippingFee || 0,
+    tax: order.tax || 0,
     total: order.total || order.totalAmount || 0,
   };
 
   const isCOD = (order.paymentMethod || '').toLowerCase() === 'cod';
 
+  // Ensure phone has single-quote prefix so Google Sheets & Excel never parse '+' as formula
+  const rawPhone = String(addr.phone || (order.user && order.user.phone) || '').trim();
+  const safePhone = rawPhone ? (rawPhone.startsWith('+') ? `'${rawPhone}` : rawPhone) : '—';
+
   return {
     orderNumber: String(orderNum),
     date: orderDate,
     customerName: addr.fullName || (order.user && order.user.name) || 'Guest Customer',
-    phone: String(addr.phone || (order.user && order.user.phone) || '—'),
+    phone: safePhone,
     email: addr.email || (order.user && order.user.email) || '—',
     shippingAddress: fullAddress || 'Address on file',
     itemsOrdered: itemsText || 'No items listed',
@@ -73,6 +78,7 @@ function formatOrderForGoogleSheet(order) {
     discount: Number(pricing.discount || 0),
     couponCode: pricing.couponCode || '—',
     shippingFee: pricing.shippingFee === 0 || pricing.shippingFee === '0' ? 'FREE' : Number(pricing.shippingFee),
+    tax: Number(pricing.tax || 0),
     totalAmount: Number(pricing.total || 0),
     fulfillmentStatus: (order.status || 'confirmed').toUpperCase(),
   };
