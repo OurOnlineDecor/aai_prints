@@ -983,6 +983,43 @@
   color: #78716c;
 }
 
+.modal-gallery-arrow-btn {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  color: #475569;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 0;
+}
+
+.modal-gallery-arrow-btn:hover:not(:disabled) {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.modal-gallery-arrow-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.modal-gallery-card.is-dragging {
+  opacity: 0.35;
+  transform: scale(0.95);
+}
+
+.modal-gallery-card.is-drag-over {
+  border: 2px dashed #D2B98C;
+  transform: scale(1.02);
+  box-shadow: 0 4px 14px rgba(210, 185, 140, 0.3);
+}
+
 .gallery-view-link {
   color: #a8a29e;
   display: flex;

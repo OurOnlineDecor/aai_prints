@@ -17,7 +17,9 @@ import {
   ExternalLink,
   DollarSign,
   Package,
-  Boxes
+  Boxes,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { api } from '../services/api';
 import './AdminEditProductModal.css';
@@ -94,6 +96,8 @@ export default function AdminEditProductModal({
   const [manualImageUrl, setManualImageUrl] = useState('');
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [draggedModalIdx, setDraggedModalIdx] = useState(null);
+  const [dragOverModalIdx, setDragOverModalIdx] = useState(null);
   const fileInputRef = useRef(null);
 
   // Variants state
@@ -268,14 +272,46 @@ export default function AdminEditProductModal({
     setErrorMessage(null);
   };
 
-  // Set image as cover
-  const makeCoverImage = (index) => {
-    if (index === 0) return;
+  // Shift image position
+  const moveImage = (fromIdx, toIdx) => {
+    if (toIdx < 0 || toIdx >= images.length) return;
     setImages((prev) => {
       const copy = [...prev];
-      const [target] = copy.splice(index, 1);
-      return [target, ...copy];
+      const [item] = copy.splice(fromIdx, 1);
+      copy.splice(toIdx, 0, item);
+      return copy;
     });
+  };
+
+  // Set image as cover
+  const makeCoverImage = (index) => {
+    moveImage(index, 0);
+  };
+
+  const handleModalDragStart = (e, idx) => {
+    setDraggedModalIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(idx));
+  };
+
+  const handleModalDragOver = (e, idx) => {
+    e.preventDefault();
+    if (draggedModalIdx === null || draggedModalIdx === idx) return;
+    setDragOverModalIdx(idx);
+  };
+
+  const handleModalDrop = (e, targetIdx) => {
+    e.preventDefault();
+    if (draggedModalIdx !== null && draggedModalIdx !== targetIdx) {
+      moveImage(draggedModalIdx, targetIdx);
+    }
+    setDraggedModalIdx(null);
+    setDragOverModalIdx(null);
+  };
+
+  const handleModalDragEnd = () => {
+    setDraggedModalIdx(null);
+    setDragOverModalIdx(null);
   };
 
   // Remove and delete image from Cloudinary
@@ -902,9 +938,20 @@ export default function AdminEditProductModal({
                   {images.map((item, idx) => {
                     const imgUrl = typeof item === 'string' ? item : item.url;
                     const isCover = idx === 0;
+                    const isDragging = draggedModalIdx === idx;
+                    const isDragOver = dragOverModalIdx === idx;
 
                     return (
-                      <div key={idx} className={`modal-gallery-card ${isCover ? 'is-cover-card' : ''}`}>
+                      <div
+                        key={idx}
+                        draggable
+                        onDragStart={(e) => handleModalDragStart(e, idx)}
+                        onDragOver={(e) => handleModalDragOver(e, idx)}
+                        onDrop={(e) => handleModalDrop(e, idx)}
+                        onDragEnd={handleModalDragEnd}
+                        className={`modal-gallery-card ${isCover ? 'is-cover-card' : ''} ${isDragging ? 'is-dragging' : ''} ${isDragOver ? 'is-drag-over' : ''}`}
+                        title="Drag to shift position"
+                      >
                         <div className="gallery-img-container">
                           <img src={imgUrl} alt={`Product ${idx + 1}`} loading="lazy" />
                           {isCover && (
@@ -934,7 +981,27 @@ export default function AdminEditProductModal({
                           </div>
                         </div>
                         <div className="gallery-card-footer">
-                          <span className="gallery-photo-num">Photo #{idx + 1}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => moveImage(idx, idx - 1)}
+                              className="modal-gallery-arrow-btn"
+                              title="Shift Left / Move Earlier in sequence"
+                            >
+                              <ChevronLeft size={13} />
+                            </button>
+                            <span className="gallery-photo-num">#{idx + 1}</span>
+                            <button
+                              type="button"
+                              disabled={idx === images.length - 1}
+                              onClick={() => moveImage(idx, idx + 1)}
+                              className="modal-gallery-arrow-btn"
+                              title="Shift Right / Move Later in sequence"
+                            >
+                              <ChevronRight size={13} />
+                            </button>
+                          </div>
                           <a
                             href={imgUrl}
                             target="_blank"

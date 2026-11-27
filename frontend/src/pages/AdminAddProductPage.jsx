@@ -30,6 +30,10 @@ import {
   Clock,
   Send,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  GripVertical,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { exportOrdersToExcel } from '../utils/excelExport';
@@ -97,6 +101,13 @@ export default function AdminAddProductPage({
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Pre-upload Staging state (Fix sequence of images before uploading)
+  const [stagedFiles, setStagedFiles] = useState([]); // [{ id, file, name, size, previewUrl }]
+  const [draggedImageIdx, setDraggedImageIdx] = useState(null);
+  const [dragOverImageIdx, setDragOverImageIdx] = useState(null);
+  const [draggedStagedIdx, setDraggedStagedIdx] = useState(null);
+  const [dragOverStagedIdx, setDragOverStagedIdx] = useState(null);
+
   // Variants state
   const [hasVariants, setHasVariants] = useState(false);
   const [variants, setVariants] = useState([
@@ -154,6 +165,8 @@ export default function AdminAddProductPage({
   const [customUploadError, setCustomUploadError] = useState(null);
   const [isSubmittingCustom, setIsSubmittingCustom] = useState(false);
   const customFileInputRef = useRef(null);
+  const [draggedCustomImageIdx, setDraggedCustomImageIdx] = useState(null);
+  const [dragOverCustomImageIdx, setDragOverCustomImageIdx] = useState(null);
 
   // Load Custom Products
   const loadCustomProducts = async () => {
@@ -364,6 +377,46 @@ export default function AdminAddProductPage({
     }
   };
 
+  const moveCustomImage = (fromIdx, toIdx) => {
+    if (toIdx < 0 || toIdx >= customImages.length) return;
+    setCustomImages((prev) => {
+      const copy = [...prev];
+      const [item] = copy.splice(fromIdx, 1);
+      copy.splice(toIdx, 0, item);
+      return copy;
+    });
+  };
+
+  const makeCustomCoverImage = (idx) => {
+    moveCustomImage(idx, 0);
+  };
+
+  const handleCustomDragStart = (e, idx) => {
+    setDraggedCustomImageIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(idx));
+  };
+
+  const handleCustomDragOver = (e, idx) => {
+    e.preventDefault();
+    if (draggedCustomImageIdx === null || draggedCustomImageIdx === idx) return;
+    setDragOverCustomImageIdx(idx);
+  };
+
+  const handleCustomDrop = (e, targetIdx) => {
+    e.preventDefault();
+    if (draggedCustomImageIdx !== null && draggedCustomImageIdx !== targetIdx) {
+      moveCustomImage(draggedCustomImageIdx, targetIdx);
+    }
+    setDraggedCustomImageIdx(null);
+    setDragOverCustomImageIdx(null);
+  };
+
+  const handleCustomDragEnd = () => {
+    setDraggedCustomImageIdx(null);
+    setDragOverCustomImageIdx(null);
+  };
+
   const insertRequirementsTemplate = (type) => {
     if (type === 'frame') {
       setCustomRequirements(
@@ -560,16 +613,59 @@ export default function AdminAddProductPage({
     return products.reduce((sum, p) => sum + (Number(p.stockCount ?? p.stock ?? 10) || 0), 0);
   }, [products]);
 
-  // ── File Upload to Cloudinary ──
-  const handleFileUpload = async (e) => {
+  // ── Pre-Upload Staging: Fix Sequence of Images to Upload ──
+  const handleFileSelect = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+
+    const newStaged = files.map((file, idx) => ({
+      id: `staged-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`,
+      file,
+      name: file.name,
+      size: (file.size / 1024).toFixed(0) + ' KB',
+      previewUrl: URL.createObjectURL(file),
+    }));
+
+    setStagedFiles((prev) => [...prev, ...newStaged]);
+    setUploadError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const moveStagedFile = (fromIdx, toIdx) => {
+    if (toIdx < 0 || toIdx >= stagedFiles.length) return;
+    setStagedFiles((prev) => {
+      const copy = [...prev];
+      const [item] = copy.splice(fromIdx, 1);
+      copy.splice(toIdx, 0, item);
+      return copy;
+    });
+  };
+
+  const setStagedCover = (idx) => {
+    moveStagedFile(idx, 0);
+  };
+
+  const removeStagedFile = (idx) => {
+    setStagedFiles((prev) => {
+      const target = prev[idx];
+      if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  const clearStagedFiles = () => {
+    stagedFiles.forEach((sf) => sf.previewUrl && URL.revokeObjectURL(sf.previewUrl));
+    setStagedFiles([]);
+  };
+
+  const uploadStagedFiles = async () => {
+    if (stagedFiles.length === 0) return;
 
     try {
       setIsUploadingImages(true);
       setUploadError(null);
       const formData = new FormData();
-      files.forEach((file) => formData.append('images', file));
+      stagedFiles.forEach((sf) => formData.append('images', sf.file));
 
       const res = await api.post('/media/upload-multiple', formData);
       const newAssets = (res.data?.assets || []).map((a) => ({
@@ -577,14 +673,60 @@ export default function AdminAddProductPage({
         publicId: a.publicId,
       }));
       setImages((prev) => [...prev, ...newAssets]);
+      clearStagedFiles();
     } catch (err) {
       setUploadError(
         err.data?.message || err.message || 'Image upload failed. You can paste an image URL directly.'
       );
     } finally {
       setIsUploadingImages(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  // ── Post-Upload Shifting & Reordering (Live Gallery Sequence) ──
+  const moveImage = (fromIdx, toIdx) => {
+    if (toIdx < 0 || toIdx >= images.length) return;
+    setImages((prev) => {
+      const copy = [...prev];
+      const [item] = copy.splice(fromIdx, 1);
+      copy.splice(toIdx, 0, item);
+      return copy;
+    });
+  };
+
+  const makeCoverImage = (idx) => {
+    moveImage(idx, 0);
+  };
+
+  const handleImageDragStart = (e, idx) => {
+    setDraggedImageIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(idx));
+  };
+
+  const handleImageDragOver = (e, idx) => {
+    e.preventDefault();
+    if (draggedImageIdx === null || draggedImageIdx === idx) return;
+    setDragOverImageIdx(idx);
+  };
+
+  const handleImageDrop = (e, targetIdx) => {
+    e.preventDefault();
+    if (draggedImageIdx !== null && draggedImageIdx !== targetIdx) {
+      moveImage(draggedImageIdx, targetIdx);
+    }
+    setDraggedImageIdx(null);
+    setDragOverImageIdx(null);
+  };
+
+  const handleImageDragEnd = () => {
+    setDraggedImageIdx(null);
+    setDragOverImageIdx(null);
+  };
+
+  // Direct single-step file upload fallback
+  const handleFileUpload = async (e) => {
+    handleFileSelect(e);
   };
 
   const handleAddManualUrl = () => {
@@ -1400,7 +1542,7 @@ export default function AdminAddProductPage({
                   {isUploadingImages ? (
                     <div className="upload-dropzone-content">
                       <Loader2 size={28} className="spin-anim" style={{ color: 'var(--gold, #D2B98C)' }} />
-                      <strong>Uploading photos to Cloudinary CDN...</strong>
+                      <strong>Uploading photos to Cloudinary CDN in selected sequence...</strong>
                       <small>Generating optimized assets</small>
                     </div>
                   ) : (
@@ -1408,8 +1550,8 @@ export default function AdminAddProductPage({
                       <div className="upload-icon-circle">
                         <UploadCloud size={24} style={{ color: 'var(--gold, #D2B98C)' }} />
                       </div>
-                      <strong>Click to upload product photos</strong>
-                      <small>Supports PNG, JPG, WEBP up to 10MB each</small>
+                      <strong>Click to select product photos</strong>
+                      <small>Select one or multiple photos (PNG, JPG, WEBP up to 10MB each)</small>
                       <span className="upload-btn-chip">Choose Files</span>
                     </div>
                   )}
@@ -1419,7 +1561,7 @@ export default function AdminAddProductPage({
                     multiple
                     accept="image/*"
                     style={{ display: 'none' }}
-                    onChange={handleFileUpload}
+                    onChange={handleFileSelect}
                     disabled={isUploadingImages}
                   />
                 </div>
@@ -1428,6 +1570,106 @@ export default function AdminAddProductPage({
                   <div className="upload-error-banner">
                     <AlertCircle size={15} />
                     <span>{uploadError}</span>
+                  </div>
+                )}
+
+                {/* ── Pre-Upload Sequence Fixer (Staged Queue) ── */}
+                {stagedFiles.length > 0 && (
+                  <div className="staged-upload-panel">
+                    <div className="staged-panel-header">
+                      <div className="staged-header-title">
+                        <Sparkles size={16} style={{ color: 'var(--gold, #D2B98C)' }} />
+                        <strong>Fix Sequence Before Upload ({stagedFiles.length} {stagedFiles.length === 1 ? 'photo' : 'photos'} chosen)</strong>
+                      </div>
+                      <span className="staged-header-tip">
+                        Use arrows or set cover to arrange exact order before pushing to Cloudinary
+                      </span>
+                    </div>
+
+                    <div className="staged-items-grid">
+                      {stagedFiles.map((sf, sIdx) => {
+                        const isStagedCover = sIdx === 0;
+                        return (
+                          <div
+                            key={sf.id}
+                            className={`staged-item-card ${isStagedCover ? 'is-staged-cover' : ''}`}
+                          >
+                            <img src={sf.previewUrl} alt={sf.name} />
+                            <span className={`staged-badge ${isStagedCover ? 'cover' : ''}`}>
+                              {isStagedCover ? '★ #1 COVER' : `#${sIdx + 1}`}
+                            </span>
+
+                            <div className="staged-actions-bar">
+                              <button
+                                type="button"
+                                className="staged-arrow-btn"
+                                disabled={sIdx === 0}
+                                onClick={() => moveStagedFile(sIdx, sIdx - 1)}
+                                title="Move earlier in upload sequence"
+                              >
+                                <ChevronLeft size={13} />
+                              </button>
+                              {!isStagedCover && (
+                                <button
+                                  type="button"
+                                  className="staged-star-btn"
+                                  onClick={() => setStagedCover(sIdx)}
+                                  title="Make this photo #1 Cover"
+                                >
+                                  <Star size={11} fill="#D2B98C" />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="staged-arrow-btn"
+                                disabled={sIdx === stagedFiles.length - 1}
+                                onClick={() => moveStagedFile(sIdx, sIdx + 1)}
+                                title="Move later in upload sequence"
+                              >
+                                <ChevronRight size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                className="staged-del-btn"
+                                onClick={() => removeStagedFile(sIdx)}
+                                title="Remove file"
+                              >
+                                <X size={11} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="staged-panel-footer">
+                      <button
+                        type="button"
+                        className="staged-upload-btn"
+                        onClick={uploadStagedFiles}
+                        disabled={isUploadingImages}
+                      >
+                        {isUploadingImages ? (
+                          <>
+                            <Loader2 size={15} className="spin-anim" />
+                            <span>Uploading in Sequence...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud size={16} />
+                            <span>Upload {stagedFiles.length} {stagedFiles.length === 1 ? 'Photo' : 'Photos'} in This Sequence</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className="staged-clear-btn"
+                        onClick={clearStagedFiles}
+                        disabled={isUploadingImages}
+                      >
+                        Clear Selection
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -1458,24 +1700,101 @@ export default function AdminAddProductPage({
                 {/* Thumbnails Gallery */}
                 {images.length > 0 && (
                   <div className="thumbnails-preview-wrap">
-                    <label className="thumbnails-preview-label">
-                      Product Gallery ({images.length} {images.length === 1 ? 'photo' : 'photos'})
-                    </label>
+                    <div className="thumbnails-preview-header">
+                      <label className="thumbnails-preview-label" style={{ margin: 0 }}>
+                        Product Gallery ({images.length} {images.length === 1 ? 'photo' : 'photos'})
+                      </label>
+                      <span className="thumbnails-preview-hint">
+                        💡 Drag photos or use arrows to shift sequence. Photo #1 is the Storefront Cover.
+                      </span>
+                    </div>
+
                     <div className="thumbnails-grid">
                       {images.map((item, idx) => {
                         const imgUrl = typeof item === 'string' ? item : item.url;
+                        const isCover = idx === 0;
+                        const isDragging = draggedImageIdx === idx;
+                        const isDragOver = dragOverImageIdx === idx;
+
                         return (
-                          <div key={idx} className="thumbnail-card">
+                          <div
+                            key={idx}
+                            draggable
+                            onDragStart={(e) => handleImageDragStart(e, idx)}
+                            onDragOver={(e) => handleImageDragOver(e, idx)}
+                            onDrop={(e) => handleImageDrop(e, idx)}
+                            onDragEnd={handleImageDragEnd}
+                            className={`thumbnail-card ${isCover ? 'is-cover-thumb' : ''} ${isDragging ? 'is-dragging' : ''} ${isDragOver ? 'is-drag-over' : ''}`}
+                            title="Drag to rearrange sequence"
+                          >
                             <img src={imgUrl} alt={`Product ${idx + 1}`} />
-                            {idx === 0 && <span className="thumb-cover-tag">COVER</span>}
-                            <button
-                              type="button"
-                              className="thumb-delete-btn"
-                              onClick={() => removeImage(idx)}
-                              title="Remove photo"
-                            >
-                              ✕
-                            </button>
+
+                            {/* Top Badge & Delete */}
+                            <div className="thumb-top-row">
+                              <span className={`thumb-seq-badge ${isCover ? 'cover' : 'num'}`}>
+                                {isCover ? (
+                                  <>
+                                    <Star size={10} fill="#ffffff" />
+                                    <span>#1 COVER</span>
+                                  </>
+                                ) : (
+                                  <span>#{idx + 1}</span>
+                                )}
+                              </span>
+
+                              <button
+                                type="button"
+                                className="thumb-delete-btn"
+                                onClick={() => removeImage(idx)}
+                                title="Remove photo"
+                              >
+                                ✕
+                              </button>
+                            </div>
+
+                            {/* Bottom Shifting Action Bar */}
+                            <div className="thumb-shift-bar">
+                              <button
+                                type="button"
+                                className="thumb-shift-arrow"
+                                disabled={idx === 0}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveImage(idx, idx - 1);
+                                }}
+                                title="Shift Left / Move Earlier in sequence"
+                              >
+                                <ChevronLeft size={13} />
+                              </button>
+
+                              {!isCover && (
+                                <button
+                                  type="button"
+                                  className="thumb-set-cover-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    makeCoverImage(idx);
+                                  }}
+                                  title="Make this photo #1 Cover"
+                                >
+                                  <Star size={11} fill="#D2B98C" />
+                                  <span>Cover</span>
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                className="thumb-shift-arrow"
+                                disabled={idx === images.length - 1}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveImage(idx, idx + 1);
+                                }}
+                                title="Shift Right / Move Later in sequence"
+                              >
+                                <ChevronRight size={13} />
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -2078,24 +2397,98 @@ export default function AdminAddProductPage({
                     {/* Thumbnails Preview */}
                     {customImages.length > 0 && (
                       <div className="thumbnails-preview-wrap">
-                        <span className="thumbnails-preview-label">
-                          Selected Photos ({customImages.length})
-                        </span>
+                        <div className="thumbnails-preview-header">
+                          <span className="thumbnails-preview-label" style={{ margin: 0 }}>
+                            Selected Photos ({customImages.length})
+                          </span>
+                          <span className="thumbnails-preview-hint">
+                            💡 Use arrows or drag cards to shift sequence.
+                          </span>
+                        </div>
                         <div className="thumbnails-grid">
                           {customImages.map((img, idx) => {
                             const url = typeof img === 'string' ? img : img.url;
+                            const isCover = idx === 0;
+                            const isDragging = draggedCustomImageIdx === idx;
+                            const isDragOver = dragOverCustomImageIdx === idx;
+
                             return (
-                              <div key={idx} className="thumbnail-item">
+                              <div
+                                key={idx}
+                                draggable
+                                onDragStart={(e) => handleCustomDragStart(e, idx)}
+                                onDragOver={(e) => handleCustomDragOver(e, idx)}
+                                onDrop={(e) => handleCustomDrop(e, idx)}
+                                onDragEnd={handleCustomDragEnd}
+                                className={`thumbnail-card ${isCover ? 'is-cover-thumb' : ''} ${isDragging ? 'is-dragging' : ''} ${isDragOver ? 'is-drag-over' : ''}`}
+                                title="Drag to rearrange sequence"
+                              >
                                 <img src={url} alt={`Custom Product ${idx + 1}`} />
-                                <button
-                                  type="button"
-                                  onClick={() => removeCustomImage(idx)}
-                                  className="thumbnail-remove-btn"
-                                  title="Remove image"
-                                >
-                                  <X size={12} />
-                                </button>
-                                {idx === 0 && <span className="primary-thumb-badge">Cover</span>}
+
+                                <div className="thumb-top-row">
+                                  <span className={`thumb-seq-badge ${isCover ? 'cover' : 'num'}`}>
+                                    {isCover ? (
+                                      <>
+                                        <Star size={10} fill="#ffffff" />
+                                        <span>#1 COVER</span>
+                                      </>
+                                    ) : (
+                                      <span>#{idx + 1}</span>
+                                    )}
+                                  </span>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removeCustomImage(idx)}
+                                    className="thumb-delete-btn"
+                                    title="Remove image"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+
+                                <div className="thumb-shift-bar">
+                                  <button
+                                    type="button"
+                                    className="thumb-shift-arrow"
+                                    disabled={idx === 0}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      moveCustomImage(idx, idx - 1);
+                                    }}
+                                    title="Shift Left"
+                                  >
+                                    <ChevronLeft size={13} />
+                                  </button>
+
+                                  {!isCover && (
+                                    <button
+                                      type="button"
+                                      className="thumb-set-cover-btn"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        makeCustomCoverImage(idx);
+                                      }}
+                                      title="Set as Cover photo"
+                                    >
+                                      <Star size={11} fill="#D2B98C" />
+                                      <span>Cover</span>
+                                    </button>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    className="thumb-shift-arrow"
+                                    disabled={idx === customImages.length - 1}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      moveCustomImage(idx, idx + 1);
+                                    }}
+                                    title="Shift Right"
+                                  >
+                                    <ChevronRight size={13} />
+                                  </button>
+                                </div>
                               </div>
                             );
                           })}
