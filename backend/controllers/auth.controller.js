@@ -17,8 +17,8 @@ const createSessionAndRespond = async (user, statusCode, req, res, message = 'Su
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
 
-  // Store refresh token in MongoDB (valid for 7 days)
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  // Store refresh token in MongoDB (valid for 30 days)
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   await RefreshToken.create({
     user: user._id,
     token: refreshToken,
@@ -234,9 +234,9 @@ const refreshAccessToken = async (req, res, next) => {
     }
 
     if (tokenDoc.revoked) {
-      // Check if this request falls within the rotation grace period (30 seconds)
+      // Check if this request falls within the rotation grace period (60 seconds)
       // and was legitimately rotated into a successor token (handles multi-tab/concurrent refreshes)
-      const GRACE_PERIOD_MS = 30 * 1000;
+      const GRACE_PERIOD_MS = 60 * 1000;
       const isWithinGrace =
         tokenDoc.revokedAt &&
         Date.now() - new Date(tokenDoc.revokedAt).getTime() <= GRACE_PERIOD_MS;
@@ -299,8 +299,8 @@ const refreshAccessToken = async (req, res, next) => {
     tokenDoc.replacedByToken = newRefreshToken;
     await tokenDoc.save();
 
-    // Save new refresh token in DB
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    // Save new refresh token in DB (valid for 30 days)
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await RefreshToken.create({
       user: user._id,
       token: newRefreshToken,

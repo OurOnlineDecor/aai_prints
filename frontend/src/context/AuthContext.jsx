@@ -1,30 +1,102 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { api } from '../services/api';
+import {
+  api,
+  TOKEN_STORAGE_KEYS,
+  getStoredAccessToken,
+  setStoredAccessToken,
+  getStoredRefreshToken,
+  setStoredRefreshToken,
+  clearStoredAuth,
+} from '../services/api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // Synchronously initialize user from localStorage so there's zero flash of unauthenticated state
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem(TOKEN_STORAGE_KEYS.USER);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.warn('[AuthContext] Failed to parse stored user from localStorage:', e);
+      return null;
+    }
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem(TOKEN_STORAGE_KEYS.USER);
+      const hasToken =
+        Boolean(getStoredAccessToken()) || Boolean(getStoredRefreshToken());
+      return Boolean(savedUser && hasToken);
+    } catch {
+      return false;
+    }
+  });
+
+  // Since we synchronously initialize state, initial loading only blocks if there's no cached state
+  const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
 
-  // Check current session on mount via /auth/me (validating httpOnly cookie)
-  const checkAuth = useCallback(async () => {
+  // Helper to persist session to state and localStorage
+  const applySession = (userData, accessToken = null, refreshToken = null) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    setAuthError(null);
+
     try {
-      setIsLoading(true);
-      const res = await api.get('/auth/me');
-      if (res?.data?.user) {
-        setUser(res.data.user);
-        setIsAuthenticated(true);
-        setAuthError(null);
-      } else {
+      if (userData) {
+        localStorage.setItem(TOKEN_STORAGE_KEYS.USER, JSON.stringify(userData));
+      }
+      if (accessToken) {
+        setStoredAccessToken(accessToken);
+      }
+      if (refreshToken) {
+        setStoredRefreshToken(refreshToken);
+      }
+    } catch (e) {
+      console.warn('[AuthContext] Error persisting session to localStorage:', e);
+    }
+  };
+
+  // Helper to purge session
+  const purgeSession = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    clearStoredAuth();
+  };
+
+  // Verify and sync current session on mount via /auth/me
+  const checkAuth = useCallback(async () => {
+    const hasStoredSession =
+      Boolean(getStoredAccessToken()) ||
+      Boolean(getStoredRefreshToken()) ||
+      Boolean(localStorage.getItem(TOKEN_STORAGE_KEYS.USER));
+
+    try {
+      // If no stored credentials exist at all, we are simply a guest
+      if (!hasStoredSession) {
         setUser(null);
         setIsAuthenticated(false);
+        return;
       }
-    } catch {
-      setUser(null);
-      setIsAuthenticated(false);
+
+      const res = await api.get('/auth/me');
+      if (res?.data?.user) {
+        applySession(res.data.user);
+      } else {
+        // Only purge if server explicitly returned an empty payload
+        purgeSession();
+      }
+    } catch (err) {
+      // If 401 occurred and silent refresh failed, server rejected the session
+      if (err?.status === 401) {
+        console.warn('[AuthContext] Session expired on server:', err.message);
+        purgeSession();
+      } else {
+        // Network error / server warming up: preserve cached user so offline or wake-up doesn't kick user out
+        console.warn('[AuthContext] Background session verification notice (offline/warmup):', err.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -33,10 +105,10 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     checkAuth();
 
-    // Listen for session expiration events from API client
+    // Listen for session expiration events from API client (when refresh token fails)
     const handleSessionExpired = () => {
-      setUser(null);
-      setIsAuthenticated(false);
+      console.warn('[AuthContext] Session expired event received from API client.');
+      purgeSession();
     };
 
     window.addEventListener('auth:session-expired', handleSessionExpired);
@@ -48,10 +120,13 @@ export function AuthProvider({ children }) {
     try {
       setAuthError(null);
       const res = await api.post('/auth/login', { email, password });
-      if (res?.data?.user) {
-        setUser(res.data.user);
-        setIsAuthenticated(true);
-        return res.data.user;
+      const userData = res?.data?.user;
+      const accessToken = res?.data?.accessToken;
+      const refreshToken = res?.data?.refreshToken;
+
+      if (userData) {
+        applySession(userData, accessToken, refreshToken);
+        return userData;
       }
       throw new Error('Invalid login response from server');
     } catch (err) {
@@ -65,10 +140,13 @@ export function AuthProvider({ children }) {
     try {
       setAuthError(null);
       const res = await api.post('/auth/register', { name, email, password, phone });
-      if (res?.data?.user) {
-        setUser(res.data.user);
-        setIsAuthenticated(true);
-        return res.data.user;
+      const userData = res?.data?.user;
+      const accessToken = res?.data?.accessToken;
+      const refreshToken = res?.data?.refreshToken;
+
+      if (userData) {
+        applySession(userData, accessToken, refreshToken);
+        return userData;
       }
       throw new Error('Invalid registration response');
     } catch (err) {
@@ -82,10 +160,13 @@ export function AuthProvider({ children }) {
     try {
       setAuthError(null);
       const res = await api.post('/auth/google', { credential });
-      if (res?.data?.user) {
-        setUser(res.data.user);
-        setIsAuthenticated(true);
-        return res.data.user;
+      const userData = res?.data?.user;
+      const accessToken = res?.data?.accessToken;
+      const refreshToken = res?.data?.refreshToken;
+
+      if (userData) {
+        applySession(userData, accessToken, refreshToken);
+        return userData;
       }
       throw new Error('Invalid response from Google authentication');
     } catch (err) {
@@ -99,12 +180,12 @@ export function AuthProvider({ children }) {
   // Logout handler
   const logout = async () => {
     try {
-      await api.post('/auth/logout', {});
+      const currentRefreshToken = getStoredRefreshToken();
+      await api.post('/auth/logout', { refreshToken: currentRefreshToken || undefined });
     } catch (err) {
       console.warn('[AuthContext] Logout call failed on server:', err.message);
     } finally {
-      setUser(null);
-      setIsAuthenticated(false);
+      purgeSession();
     }
   };
 
@@ -113,7 +194,8 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.post('/auth/addresses', addressData);
       if (res?.data?.addresses && user) {
-        setUser({ ...user, addresses: res.data.addresses });
+        const updatedUser = { ...user, addresses: res.data.addresses };
+        applySession(updatedUser);
       }
       return res?.data?.addresses;
     } catch (err) {
@@ -126,7 +208,8 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.put(`/auth/addresses/${addressId}`, addressData);
       if (res?.data?.addresses && user) {
-        setUser({ ...user, addresses: res.data.addresses });
+        const updatedUser = { ...user, addresses: res.data.addresses };
+        applySession(updatedUser);
       }
       return res?.data?.addresses;
     } catch (err) {
@@ -139,7 +222,8 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.delete(`/auth/addresses/${addressId}`);
       if (res?.data?.addresses && user) {
-        setUser({ ...user, addresses: res.data.addresses });
+        const updatedUser = { ...user, addresses: res.data.addresses };
+        applySession(updatedUser);
       }
       return res?.data?.addresses;
     } catch (err) {

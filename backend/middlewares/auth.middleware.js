@@ -16,6 +16,21 @@ const protect = async (req, res, next) => {
     }
 
     if (!token) {
+      // Check if a refresh token is present (cookie, header, or body)
+      const hasRefreshToken = Boolean(
+        (req.cookies && req.cookies.refreshToken) ||
+        req.headers['x-refresh-token'] ||
+        (req.body && req.body.refreshToken)
+      );
+
+      if (hasRefreshToken) {
+        return next(
+          new ApiError(401, 'Access token is expired or missing. Please refresh token.', [
+            { code: 'TOKEN_EXPIRED' }
+          ])
+        );
+      }
+
       return next(new ApiError(401, 'Authentication required. Please log in.'));
     }
 

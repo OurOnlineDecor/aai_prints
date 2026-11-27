@@ -11,7 +11,7 @@ const generateAccessToken = (user) => {
     },
     getAccessSecret(),
     {
-      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m'
+      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '24h'
     }
   );
 };
@@ -23,7 +23,7 @@ const generateRefreshToken = (user) => {
     },
     getRefreshSecret(),
     {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
     }
   );
 };
@@ -49,8 +49,8 @@ const getCookieOptions = (maxAgeMs) => {
 };
 
 const setAuthCookies = (res, accessToken, refreshToken) => {
-  const ACCESS_TOKEN_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
-  const REFRESH_TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+  const ACCESS_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours (1 day)
+  const REFRESH_TOKEN_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
   res.cookie('accessToken', accessToken, getCookieOptions(ACCESS_TOKEN_EXPIRY_MS));
   if (refreshToken) {

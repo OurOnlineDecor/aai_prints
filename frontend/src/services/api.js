@@ -2,20 +2,77 @@
  * ─────────────────────────────────────────────────────────────
  * Aai Prints — Centralized API Client & Network Service
  * ─────────────────────────────────────────────────────────────
- * Encapsulates fetch requests with:
+ * Dual-layer authentication:
  *  - Automated credentials: 'include' for httpOnly cookie management
+ *  - Persistent Bearer token injection from localStorage (resilient to browser restart & 3rd-party cookie blocks)
+ *  - Automatic Silent Token Refresh with rotation & subscriber queueing
  *  - Unified error handling & JSON parsing
- *  - Automatic Silent Token Refresh (intercepts 401 TOKEN_EXPIRED and rotates token)
  * ─────────────────────────────────────────────────────────────
  */
 
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 
+export const TOKEN_STORAGE_KEYS = {
+  ACCESS_TOKEN: 'aaiprints_accessToken',
+  REFRESH_TOKEN: 'aaiprints_refreshToken',
+  USER: 'aaiprints_user',
+};
+
+export const getStoredAccessToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEYS.ACCESS_TOKEN) || null;
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredAccessToken = (token) => {
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_STORAGE_KEYS.ACCESS_TOKEN, token);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEYS.ACCESS_TOKEN);
+    }
+  } catch (e) {
+    console.warn('[apiClient] Failed saving access token to localStorage:', e);
+  }
+};
+
+export const getStoredRefreshToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEYS.REFRESH_TOKEN) || null;
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredRefreshToken = (token) => {
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_STORAGE_KEYS.REFRESH_TOKEN, token);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEYS.REFRESH_TOKEN);
+    }
+  } catch (e) {
+    console.warn('[apiClient] Failed saving refresh token to localStorage:', e);
+  }
+};
+
+export const clearStoredAuth = () => {
+  try {
+    localStorage.removeItem(TOKEN_STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(TOKEN_STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(TOKEN_STORAGE_KEYS.USER);
+  } catch (e) {
+    console.warn('[apiClient] Failed clearing stored auth:', e);
+  }
+};
+
 let isRefreshing = false;
 let refreshSubscribers = [];
 
-const onRefreshed = (success) => {
-  refreshSubscribers.forEach((callback) => callback(success));
+const onRefreshed = (success, newAccessToken = null) => {
+  refreshSubscribers.forEach((callback) => callback(success, newAccessToken));
   refreshSubscribers = [];
 };
 
@@ -33,7 +90,7 @@ export class ApiNetworkError extends Error {
 }
 
 /**
- * Base HTTP request execution with automatic token refresh
+ * Base HTTP request execution with dual-layer token auth & automatic silent refresh
  */
 export async function apiClient(endpoint, options = {}) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
@@ -41,6 +98,12 @@ export async function apiClient(endpoint, options = {}) {
   const defaultHeaders = {};
   if (!(options.body instanceof FormData)) {
     defaultHeaders['Content-Type'] = 'application/json';
+  }
+
+  // Dual-layer: Attach Bearer token from localStorage if available and not already provided
+  const storedAccessToken = getStoredAccessToken();
+  if (storedAccessToken && !options.headers?.Authorization) {
+    defaultHeaders['Authorization'] = `Bearer ${storedAccessToken}`;
   }
 
   const config = {
@@ -55,14 +118,25 @@ export async function apiClient(endpoint, options = {}) {
   try {
     const response = await fetch(url, config);
 
-    // If 401 Unauthorized occurs on protected routes (except during login/refresh)
-    if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh-token')) {
+    // If 401 Unauthorized occurs on protected routes (except during login/refresh) and has not already been retried
+    if (
+      response.status === 401 &&
+      !endpoint.includes('/auth/login') &&
+      !endpoint.includes('/auth/refresh-token') &&
+      !options._retry
+    ) {
       const errorJson = await response.json().catch(() => null);
-      const isTokenExpired =
+      const storedRefreshToken = getStoredRefreshToken();
+
+      // Check if we can attempt a silent refresh
+      const shouldAttemptRefresh =
+        Boolean(storedRefreshToken) ||
         errorJson?.message?.toLowerCase().includes('expired') ||
+        errorJson?.message?.toLowerCase().includes('token') ||
+        errorJson?.message?.toLowerCase().includes('authentication required') ||
         errorJson?.errors?.some((e) => e.code === 'TOKEN_EXPIRED');
 
-      if (isTokenExpired) {
+      if (shouldAttemptRefresh) {
         if (!isRefreshing) {
           isRefreshing = true;
           try {
@@ -70,22 +144,43 @@ export async function apiClient(endpoint, options = {}) {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
+              body: JSON.stringify({
+                refreshToken: storedRefreshToken || undefined,
+              }),
             });
 
             if (refreshRes.ok) {
+              const refreshData = await refreshRes.json().catch(() => null);
+              const freshAccess = refreshData?.data?.accessToken;
+              const freshRefresh = refreshData?.data?.refreshToken;
+
+              if (freshAccess) setStoredAccessToken(freshAccess);
+              if (freshRefresh) setStoredRefreshToken(freshRefresh);
+
               isRefreshing = false;
-              onRefreshed(true);
-              // Replay original request
-              return await apiClient(endpoint, options);
+              onRefreshed(true, freshAccess);
+
+              // Replay original request with fresh token
+              const retryHeaders = { ...options.headers };
+              if (freshAccess) {
+                retryHeaders['Authorization'] = `Bearer ${freshAccess}`;
+              }
+              return await apiClient(endpoint, {
+                ...options,
+                _retry: true,
+                headers: retryHeaders,
+              });
             } else {
               isRefreshing = false;
               onRefreshed(false);
+              clearStoredAuth();
               window.dispatchEvent(new CustomEvent('auth:session-expired'));
               throw new ApiNetworkError('Session expired. Please log in again.', 401, errorJson);
             }
           } catch (refreshErr) {
             isRefreshing = false;
             onRefreshed(false);
+            clearStoredAuth();
             window.dispatchEvent(new CustomEvent('auth:session-expired'));
             throw new ApiNetworkError('Session expired. Please log in again.', 401, errorJson);
           }
@@ -93,10 +188,18 @@ export async function apiClient(endpoint, options = {}) {
 
         // If refresh is already in progress, queue this request
         return new Promise((resolve, reject) => {
-          subscribeTokenRefresh(async (success) => {
+          subscribeTokenRefresh(async (success, freshAccess) => {
             if (success) {
               try {
-                const retryResponse = await apiClient(endpoint, options);
+                const retryHeaders = { ...options.headers };
+                if (freshAccess) {
+                  retryHeaders['Authorization'] = `Bearer ${freshAccess}`;
+                }
+                const retryResponse = await apiClient(endpoint, {
+                  ...options,
+                  _retry: true,
+                  headers: retryHeaders,
+                });
                 resolve(retryResponse);
               } catch (err) {
                 reject(err);
